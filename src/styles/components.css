@@ -124,3 +124,6 @@
 .picker { max-height: 80vh; display: flex; flex-direction: column; }
 .picker-list { overflow-y: auto; margin: 8px 0 12px; }
 .picker-item { width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+
+.history-item { color: inherit; text-decoration: none; min-height: 56px; }
+.back-link { display: inline-flex; align-items: center; color: var(--text); text-decoration: none; }
