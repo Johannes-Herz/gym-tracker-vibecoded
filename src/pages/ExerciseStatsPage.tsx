@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { formatSet, isBodyweight } from '../features/exercises/bodyweight'
 import { bestSet, dayMonth, sessionsFor, type Session } from '../features/stats/exerciseStats'
 import LastComparison from '../features/stats/LastComparison'
@@ -7,14 +7,14 @@ import RangeFilter from '../features/stats/RangeFilter'
 import RepHeatmap from '../features/stats/RepHeatmap'
 import TrendSection from '../features/stats/TrendSection'
 import { formatNumber } from '../lib/format'
+import { useGoUp } from '../lib/useNavSteps'
 import { loadStatsRange, saveStatsRange, type RangeSelection } from '../storage/preferences'
 import { useStore } from '../storage/store'
 import { isCardio } from '../types'
 
 export default function ExerciseStatsPage() {
   const { id = '' } = useParams()
-  const navigate = useNavigate()
-  const location = useLocation()
+  const goUp = useGoUp()
   const data = useStore()
   const [range, setRange] = useState<RangeSelection>(() => loadStatsRange())
 
@@ -25,14 +25,10 @@ export default function ExerciseStatsPage() {
     saveStatsRange(next)
   }
 
-  function back() {
-    if (location.key !== 'default') navigate(-1)
-    else navigate('/statistik', { replace: true })
-  }
 
   const header = (
     <header className="page-header stats-header">
-      <button type="button" className="btn back-link" aria-label="Zurück" onClick={back}>
+      <button type="button" className="btn back-link" aria-label="Zurück" onClick={goUp}>
         ‹
       </button>
       <div className="stats-title">

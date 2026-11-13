@@ -1,19 +1,10 @@
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useGoUp } from '../lib/useNavSteps'
 
-/** Goes back to where the user came from, or to Verlauf when there is no in-app history. */
-export function useBackToHistory(): () => void {
-  const navigate = useNavigate()
-  const location = useLocation()
-  return () => {
-    if (location.key !== 'default') navigate(-1)
-    else navigate('/verlauf', { replace: true })
-  }
-}
-
+/** Back arrow for pages inside Verlauf: goes up to the Verlauf overview. */
 export default function BackToHistory() {
-  const back = useBackToHistory()
+  const up = useGoUp()
   return (
-    <button type="button" className="btn back-link" onClick={back}>
+    <button type="button" className="btn back-link" onClick={up}>
       ‹ Verlauf
     </button>
   )

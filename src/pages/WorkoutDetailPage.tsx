@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import BackToHistory, { useBackToHistory } from '../components/BackToHistory'
+import BackToHistory from '../components/BackToHistory'
+import { useGoUp } from '../lib/useNavSteps'
 import ConfirmDialog from '../components/ConfirmDialog'
 import PageHeader from '../components/PageHeader'
 import WorkoutEditor from '../features/workout/WorkoutEditor'
@@ -13,7 +14,7 @@ let openEditorId: string | null = null
 
 export default function WorkoutDetailPage() {
   const { id = '' } = useParams()
-  const back = useBackToHistory()
+  const back = useGoUp()
   const { workouts: all } = useStore()
   const [confirming, setConfirming] = useState(false)
 

@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
-import { useLocation } from 'react-router-dom'
-import { rememberPath, saveScroll, savedScroll } from './tabMemory'
+import { useLocation, useNavigationType } from 'react-router-dom'
+import { recordNavigation, rememberPath, saveScroll, savedScroll } from './tabMemory'
+import { inTransientStep } from './useNavSteps'
 
 const MAX_RESTORE_FRAMES = 30
 
@@ -14,6 +15,15 @@ export function useTabMemory(): void {
   const key = location.pathname + location.search
   const current = useRef(key)
   const restoring = useRef(false)
+  const navigationType = useNavigationType()
+  const prevEntry = useRef<{ key: string; pathname: string } | null>(null)
+
+  // Remember which page lies below each history entry (used to go "up").
+  useLayoutEffect(() => {
+    const below = (location.state as { below?: string } | null)?.below
+    recordNavigation(navigationType, location.key, prevEntry.current, below)
+    prevEntry.current = { key: location.key, pathname: location.pathname }
+  }, [location.key]) // runs once per history entry
 
   useEffect(() => {
     const onScroll = () => {
@@ -25,7 +35,7 @@ export function useTabMemory(): void {
 
   useLayoutEffect(() => {
     current.current = key
-    rememberPath(location.pathname, location.search)
+    if (!inTransientStep()) rememberPath(location.pathname, location.search)
 
     const target = savedScroll(key)
     restoring.current = true

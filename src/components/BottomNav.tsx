@@ -1,6 +1,7 @@
 import type { MouseEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { navTarget, saveScroll, tabOf, type TabRoot } from '../lib/tabMemory'
+import { navTarget, saveScroll, tabOf, tabSteps, type TabRoot } from '../lib/tabMemory'
+import { useRunSteps } from '../lib/useNavSteps'
 
 const ITEMS: { to: TabRoot; label: string; icon: string }[] = [
   { to: '/verlauf', label: 'Verlauf', icon: '📅' },
@@ -10,16 +11,19 @@ const ITEMS: { to: TabRoot; label: string; icon: string }[] = [
 ]
 
 export default function BottomNav() {
-  const { pathname } = useLocation()
-  const activeTab = tabOf(pathname)
+  const location = useLocation()
+  const run = useRunSteps()
+  const activeTab = tabOf(location.pathname)
 
-  // Tapping the active tab while already on its overview just scrolls to the top.
   function onClick(e: MouseEvent, root: TabRoot) {
-    if (activeTab === root && pathname === root) {
-      e.preventDefault()
+    e.preventDefault()
+    if (activeTab === root && location.pathname === root) {
+      // Already on this tab's overview: just scroll to the top.
       saveScroll(root, 0)
       window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
     }
+    run(tabSteps(root, location.key, location.pathname))
   }
 
   return (
@@ -29,7 +33,7 @@ export default function BottomNav() {
         return (
           <Link
             key={item.to}
-            to={navTarget(item.to, pathname)}
+            to={navTarget(item.to, location.pathname)}
             className={active ? 'nav-item active' : 'nav-item'}
             aria-current={active ? 'page' : undefined}
             onClick={(e) => onClick(e, item.to)}
