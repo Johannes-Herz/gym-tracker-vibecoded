@@ -285,7 +285,8 @@ html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
 .heat-bar { height: 8px; border-radius: 4px; }
 .heat-ticks { position: relative; height: 1.2em; font-size: 0.7rem; }
 .heat-ticks span { position: absolute; top: 2px; transform: translateX(-50%); }
-.heat-ticks span:last-child { transform: translateX(-70%); }
+.heat-ticks span:first-child { transform: none; }
+.heat-ticks span:last-child { transform: translateX(-100%); }
 
 .compare { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .compare th, .compare td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--border); vertical-align: top; }
