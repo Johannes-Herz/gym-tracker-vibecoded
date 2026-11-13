@@ -21,20 +21,22 @@ export default function TemplateForm({ template, onDone }: Props) {
   const [ids, setIds] = useState<string[]>(template?.exerciseIds ?? [])
   const [picking, setPicking] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [overwriting, setOverwriting] = useState(false)
 
   const exerciseOf = (id: string) => data.exercises.find((e) => e.id === id)
   const shownIds = ids.filter((id) => exerciseOf(id))
   const canSave = name.trim() !== '' && shownIds.length > 0
 
+  function write() {
+    repo.save(name, shownIds, template?.id)
+    onDone()
+  }
+
   function save() {
     if (!canSave) return
-    if (template) {
-      repo.rename(template.id, name)
-      repo.setExercises(template.id, shownIds)
-    } else {
-      repo.add(name, shownIds)
-    }
-    onDone()
+    // The name identifies a template: ask before replacing a different one.
+    if (repo.findByName(name, template?.id)) setOverwriting(true)
+    else write()
   }
 
   function remove() {
@@ -122,6 +124,17 @@ export default function TemplateForm({ template, onDone }: Props) {
           }}
           onClose={() => setPicking(false)}
         />
+      )}
+      {overwriting && (
+        <ConfirmDialog
+          title="Vorlage überschreiben?"
+          confirmLabel="Überschreiben"
+          danger
+          onConfirm={write}
+          onCancel={() => setOverwriting(false)}
+        >
+          Die Vorlage „{name.trim()}“ existiert bereits und wird überschrieben.
+        </ConfirmDialog>
       )}
       {deleting && (
         <ConfirmDialog

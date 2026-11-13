@@ -136,6 +136,44 @@ describe('templates', () => {
     expect(exercises.remove(e.id)).toBe(true)
   })
 
+  it('finds templates by name: trimmed and case-insensitive, ignoring the edited one', () => {
+    const t = templates.add('Push Tag', ['builtin-squat'])
+    expect(templates.findByName('  push tag ')?.id).toBe(t.id)
+    expect(templates.findByName('Pull Tag')).toBeUndefined()
+    expect(templates.findByName('Push Tag', t.id)).toBeUndefined()
+  })
+
+  it('save creates a new template when the name is free', () => {
+    const t = templates.save(' Beine ', ['builtin-squat'])
+    expect(getState().templates).toEqual([t])
+    expect(t.name).toBe('Beine')
+  })
+
+  it('save overwrites the template with the same name instead of adding a second one', () => {
+    const a = templates.add('Push Tag', ['builtin-squat'])
+    const saved = templates.save('push tag', ['builtin-bench-press', 'builtin-squat', 'builtin-deadlift'])
+    const all = getState().templates
+    expect(all).toHaveLength(1)
+    expect(saved.id).toBe(a.id)
+    expect(all[0]).toMatchObject({
+      name: 'push tag',
+      exerciseIds: ['builtin-bench-press', 'builtin-squat', 'builtin-deadlift'],
+      createdAt: a.createdAt,
+    })
+  })
+
+  it('editing keeps the template, renaming onto another name merges into that one', () => {
+    const a = templates.add('A', ['builtin-squat'])
+    const b = templates.add('B', ['builtin-bench-press'])
+    templates.save('A2', ['builtin-deadlift'], a.id)
+    expect(getState().templates.map((t) => [t.id, t.name])).toEqual([[a.id, 'A2'], [b.id, 'B']])
+    const merged = templates.save('B', ['builtin-deadlift', 'builtin-squat'], a.id)
+    const all = getState().templates
+    expect(all).toHaveLength(1)
+    expect(merged.id).toBe(b.id)
+    expect(all[0].exerciseIds).toEqual(['builtin-deadlift', 'builtin-squat'])
+  })
+
   it('keeps hidden exercises in a template', () => {
     const t = templates.add('T', ['builtin-squat'])
     exercises.setHidden('builtin-squat', true)

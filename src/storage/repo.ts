@@ -93,7 +93,43 @@ export const templates = {
   remove(id: string): void {
     update((d) => ({ ...d, templates: d.templates.filter((t) => t.id !== id) }))
   },
+  /** The template with this name (the name is the identity: trimmed, case-insensitive), ignoring `exceptId`. */
+  findByName(name: string, exceptId?: string): Template | undefined {
+    const key = normalizeName(name)
+    return getState().templates.find((t) => t.id !== exceptId && normalizeName(t.name) === key)
+  },
+  /**
+   * Saves a template under a unique name. If another template already has the
+   * name, it is overwritten (name casing and exercises replaced). `editingId` is
+   * the template being edited, if any: it is renamed in place, or removed when
+   * its new name belongs to another template (the two merge into that one).
+   */
+  save(name: string, exerciseIds: string[], editingId?: string): Template {
+    const now = new Date().toISOString()
+    const trimmed = name.trim()
+    const ids = [...new Set(exerciseIds)]
+    const existing = templates.findByName(trimmed, editingId)
+    const targetId = existing?.id ?? editingId
+    const saved: Template = {
+      id: targetId ?? newId(),
+      name: trimmed,
+      exerciseIds: ids,
+      createdAt: existing?.createdAt ?? getState().templates.find((t) => t.id === editingId)?.createdAt ?? now,
+      updatedAt: now,
+    }
+    update((d) => {
+      const without = d.templates.filter((t) => t.id !== editingId || t.id === targetId)
+      const found = without.some((t) => t.id === saved.id)
+      return {
+        ...d,
+        templates: found ? without.map((t) => (t.id === saved.id ? saved : t)) : [...without, saved],
+      }
+    })
+    return saved
+  },
 }
+
+const normalizeName = (name: string) => name.trim().toLocaleLowerCase('de')
 
 function patch(id: string, changes: Partial<Pick<Template, 'name' | 'exerciseIds'>>): void {
   const updatedAt = new Date().toISOString()

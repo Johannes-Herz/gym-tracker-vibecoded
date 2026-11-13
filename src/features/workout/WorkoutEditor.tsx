@@ -15,6 +15,7 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
   const [picking, setPicking] = useState(false)
   const [namingTemplate, setNamingTemplate] = useState<string | null>(null)
   const [savedAs, setSavedAs] = useState<string | null>(null)
+  const [overwriting, setOverwriting] = useState<string | null>(null)
 
   const workout = data.workouts.find((w) => w.id === workoutId)
   if (!workout) return <p className="muted">Training nicht gefunden.</p>
@@ -25,12 +26,19 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
   for (const s of workoutSets) groups.set(s.exerciseId, [...(groups.get(s.exerciseId) ?? []), s])
   const orderIds = [...groups.keys()]
 
+  function writeTemplate(name: string) {
+    templates.save(name, exerciseOrder(workoutSets))
+    setNamingTemplate(null)
+    setOverwriting(null)
+    setSavedAs(name)
+  }
+
   function saveAsTemplate() {
     const name = (namingTemplate ?? '').trim()
     if (!name) return
-    templates.add(name, exerciseOrder(workoutSets))
-    setNamingTemplate(null)
-    setSavedAs(name)
+    // The name identifies a template: ask before replacing an existing one.
+    if (templates.findByName(name)) setOverwriting(name)
+    else writeTemplate(name)
   }
 
   function addExercise(exercise: Exercise) {
@@ -95,6 +103,18 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
           />
         </label>
       </div>
+
+      {overwriting !== null && (
+        <ConfirmDialog
+          title="Vorlage überschreiben?"
+          confirmLabel="Überschreiben"
+          danger
+          onConfirm={() => writeTemplate(overwriting)}
+          onCancel={() => setOverwriting(null)}
+        >
+          Die Vorlage „{overwriting}“ existiert bereits und wird mit den Übungen dieses Trainings überschrieben.
+        </ConfirmDialog>
+      )}
 
       {namingTemplate !== null && (
         <ConfirmDialog
