@@ -67,3 +67,29 @@
 - [x] Bodyweight labels "BW", "+5 kg", long form "Körpergewicht + 5 kg"; one formatter
 - [x] Trend charts show units on axis and tooltip (German number format; Volumen in t from 10 000 kg)
 - [x] Each tab remembers its last route, scroll position and view state for the session
+
+## Phase 12: Workout templates — PLANNED
+Templates are a starting point only: a name plus an ordered list of exercises (no sets/weights). The result is a normal workout.
+
+### Decisions
+- **Suggestions rule:** a set the app fills in (template start, "+ Satz", "+ Übung") is a *suggestion* (`WorkoutSet.suggested: true`), shown greyed out with a ✓. Sets the user types values into are real. Confirm via ✓ per set or by editing weight/reps.
+- Template start: each exercise gets the sets of its last session as suggestions; no history = one empty set (becomes real once a value is entered).
+- "+ Übung": one suggestion (last set of the last session). "+ Satz": one suggestion (copy of the previous set).
+- Suggestions are not real data: ignored by stats, history counts, prefill and "last session" lookups (one shared selector). A workout without confirmed sets counts as empty (not saved / pruned).
+- Unconfirmed sets survive a reload and are deleted when leaving the editor.
+- Template management: "Übungen | Vorlagen" toggle in the Übungen tab (no new bottom-nav tab); edit page `/uebungen/vorlage/:id`.
+- "+" in Verlauf opens a small sheet ("Leeres Training" / templates); with no templates it goes straight to the empty workout.
+- Hidden exercises stay in templates and are still used when starting a workout. A custom exercise used only by a template cannot be deleted (like exercises with sets).
+- Workout stores `templateId?` and `templateName?` (name copied, survives rename/delete); shown as a label in the editor and the Verlauf list.
+- Editing a workout (add/remove/reorder exercises and sets) never changes the template.
+
+### Steps
+- [ ] 1. Schema v4: `templates`, `Workout.templateId/templateName`, `WorkoutSet.suggested`; migration (`templates: []`) + test, backup export/import validation + test
+- [ ] 2. Template repo (CRUD, exercise-in-use check) + tests
+- [ ] 3. Suggestion logic: shared selector, stats/history/prefill ignore suggestions, empty-workout rules, cleanup on leaving the editor + tests
+- [ ] 4. Editor: suggested styling + ✓, "+ Satz"/"+ Übung" as suggestions, move up/down for exercises
+- [ ] 5. Start from template: "+" sheet in Verlauf (list and calendar), prefill per exercise (cardio, bodyweight, hidden, no history) + tests
+- [ ] 6. Template management: Vorlagen toggle in Übungen, edit page (rename, add via search picker, reorder, remove, delete with confirmation)
+- [ ] 7. "Als Vorlage speichern" from a workout; template label in editor and Verlauf
+- [ ] 8. Demo data: Push / Pull / Beine templates, some demo workouts labeled
+- [ ] 9. Phone-width check (~360px), mark phase done
