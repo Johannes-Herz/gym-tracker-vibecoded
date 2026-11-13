@@ -104,18 +104,6 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
         </label>
       </div>
 
-      {overwriting !== null && (
-        <ConfirmDialog
-          title="Vorlage überschreiben?"
-          confirmLabel="Überschreiben"
-          danger
-          onConfirm={() => writeTemplate(overwriting)}
-          onCancel={() => setOverwriting(null)}
-        >
-          Die Vorlage „{overwriting}“ existiert bereits und wird mit den Übungen dieses Trainings überschrieben.
-        </ConfirmDialog>
-      )}
-
       {namingTemplate !== null && (
         <ConfirmDialog
           title="Als Vorlage speichern"
@@ -135,6 +123,18 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
               />
             </label>
           </div>
+        </ConfirmDialog>
+      )}
+
+      {overwriting !== null && (
+        <ConfirmDialog
+          title="Vorlage überschreiben?"
+          confirmLabel="Überschreiben"
+          danger
+          onConfirm={() => writeTemplate(overwriting)}
+          onCancel={() => setOverwriting(null)}
+        >
+          Die Vorlage „{overwriting}“ existiert bereits und wird mit den Übungen dieses Trainings überschrieben.
         </ConfirmDialog>
       )}
 
