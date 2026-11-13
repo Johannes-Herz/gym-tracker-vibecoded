@@ -199,7 +199,6 @@ html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
   vertical-align: middle;
 }
 .list-item.is-hidden { opacity: 0.55; }
-.day-add { display: flex; align-items: center; justify-content: center; margin-top: 8px; text-decoration: none; color: var(--text); }
 .fab-spacer { height: 72px; }
 .fab {
   position: fixed;

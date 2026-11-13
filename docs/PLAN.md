@@ -40,3 +40,10 @@
 - [x] Set rows use the full card width (weight stepper, reps typed)
 - [x] Weight steps of 1.25 kg
 - [x] Training tab removed: "+" in Verlauf (list and calendar), draft until first exercise, delete in editor
+
+## Phase 8: Fixes, cardio, stats cleanup — IN PROGRESS
+- [ ] Kalender: only the floating "+" creates workouts (text button removed)
+- [ ] No empty workouts: removed when leaving the editor; schema v3 prunes existing ones
+- [ ] Muscle group statistics removed
+- [ ] Cardio: muscle group "Cardio", entries with duration (min) + optional distance (km), 6 built-ins
+- [ ] Cardio in editor, exercise list/picker, per-exercise stats and demo data
