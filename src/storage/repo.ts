@@ -1,5 +1,5 @@
 import { newId } from '../lib/id'
-import type { Equipment, Exercise, MuscleGroup, Workout, WorkoutSet } from '../types'
+import type { Equipment, Exercise, MuscleGroup, Template, Workout, WorkoutSet } from '../types'
 import { getState, update } from './store'
 
 /** Value fields of a set: weight × reps for strength, duration/distance for cardio. */
@@ -57,12 +57,49 @@ export const exercises = {
   isInUse(id: string): boolean {
     return getState().sets.some((s) => s.exerciseId === id)
   },
-  /** Returns false (and deletes nothing) for built-ins and exercises used by any set. */
+  isInTemplate(id: string): boolean {
+    return getState().templates.some((t) => t.exerciseIds.includes(id))
+  },
+  /** Returns false (and deletes nothing) for built-ins and exercises used by any set or template. */
   remove(id: string): boolean {
-    if (isBuiltin(id) || exercises.isInUse(id)) return false
+    if (isBuiltin(id) || exercises.isInUse(id) || exercises.isInTemplate(id)) return false
     update((d) => ({ ...d, exercises: d.exercises.filter((e) => e.id !== id) }))
     return true
   },
+}
+
+export const templates = {
+  /** Creates a template; duplicate exercise ids are dropped (keeping the first). */
+  add(name: string, exerciseIds: string[] = []): Template {
+    const now = new Date().toISOString()
+    const template: Template = {
+      id: newId(),
+      name: name.trim(),
+      exerciseIds: [...new Set(exerciseIds)],
+      createdAt: now,
+      updatedAt: now,
+    }
+    update((d) => ({ ...d, templates: [...d.templates, template] }))
+    return template
+  },
+  rename(id: string, name: string): void {
+    patch(id, { name: name.trim() })
+  },
+  /** Replaces the ordered exercise list. */
+  setExercises(id: string, exerciseIds: string[]): void {
+    patch(id, { exerciseIds: [...new Set(exerciseIds)] })
+  },
+  remove(id: string): void {
+    update((d) => ({ ...d, templates: d.templates.filter((t) => t.id !== id) }))
+  },
+}
+
+function patch(id: string, changes: Partial<Pick<Template, 'name' | 'exerciseIds'>>): void {
+  const updatedAt = new Date().toISOString()
+  update((d) => ({
+    ...d,
+    templates: d.templates.map((t) => (t.id === id ? { ...t, ...changes, updatedAt } : t)),
+  }))
 }
 
 export const workouts = {

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { exercises, sets, workouts } from './repo'
+import { exercises, sets, templates, workouts } from './repo'
 import { _resetCache, getState } from './store'
 
 const byId = (id: string) => getState().exercises.find((e) => e.id === id)
@@ -88,5 +88,58 @@ describe('workout rules', () => {
     expect(state.workouts.map((w) => w.id)).toEqual([b.id])
     expect(state.sets.every((s) => s.workoutId === b.id)).toBe(true)
     expect(state.sets).toHaveLength(1)
+  })
+})
+
+describe('templates', () => {
+  beforeEach(() => {
+    const mem = new Map<string, string>()
+    ;(globalThis as { localStorage?: unknown }).localStorage = {
+      getItem: (k: string) => mem.get(k) ?? null,
+      setItem: (k: string, v: string) => void mem.set(k, v),
+      removeItem: (k: string) => void mem.delete(k),
+    }
+    _resetCache()
+  })
+
+  afterEach(() => {
+    delete (globalThis as { localStorage?: unknown }).localStorage
+    _resetCache()
+  })
+
+  it('creates a template with trimmed name and de-duplicated ordered exercises', () => {
+    const t = templates.add(' Push Tag ', ['builtin-squat', 'builtin-bench-press', 'builtin-squat'])
+    expect(getState().templates).toEqual([t])
+    expect(t.name).toBe('Push Tag')
+    expect(t.exerciseIds).toEqual(['builtin-squat', 'builtin-bench-press'])
+  })
+
+  it('renames, reorders and deletes; other templates stay untouched', () => {
+    const a = templates.add('A', ['builtin-squat'])
+    const b = templates.add('B', ['builtin-bench-press'])
+    templates.rename(a.id, ' Beine ')
+    templates.setExercises(a.id, ['builtin-bench-press', 'builtin-squat'])
+    const [ta, tb] = getState().templates
+    expect(ta).toMatchObject({ name: 'Beine', exerciseIds: ['builtin-bench-press', 'builtin-squat'] })
+    expect(ta.updatedAt >= a.updatedAt).toBe(true)
+    expect(tb).toEqual(b)
+    templates.remove(a.id)
+    expect(getState().templates).toEqual([b])
+  })
+
+  it('blocks deleting a custom exercise that only a template uses', () => {
+    const e = exercises.add({ name: 'Eigene', muscleGroup: 'Bauch', category: '' })
+    const t = templates.add('T', [e.id])
+    expect(exercises.isInTemplate(e.id)).toBe(true)
+    expect(exercises.remove(e.id)).toBe(false)
+    templates.remove(t.id)
+    expect(exercises.remove(e.id)).toBe(true)
+  })
+
+  it('keeps hidden exercises in a template', () => {
+    const t = templates.add('T', ['builtin-squat'])
+    exercises.setHidden('builtin-squat', true)
+    expect(getState().templates[0].exerciseIds).toEqual(['builtin-squat'])
+    expect(t.id).toBe(getState().templates[0].id)
   })
 })
