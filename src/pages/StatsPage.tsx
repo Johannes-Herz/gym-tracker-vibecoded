@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import PageHeader from '../components/PageHeader'
 import BodyWeightTab from '../features/stats/BodyWeightTab'
+import CalendarTab from '../features/stats/CalendarTab'
 import ExerciseProgressTab from '../features/stats/ExerciseProgressTab'
 import GroupsTab from '../features/stats/GroupsTab'
 
@@ -36,7 +37,7 @@ export default function StatsPage() {
       {tab === 'exercise' && <ExerciseProgressTab />}
       {tab === 'groups' && <GroupsTab />}
       {tab === 'body' && <BodyWeightTab />}
-      {tab === 'calendar' && <p className="muted">Kommt bald.</p>}
+      {tab === 'calendar' && <CalendarTab />}
     </>
   )
 }
