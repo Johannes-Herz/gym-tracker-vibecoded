@@ -7,6 +7,7 @@ import { getState, useStore } from '../../storage/store'
 import type { Exercise, WorkoutSet } from '../../types'
 import ExerciseBlock from './ExerciseBlock'
 import ExerciseSearchSheet from '../exercises/ExerciseSearchSheet'
+import RestTimer from '../timer/RestTimer'
 import { initialValues } from './prefill'
 import { recentExerciseIds } from './recent'
 
@@ -49,6 +50,7 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
 
   return (
     <>
+      <RestTimer />
       <div className="card form">
         <label>
           Datum und Uhrzeit

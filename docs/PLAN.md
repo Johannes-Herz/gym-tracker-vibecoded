@@ -114,3 +114,19 @@ EZ bar exercises ("SZ-Stange" is the common German gym term) plus a consistent n
 - [x] 4. Schema v5 + migration test
 - [x] 5. Demo data uses SZ-Curls and French Press
 - [ ] 6. Phone-width check of the equipment filter (6 values)
+
+## Phase 14: Rest timer in the workout editor — DONE
+A quick rest timer: not saved, not part of the workout data or the export, not linked to an exercise.
+
+### Decisions
+- UI: a docked 48 px bar directly above the bottom nav (only in the workout editor; the page gets extra bottom padding so it never covers content) and a bottom sheet with presets (1/2/3/5/10 min, start immediately), large mm:ss, −30 s / +30 s (before, during and paused; never below 0), Pause/Weiter, Stopp/Zurücksetzen. Closing the sheet keeps the timer running; the bar then shows the remaining time.
+- Logic is timestamp based (`endAt` from `Date.now()`), so it is correct after the app was in the background. On return after the end it shows 0:00 and the flash immediately; the beep is skipped if the end was more than 10 s ago.
+- State lives in a module-level store (`src/features/timer/timerStore.ts`, `useSyncExternalStore`). Leaving the editor keeps the timer running silently; sound/vibration fire only while an editor is mounted.
+- Signal at 0:00: flashing bar/display (reduced-motion: static color), a generated beep (WAV data URI in an `<audio>` element, unlocked silently by the Start tap; not muted by the iOS silent switch, to be verified on device), `navigator.vibrate` where available. Screen Wake Lock while a timer runs (best effort).
+- Will NOT work: sound, vibration or flash while the phone is locked or the app is in the background; vibration on iPhone; no notifications (would need a push server and permission).
+
+### Steps
+- [x] 1. Pure timer logic (`timerCore.ts`) + tests
+- [x] 2. Store, generated beep, vibration, wake lock + tests
+- [x] 3. Docked bar and bottom sheet, CSS, mounted in `WorkoutEditor`
+- [x] 4. Phone-width check (360 px, light and dark, headless Chrome); device checks still to do by hand: iOS silent switch, Android vibration, wake lock in the installed iOS PWA

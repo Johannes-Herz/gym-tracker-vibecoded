@@ -316,3 +316,85 @@ html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
 .template-exercises { margin-bottom: 12px; }
 .template-exercises .list-item { padding: 6px 8px 6px 12px; }
 .template-exercises .btn { min-width: 36px; padding: 0; }
+
+/* Rest timer: docked bar above the bottom nav + bottom sheet (workout editor only). */
+.has-timer-bar .page {
+  padding-bottom: calc(var(--nav-h) + 48px + 24px + env(safe-area-inset-bottom));
+}
+.timer-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  height: 48px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  z-index: 6;
+}
+.timer-bar-btn {
+  width: 100%;
+  max-width: 640px;
+  height: 48px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+}
+.timer-bar.running .timer-bar-time,
+.timer-bar.paused .timer-bar-time { font-variant-numeric: tabular-nums; font-size: 1.15rem; color: var(--primary); }
+.timer-bar.finished { animation: timer-flash 0.8s ease-in-out infinite; }
+
+.timer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+.timer-sheet {
+  width: 100%;
+  max-width: 640px;
+  background: var(--surface);
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+}
+.timer-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.timer-sheet-head h2 { margin: 0; font-size: 1.1rem; }
+.timer-display-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.timer-adjust { flex: none; min-width: 64px; min-height: 52px; }
+.timer-display {
+  flex: 1;
+  text-align: center;
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.timer-sheet.finished .timer-display { animation: timer-flash-text 0.8s ease-in-out infinite; }
+.timer-status { text-align: center; margin: 0 0 8px; min-height: 1.3em; }
+.timer-presets { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-bottom: 12px; }
+.timer-presets .btn { padding: 0; min-height: 48px; }
+.timer-controls { display: flex; gap: 8px; }
+.timer-controls .btn { min-height: 48px; }
+.timer-controls .btn:disabled { opacity: 0.5; }
+
+@keyframes timer-flash {
+  0%, 100% { background: var(--surface); }
+  50% { background: var(--primary); color: #fff; }
+}
+@keyframes timer-flash-text {
+  0%, 100% { color: var(--text); }
+  50% { color: var(--danger); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .timer-bar.finished { animation: none; background: var(--primary); }
+  .timer-bar.finished .timer-bar-btn { color: #fff; }
+  .timer-sheet.finished .timer-display { animation: none; color: var(--danger); }
+}
