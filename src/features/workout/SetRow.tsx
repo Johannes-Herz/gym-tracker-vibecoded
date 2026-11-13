@@ -6,9 +6,10 @@ interface Props {
   set: WorkoutSet
   index: number
   cardio: boolean
+  bodyweight: boolean
 }
 
-export default function SetRow({ set, index, cardio }: Props) {
+export default function SetRow({ set, index, cardio, bodyweight }: Props) {
   return (
     <div className={cardio ? 'set-row cardio' : 'set-row'}>
       <span className="set-index muted">{index + 1}</span>
@@ -34,12 +35,25 @@ export default function SetRow({ set, index, cardio }: Props) {
         </>
       ) : (
         <>
-          <NumberStepper
-            label="Gewicht"
-            step={1.25}
-            value={set.weight}
-            onChange={(weight) => sets.update(set.id, { weight })}
-          />
+          {bodyweight ? (
+            // Added weight; empty/0 = bodyweight only ("KG"), negative = assisted.
+            <NumberStepper
+              label="Zusatzgewicht"
+              step={1.25}
+              min={-100}
+              placeholder="KG"
+              value={set.weight === 0 ? undefined : set.weight}
+              onChange={(weight) => sets.update(set.id, { weight })}
+              onClear={() => sets.update(set.id, { weight: 0 })}
+            />
+          ) : (
+            <NumberStepper
+              label="Gewicht"
+              step={1.25}
+              value={set.weight}
+              onChange={(weight) => sets.update(set.id, { weight })}
+            />
+          )}
           <NumberStepper
             label="Wiederholungen"
             step={1}

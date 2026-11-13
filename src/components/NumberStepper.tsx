@@ -12,6 +12,7 @@ interface Props {
   /** Show −/+ buttons (default true). Without them it is a plain input. */
   buttons?: boolean
   inputMode?: 'decimal' | 'numeric'
+  placeholder?: string
   onChange: (value: number) => void
   /** If set, clearing the input is allowed and reported here. */
   onClear?: () => void
@@ -25,6 +26,7 @@ export default function NumberStepper({
   min = 0,
   buttons = true,
   inputMode = 'decimal',
+  placeholder,
   onChange,
   onClear,
 }: Props) {
@@ -52,6 +54,7 @@ export default function NumberStepper({
       <input
         aria-label={label}
         inputMode={inputMode}
+        placeholder={placeholder}
         value={draft ?? (value === undefined ? '' : formatNumber(value))}
         onChange={(e) => handleInput(e.target.value)}
         onFocus={(e) => e.target.select()}

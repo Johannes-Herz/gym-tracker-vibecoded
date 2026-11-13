@@ -66,6 +66,15 @@ describe('parseImport', () => {
     expect(withSet({ ...set, id: 's2', durationMin: 10 }).ok).toBe(false)
   })
 
+  it('allows negative (assisted) weight only for bodyweight exercises', () => {
+    const pullUp = { id: 'p1', workoutId: 'w1', exerciseId: 'builtin-pull-up', order: 1, weight: -20, reps: 6 }
+    const withSet = (s: object) => mutate((b) => { (b.data.sets as object[]).push(s) })
+    expect(withSet(pullUp).ok).toBe(true)
+    expect(withSet({ ...pullUp, weight: 10 }).ok).toBe(true)
+    expect(withSet({ ...pullUp, weight: -250 }).ok).toBe(false)
+    expect(withSet({ ...pullUp, exerciseId: 'builtin-bench-press' }).ok).toBe(false)
+  })
+
   it('rejects invalid new exercise fields', () => {
     expect(mutate((b) => { (b.data.exercises[0] as { source: unknown }).source = 'x' }).ok).toBe(false)
     expect(mutate((b) => { (b.data.exercises[0] as { equipment: unknown }).equipment = 'Hantel' }).ok).toBe(false)
