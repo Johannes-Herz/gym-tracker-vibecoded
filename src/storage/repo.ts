@@ -63,6 +63,24 @@ export const workouts = {
   },
 }
 
+export const bodyWeights = {
+  /** One entry per date: saving an existing date overwrites its weight. */
+  save(date: string, weightKg: number): void {
+    update((d) => {
+      const existing = d.bodyWeights.find((b) => b.date === date)
+      return {
+        ...d,
+        bodyWeights: existing
+          ? d.bodyWeights.map((b) => (b.id === existing.id ? { ...b, weightKg } : b))
+          : [...d.bodyWeights, { id: newId(), date, weightKg }],
+      }
+    })
+  },
+  remove(id: string): void {
+    update((d) => ({ ...d, bodyWeights: d.bodyWeights.filter((b) => b.id !== id) }))
+  },
+}
+
 export const sets = {
   add(input: { workoutId: string; exerciseId: string; weight: number; reps: number }): WorkoutSet {
     const order = getState().sets.filter((s) => s.workoutId === input.workoutId).length
