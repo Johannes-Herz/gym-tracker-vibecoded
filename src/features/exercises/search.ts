@@ -1,15 +1,26 @@
-import { MUSCLE_GROUPS, type Exercise, type MuscleGroup } from '../../types'
+import { equipmentLabelsAll, muscleLabelsAll } from '../../i18n/labels'
+import { MUSCLE_GROUPS, type Equipment, type Exercise, type MuscleGroup } from '../../types'
+import { byDisplayName } from './exerciseName'
 
-/** Case-insensitive match on German name, English alias, extra aliases and muscle group. */
+/**
+ * Case-insensitive match on German name, English name, extra aliases and the
+ * muscle group / equipment in both languages: independent of the UI language.
+ */
 export function matchesQuery(e: Exercise, query: string): boolean {
   const q = query.trim().toLocaleLowerCase('de')
   if (!q) return true
-  return [e.name, e.aliasEn ?? '', ...(e.aliases ?? []), e.muscleGroup].some((s) => s.toLocaleLowerCase('de').includes(q))
+  const terms = [
+    e.name,
+    e.aliasEn ?? '',
+    ...(e.aliases ?? []),
+    ...muscleLabelsAll(e.muscleGroup),
+    ...(e.equipment ? equipmentLabelsAll(e.equipment as Equipment) : []),
+  ]
+  return terms.some((s) => s.toLocaleLowerCase('de').includes(q))
 }
 
-export function byName(a: Exercise, b: Exercise): number {
-  return a.name.localeCompare(b.name, 'de')
-}
+/** Sort by name in the UI language. */
+export const byName = byDisplayName
 
 export interface SearchSection {
   title: string | null

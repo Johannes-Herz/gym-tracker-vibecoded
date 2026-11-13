@@ -5,4 +5,20 @@
  */
 export const de = {
   'settings.language': 'Sprache',
+
+  // Stored values are German; these are the display labels.
+  'muscle.Brust': 'Brust',
+  'muscle.Rücken': 'Rücken',
+  'muscle.Beine': 'Beine',
+  'muscle.Schultern': 'Schultern',
+  'muscle.Bizeps': 'Bizeps',
+  'muscle.Trizeps': 'Trizeps',
+  'muscle.Bauch': 'Bauch',
+  'muscle.Cardio': 'Cardio',
+  'equipment.Langhantel': 'Langhantel',
+  'equipment.Kurzhantel': 'Kurzhantel',
+  'equipment.Maschine': 'Maschine',
+  'equipment.Kabelzug': 'Kabelzug',
+  'equipment.SZ-Stange': 'SZ-Stange',
+  'equipment.Körpergewicht': 'Körpergewicht',
 } as const
