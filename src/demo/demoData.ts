@@ -62,12 +62,12 @@ export function buildDemoData({ builtins, today = new Date(), seed = DEMO_SEED, 
     {
       // Push
       core: [t('builtin-bench-press', 70, 1.25), t('builtin-overhead-press', 42.5, 0.6), t('builtin-incline-dumbbell-press', 24, 0.4, 2)],
-      extras: [t('builtin-lateral-raise', 8, 0.2, 2), t('builtin-triceps-pushdown', 25, 0.5), t(arnoldId, 16, 0.3, 2), bw('builtin-dips', 10, 0.3, { style: 'main', start: 5, perWeek: 0.75, fromWeek: 0 })],
+      extras: [t('builtin-lateral-raise', 8, 0.2, 2), t('builtin-triceps-pushdown', 25, 0.5), t('builtin-skull-crusher', 30, 0.4), t(arnoldId, 16, 0.3, 2), bw('builtin-dips', 10, 0.3, { style: 'main', start: 5, perWeek: 0.75, fromWeek: 0 })],
     },
     {
       // Pull (deadlift is added on every other pull day)
       core: [t('builtin-lat-pulldown', 55, 0.8), t('builtin-barbell-row', 60, 1)],
-      extras: [t('builtin-face-pull', 20, 0.4), t('builtin-barbell-curl', 30, 0.5), t('builtin-hammer-curl', 12, 0.25, 2), bw('builtin-pull-up', 6, 0.35, { style: 'top', start: 2.5, perWeek: 0.4, fromWeek: 2 })],
+      extras: [t('builtin-face-pull', 20, 0.4), t('builtin-ez-curl', 27.5, 0.5), t('builtin-hammer-curl', 12, 0.25, 2), bw('builtin-pull-up', 6, 0.35, { style: 'top', start: 2.5, perWeek: 0.4, fromWeek: 2 })],
     },
     {
       // Legs
@@ -89,7 +89,7 @@ export function buildDemoData({ builtins, today = new Date(), seed = DEMO_SEED, 
     },
     {
       name: 'Pull Tag',
-      exerciseIds: ['builtin-lat-pulldown', 'builtin-barbell-row', 'builtin-face-pull', 'builtin-barbell-curl'],
+      exerciseIds: ['builtin-lat-pulldown', 'builtin-barbell-row', 'builtin-face-pull', 'builtin-ez-curl'],
     },
     {
       name: 'Beine',
