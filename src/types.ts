@@ -38,6 +38,17 @@ export interface Workout {
   id: string
   startedAt: string // ISO
   note?: string
+  templateId?: string // workout was started from this template
+  templateName?: string // copied at start, survives rename/delete of the template
+}
+
+/** Reusable routine: a name and an ordered list of exercises (no sets/weights). */
+export interface Template {
+  id: string
+  name: string
+  exerciseIds: string[]
+  createdAt: string // ISO
+  updatedAt: string // ISO
 }
 
 export interface WorkoutSet {
@@ -49,6 +60,7 @@ export interface WorkoutSet {
   reps: number // 0 for cardio
   durationMin?: number // cardio only, required there
   distanceKm?: number // cardio only, optional
+  suggested?: true // prefilled by the app, not yet confirmed by the user; not real data
 }
 
 export interface BodyWeightEntry {
@@ -63,4 +75,5 @@ export interface AppData {
   workouts: Workout[]
   sets: WorkoutSet[]
   bodyWeights: BodyWeightEntry[]
+  templates: Template[]
 }

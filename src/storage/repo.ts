@@ -1,5 +1,6 @@
+import { moveExercise } from '../lib/exerciseOrder'
 import { newId } from '../lib/id'
-import type { Equipment, Exercise, MuscleGroup, Workout, WorkoutSet } from '../types'
+import type { Equipment, Exercise, MuscleGroup, Template, Workout, WorkoutSet } from '../types'
 import { getState, update } from './store'
 
 /** Value fields of a set: weight × reps for strength, duration/distance for cardio. */
@@ -57,12 +58,49 @@ export const exercises = {
   isInUse(id: string): boolean {
     return getState().sets.some((s) => s.exerciseId === id)
   },
-  /** Returns false (and deletes nothing) for built-ins and exercises used by any set. */
+  isInTemplate(id: string): boolean {
+    return getState().templates.some((t) => t.exerciseIds.includes(id))
+  },
+  /** Returns false (and deletes nothing) for built-ins and exercises used by any set or template. */
   remove(id: string): boolean {
-    if (isBuiltin(id) || exercises.isInUse(id)) return false
+    if (isBuiltin(id) || exercises.isInUse(id) || exercises.isInTemplate(id)) return false
     update((d) => ({ ...d, exercises: d.exercises.filter((e) => e.id !== id) }))
     return true
   },
+}
+
+export const templates = {
+  /** Creates a template; duplicate exercise ids are dropped (keeping the first). */
+  add(name: string, exerciseIds: string[] = []): Template {
+    const now = new Date().toISOString()
+    const template: Template = {
+      id: newId(),
+      name: name.trim(),
+      exerciseIds: [...new Set(exerciseIds)],
+      createdAt: now,
+      updatedAt: now,
+    }
+    update((d) => ({ ...d, templates: [...d.templates, template] }))
+    return template
+  },
+  rename(id: string, name: string): void {
+    patch(id, { name: name.trim() })
+  },
+  /** Replaces the ordered exercise list. */
+  setExercises(id: string, exerciseIds: string[]): void {
+    patch(id, { exerciseIds: [...new Set(exerciseIds)] })
+  },
+  remove(id: string): void {
+    update((d) => ({ ...d, templates: d.templates.filter((t) => t.id !== id) }))
+  },
+}
+
+function patch(id: string, changes: Partial<Pick<Template, 'name' | 'exerciseIds'>>): void {
+  const updatedAt = new Date().toISOString()
+  update((d) => ({
+    ...d,
+    templates: d.templates.map((t) => (t.id === id ? { ...t, ...changes, updatedAt } : t)),
+  }))
 }
 
 export const workouts = {
@@ -81,9 +119,21 @@ export const workouts = {
    * Creates a workout together with its first set in one update, so a new
    * workout is only ever saved once it has content.
    */
-  createWithFirstExercise(startedAt: string, exerciseId: string, values: SetValues): Workout {
+  createWithFirstExercise(
+    startedAt: string,
+    exerciseId: string,
+    values: SetValues,
+    suggested?: true,
+  ): Workout {
     const workout: Workout = { id: newId(), startedAt }
-    const set: WorkoutSet = { id: newId(), workoutId: workout.id, exerciseId, order: 0, ...values }
+    const set: WorkoutSet = {
+      id: newId(),
+      workoutId: workout.id,
+      exerciseId,
+      order: 0,
+      ...values,
+      ...(suggested && { suggested }),
+    }
     update((d) => ({ ...d, workouts: [...d.workouts, workout], sets: [...d.sets, set] }))
     return workout
   },
@@ -92,6 +142,57 @@ export const workouts = {
     if (getState().sets.some((s) => s.workoutId === id)) return
     if (!getState().workouts.some((w) => w.id === id)) return
     update((d) => ({ ...d, workouts: d.workouts.filter((w) => w.id !== id) }))
+  },
+  /**
+   * Creates a workout from a template: all sets are suggestions, and the template
+   * name is stored as label. Returns null (saving nothing) if there are no sets.
+   */
+  createFromTemplate(
+    startedAt: string,
+    template: Pick<Template, 'id' | 'name'>,
+    entries: { exerciseId: string; sets: SetValues[] }[],
+  ): Workout | null {
+    const workout: Workout = {
+      id: newId(),
+      startedAt,
+      templateId: template.id,
+      templateName: template.name,
+    }
+    const created: WorkoutSet[] = []
+    for (const entry of entries) {
+      for (const values of entry.sets) {
+        created.push({
+          id: newId(),
+          workoutId: workout.id,
+          exerciseId: entry.exerciseId,
+          order: created.length,
+          ...values,
+          suggested: true,
+        })
+      }
+    }
+    if (created.length === 0) return null
+    update((d) => ({ ...d, workouts: [...d.workouts, workout], sets: [...d.sets, ...created] }))
+    return workout
+  },
+  /**
+   * Drops all unconfirmed (suggested) sets and the workouts that have no sets
+   * left. Called when the Verlauf list opens, i.e. when no editor is open.
+   */
+  discardSuggestions(): void {
+    const d = getState()
+    if (!d.sets.some((s) => s.suggested)) return
+    update((cur) => {
+      const sets = cur.sets.filter((s) => !s.suggested)
+      const used = new Set(sets.map((s) => s.workoutId))
+      // Only workouts that actually lost sets are candidates; other empty ones are not touched here.
+      const touched = new Set(cur.sets.filter((s) => s.suggested).map((s) => s.workoutId))
+      return {
+        ...cur,
+        sets,
+        workouts: cur.workouts.filter((w) => used.has(w.id) || !touched.has(w.id)),
+      }
+    })
   },
   /** Deletes the workout and all of its sets. */
   remove(id: string): void {
@@ -122,16 +223,49 @@ export const bodyWeights = {
 }
 
 export const sets = {
-  add(input: { workoutId: string; exerciseId: string } & SetValues): WorkoutSet {
+  add(input: { workoutId: string; exerciseId: string; suggested?: true } & SetValues): WorkoutSet {
     const order = getState().sets.filter((s) => s.workoutId === input.workoutId).length
     const set: WorkoutSet = { id: newId(), order, ...input }
     update((d) => ({ ...d, sets: [...d.sets, set] }))
     return set
   },
+  /** Moves an exercise block up (-1) or down (+1) within its workout. */
+  moveExercise(workoutId: string, exerciseId: string, delta: -1 | 1): void {
+    const orders = moveExercise(
+      getState().sets.filter((s) => s.workoutId === workoutId),
+      exerciseId,
+      delta,
+    )
+    if (!orders) return
+    update((d) => ({ ...d, sets: d.sets.map((s) => (orders.has(s.id) ? { ...s, order: orders.get(s.id)! } : s)) }))
+  },
+  /** Removes all sets of one exercise from a workout. */
+  removeExercise(workoutId: string, exerciseId: string): void {
+    update((d) => ({
+      ...d,
+      sets: d.sets.filter((s) => !(s.workoutId === workoutId && s.exerciseId === exerciseId)),
+    }))
+  },
+  /** Editing a value confirms a suggested set. */
   update(id: string, patch: Partial<SetValues>): void {
     update((d) => ({
       ...d,
-      sets: d.sets.map((s) => (s.id === id ? { ...s, ...patch } : s)),
+      sets: d.sets.map((s) => {
+        if (s.id !== id) return s
+        const { suggested: _suggested, ...rest } = s
+        return { ...rest, ...patch }
+      }),
+    }))
+  },
+  /** Accepts a suggested set as it is. */
+  confirm(id: string): void {
+    update((d) => ({
+      ...d,
+      sets: d.sets.map((s) => {
+        if (s.id !== id) return s
+        const { suggested: _suggested, ...rest } = s
+        return rest
+      }),
     }))
   },
   remove(id: string): void {

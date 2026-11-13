@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import ConfirmDialog from '../components/ConfirmDialog'
 import PageHeader from '../components/PageHeader'
+import ExerciseViewToggle from '../features/templates/ExerciseViewToggle'
 import ExerciseForm from '../features/exercises/ExerciseForm'
 import ExerciseList from '../features/exercises/ExerciseList'
 import { exercises as repo, type ExerciseInput } from '../storage/repo'
@@ -22,6 +23,8 @@ export default function ExercisesPage() {
 
   const categories = [...new Set(exercises.map((e) => e.category).filter(Boolean))].sort()
   const inUse = toDelete ? repo.isInUse(toDelete.id) : false
+  const inTemplate = toDelete ? repo.isInTemplate(toDelete.id) : false
+  const blocked = inUse || inTemplate
   const hiddenCount = exercises.filter((e) => e.hidden).length
   const visible = exercises.filter(
     (e) =>
@@ -38,7 +41,7 @@ export default function ExercisesPage() {
   }
 
   function confirmDelete() {
-    if (toDelete && !inUse) repo.remove(toDelete.id)
+    if (toDelete && !blocked) repo.remove(toDelete.id)
     setToDelete(null)
   }
 
@@ -54,6 +57,8 @@ export default function ExercisesPage() {
           )
         }
       />
+
+      <ExerciseViewToggle view="exercises" />
 
       {mode.kind !== 'idle' && (
         <ExerciseForm
@@ -118,14 +123,14 @@ export default function ExercisesPage() {
 
       {toDelete && (
         <ConfirmDialog
-          title={inUse ? 'Übung wird verwendet' : 'Übung löschen?'}
-          confirmLabel={inUse ? 'OK' : 'Löschen'}
-          danger={!inUse}
+          title={blocked ? 'Übung wird verwendet' : 'Übung löschen?'}
+          confirmLabel={blocked ? 'OK' : 'Löschen'}
+          danger={!blocked}
           onConfirm={confirmDelete}
           onCancel={() => setToDelete(null)}
         >
-          {inUse
-            ? `„${toDelete.name}“ kommt in Trainings vor und kann nicht gelöscht werden.`
+          {blocked
+            ? `„${toDelete.name}“ kommt in ${inUse ? 'Trainings' : 'Vorlagen'} vor und kann nicht gelöscht werden.`
             : `„${toDelete.name}“ wird endgültig gelöscht.`}
         </ConfirmDialog>
       )}

@@ -1,10 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { newWorkoutPath } from '../features/workout/newWorkout'
+import { realSets } from '../lib/realSets'
 import PageHeader from '../components/PageHeader'
 import WorkoutCalendar from '../features/history/WorkoutCalendar'
 import { formatDateTime } from '../lib/format'
+import { workouts as workoutsRepo } from '../storage/repo'
 import { loadHistoryView, saveHistoryView, type HistoryView } from '../storage/preferences'
+import StartWorkoutSheet from '../features/workout/StartWorkoutSheet'
 import { useStore } from '../storage/store'
 
 const monthFormat = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' })
@@ -17,6 +20,14 @@ const VIEWS: { key: HistoryView; label: string }[] = [
 export default function HistoryPage() {
   const [view, setView] = useState<HistoryView>(() => loadHistoryView())
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  const [starting, setStarting] = useState(false)
+  const { templates } = useStore()
+  const dateKey = view === 'calendar' ? selectedDay : null
+
+  // No editor is open here, so unconfirmed suggestions (and workouts left empty by that) can go.
+  useEffect(() => {
+    workoutsRepo.discardSuggestions()
+  }, [])
 
   function choose(next: HistoryView) {
     setView(next)
@@ -43,13 +54,16 @@ export default function HistoryPage() {
       </div>
       {view === 'list' ? <WorkoutList /> : <WorkoutCalendar onSelectDay={setSelectedDay} />}
       <div className="fab-spacer" />
-      <Link
-        to={newWorkoutPath(view === 'calendar' ? selectedDay : null)}
-        className="fab"
-        aria-label="Neues Training"
-      >
-        +
-      </Link>
+      {templates.length === 0 ? (
+        <Link to={newWorkoutPath(dateKey)} className="fab" aria-label="Neues Training">
+          +
+        </Link>
+      ) : (
+        <button type="button" className="fab" aria-label="Neues Training" onClick={() => setStarting(true)}>
+          +
+        </button>
+      )}
+      {starting && <StartWorkoutSheet templates={templates} dateKey={dateKey} onClose={() => setStarting(false)} />}
     </>
   )
 }
@@ -72,7 +86,7 @@ function WorkoutList() {
           <h2 className="group-title">{month}</h2>
           <ul className="list">
             {items.map((w) => {
-              const workoutSets = sets.filter((s) => s.workoutId === w.id)
+              const workoutSets = realSets(sets).filter((s) => s.workoutId === w.id)
               const names = [...new Set(workoutSets.map((s) => s.exerciseId))]
                 .map((id) => exercises.find((e) => e.id === id)?.name)
                 .filter(Boolean)
@@ -80,7 +94,10 @@ function WorkoutList() {
                 <li key={w.id}>
                   <Link to={`/verlauf/${w.id}`} className="list-item history-item">
                     <div className="grow">
-                      <div>{formatDateTime(w.startedAt)}</div>
+                      <div>
+                        {formatDateTime(w.startedAt)}
+                        {w.templateName && <span className="muted small"> · {w.templateName}</span>}
+                      </div>
                       <div className="muted small">
                         {workoutSets.length === 0
                           ? 'Leer'

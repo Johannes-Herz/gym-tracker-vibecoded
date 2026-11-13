@@ -99,7 +99,7 @@
 .block-title { margin: 0 0 8px; font-size: 1.05rem; }
 .set-row {
   display: grid;
-  grid-template-columns: 14px minmax(0, 1fr) minmax(0, 1fr) 36px;
+  grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr) 36px;
   align-items: center;
   gap: 4px;
   margin-bottom: 8px;
@@ -133,9 +133,16 @@
 .back-link { display: inline-flex; align-items: center; color: var(--text); text-decoration: none; }
 
 .set-row .stepper { gap: 2px; }
-.set-row .stepper .btn { min-width: 36px; width: 36px; }
+.set-row .stepper .btn { min-width: 32px; width: 32px; }
 .set-row .stepper input { flex: 1; width: 100%; min-width: 0; padding: 0 2px; }
 .set-row .btn-danger-text { min-width: 36px; }
+/* Suggested (prefilled, unconfirmed) sets: muted values and a ✓ to accept them. */
+.set-row.suggested .stepper input { color: var(--muted); font-style: italic; border-style: dashed; }
+.confirm-set { min-width: 30px; width: 30px; padding: 0; color: var(--primary); border-color: var(--primary); }
+.block-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.block-head .block-title { margin: 0; min-width: 0; padding-top: 8px; }
+.block-actions { display: flex; flex: none; }
+.block-actions .btn { min-width: 36px; padding: 0; }
 .exercise-block { padding: 10px; }
 .set-legend { margin-bottom: 4px; }
 .set-legend span:nth-child(2), .set-legend span:nth-child(3) { text-align: center; }
@@ -201,6 +208,8 @@ html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
   vertical-align: middle;
 }
 .list-item.is-hidden { opacity: 0.55; }
+.start-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; max-height: 60vh; overflow-y: auto; }
+.start-template { display: flex; justify-content: space-between; align-items: center; gap: 8px; text-align: left; }
 .fab-spacer { height: 72px; }
 .fab {
   position: fixed;
@@ -218,6 +227,9 @@ html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
   line-height: 1;
   text-decoration: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border: 0;
+  padding: 0;
+  cursor: pointer;
   z-index: 5;
 }
 
@@ -300,3 +312,7 @@ html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
 .delta-down { color: var(--danger); font-weight: 600; }
 .tag { margin-left: 4px; font-size: 0.65rem; padding: 1px 5px; border-radius: 999px; background: var(--border); color: var(--muted); }
 .chart-compact { height: 180px; }
+
+.template-exercises { margin-bottom: 12px; }
+.template-exercises .list-item { padding: 6px 8px 6px 12px; }
+.template-exercises .btn { min-width: 36px; padding: 0; }

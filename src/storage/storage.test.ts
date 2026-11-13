@@ -130,6 +130,22 @@ describe('migrate', () => {
     expect(data.bodyWeights).toEqual(before.bodyWeights)
   })
 
+  it('v3 -> v4 adds empty templates and leaves existing data untouched', () => {
+    const before = {
+      schemaVersion: 3,
+      exercises: [],
+      workouts: [{ id: 'w1', startedAt: '2026-11-02T10:00:00.000Z', note: 'x' }],
+      sets: [{ id: 's1', workoutId: 'w1', exerciseId: 'builtin-squat', order: 0, weight: 100, reps: 5 }],
+      bodyWeights: [{ id: 'b1', date: '2026-11-01', weightKg: 80 }],
+    }
+    const data = migrate(before)!
+    expect(data.schemaVersion).toBe(4)
+    expect(data.templates).toEqual([])
+    expect(data.workouts).toEqual(before.workouts)
+    expect(data.sets).toEqual(before.sets)
+    expect(data.bodyWeights).toEqual(before.bodyWeights)
+  })
+
   it('is idempotent', () => {
     const once = migrate(v1())!
     expect(migrate(JSON.parse(JSON.stringify(once)))).toEqual(once)

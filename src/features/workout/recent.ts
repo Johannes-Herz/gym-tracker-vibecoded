@@ -1,9 +1,10 @@
+import { realSets } from '../../lib/realSets'
 import type { AppData } from '../../types'
 
 /** IDs of the most recently used exercises, newest workout first, without duplicates. */
 export function recentExerciseIds(data: Pick<AppData, 'workouts' | 'sets'>, limit = 5): string[] {
   const startedAt = new Map(data.workouts.map((w) => [w.id, w.startedAt]))
-  const sets = [...data.sets]
+  const sets = realSets(data.sets)
     .filter((s) => startedAt.has(s.workoutId))
     .sort(
       (a, b) =>
