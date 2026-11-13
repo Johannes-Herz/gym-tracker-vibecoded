@@ -6,7 +6,7 @@ import {
   axisLabels,
   bestSet,
   cellKey,
-  compareLast,
+  compareWithPrevious,
   heatmapData,
   sessionsFor,
   trend,
@@ -99,21 +99,51 @@ describe('bestSet', () => {
   })
 })
 
-describe('compareLast', () => {
-  it('compares the last two sessions set by set', () => {
-    const r = compareLast(sessionsFor(data(), 'builtin-bench-press', { key: 'all' }, now))!
-    expect(r.prev.workoutId).toBe('w2')
-    expect(r.last.workoutId).toBe('w3')
-    expect(r.rows.map((x) => x.improved)).toEqual([true, true, false]) // more weight, more reps at same weight, missing set
+describe('compareWithPrevious', () => {
+  const all = () => sessionsFor(data(), 'builtin-bench-press', { key: 'all' }, now)
+  const deltas = (r: ReturnType<typeof compareWithPrevious>) => r!.rows.map((x) => [x.weightDelta, x.repsDelta])
+
+  it('compares weight and reps per set with the previous session', () => {
+    // w2: 75×6, 75×7, 75×5  →  w3: 80×5, 75×8
+    const r = compareWithPrevious(all(), all())!
+    expect([r.last.workoutId, r.prev?.workoutId]).toEqual(['w3', 'w2'])
+    expect(deltas(r)).toEqual([
+      ['up', 'down'],
+      ['same', 'up'],
+    ])
   })
 
-  it('does not flag a decline or a single session', () => {
-    const s = sessionsFor(data(), 'builtin-bench-press', { key: 'all' }, now).slice(0, 2) // w1 → w2
-    const r = compareLast(s)!
-    expect(r.rows.map((x) => x.improved)).toEqual([true, true, false]) // 70→75 more weight, 75×6→75×7 more reps
-    const decline = compareLast([s[1], s[0]])!
-    expect(decline.rows.every((x) => !x.improved)).toBe(true)
-    expect(compareLast(s.slice(0, 1))).toBeNull()
+  it('detects lighter weight, equal values and sets without counterpart', () => {
+    // w1: 70×8, 75×6  →  w2: 75×6, 75×7, 75×5
+    const s = all()
+    expect(deltas(compareWithPrevious(s, s.slice(0, 2)))).toEqual([
+      ['up', 'down'],
+      ['same', 'up'],
+      ['new', 'new'],
+    ])
+    // reversed order: w2 → w1 means lighter first set
+    const reversed = [s[1], s[0]]
+    expect(deltas(compareWithPrevious(reversed, reversed))[0]).toEqual(['down', 'up'])
+  })
+
+  it('uses the previous session even if it is outside the range', () => {
+    const inRange = sessionsFor(data(), 'builtin-bench-press', { key: 'custom', from: '2026-11-10' }, now)
+    expect(inRange.map((x) => x.workoutId)).toEqual(['w3'])
+    expect(compareWithPrevious(all(), inRange)!.prev?.workoutId).toBe('w2')
+  })
+
+  it('compares added weight for bodyweight and handles a first session', () => {
+    const mk = (id: string, day: number, weights: number[]): Session => ({
+      workoutId: id,
+      startedAt: at(10, day),
+      sets: weights.map((weight, i) => ({ id: id + i, workoutId: id, exerciseId: 'p', order: i, weight, reps: 6 })),
+    })
+    const sessions = [mk('a', 1, [5, 0]), mk('b', 2, [10, 0, -20])]
+    expect(compareWithPrevious(sessions, sessions)!.rows.map((x) => x.weightDelta)).toEqual(['up', 'same', 'new'])
+    const first = compareWithPrevious(sessions.slice(0, 1), sessions.slice(0, 1))!
+    expect(first.prev).toBeNull()
+    expect(first.rows.every((x) => x.weightDelta === 'new' && x.repsDelta === 'new')).toBe(true)
+    expect(compareWithPrevious(sessions, [])).toBeNull()
   })
 })
 

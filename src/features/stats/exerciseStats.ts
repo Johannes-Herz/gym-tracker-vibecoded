@@ -93,31 +93,42 @@ export function bestSet(sessions: Session[], bodyweight: boolean): WorkoutSet | 
   return best
 }
 
+export type Delta = 'up' | 'down' | 'same' | 'new'
+
 export interface ComparisonRow {
   index: number
-  prev?: Pick<WorkoutSet, 'weight' | 'reps'>
-  last?: Pick<WorkoutSet, 'weight' | 'reps'>
-  improved: boolean
+  weight: number
+  reps: number
+  weightDelta: Delta
+  repsDelta: Delta
 }
 
-/** Set-by-set comparison of the last two sessions; null with fewer than two. */
-export function compareLast(sessions: Session[]): { prev: Session; last: Session; rows: ComparisonRow[] } | null {
-  if (sessions.length < 2) return null
-  const prev = sessions[sessions.length - 2]
-  const last = sessions[sessions.length - 1]
-  const rows: ComparisonRow[] = []
-  for (let i = 0; i < Math.max(prev.sets.length, last.sets.length); i++) {
-    const p = prev.sets[i]
-    const l = last.sets[i]
-    const improved = !!p && !!l && (l.weight > p.weight || (l.weight === p.weight && l.reps > p.reps))
-    rows.push({
-      index: i,
-      prev: p && { weight: p.weight, reps: p.reps },
-      last: l && { weight: l.weight, reps: l.reps },
-      improved,
-    })
-  }
-  return { prev, last, rows }
+const delta = (now: number, before: number | undefined): Delta =>
+  before === undefined ? 'new' : now > before ? 'up' : now < before ? 'down' : 'same'
+
+/**
+ * The newest session in the range, set by set against the session directly
+ * before it (regardless of the range). For bodyweight the added weight is compared.
+ */
+export function compareWithPrevious(
+  allSessions: Session[],
+  rangeSessions: Session[],
+): { last: Session; prev: Session | null; rows: ComparisonRow[] } | null {
+  const last = rangeSessions[rangeSessions.length - 1]
+  if (!last) return null
+  const at = allSessions.findIndex((s) => s.workoutId === last.workoutId)
+  const prev = at > 0 ? allSessions[at - 1] : null
+  const rows = last.sets.map((s, index) => {
+    const p = prev?.sets[index]
+    return {
+      index,
+      weight: s.weight,
+      reps: s.reps,
+      weightDelta: delta(s.weight, p?.weight),
+      repsDelta: delta(s.reps, p?.reps),
+    }
+  })
+  return { last, prev, rows }
 }
 
 /** Trend per session: best estimated 1RM for strength, total reps for bodyweight. */

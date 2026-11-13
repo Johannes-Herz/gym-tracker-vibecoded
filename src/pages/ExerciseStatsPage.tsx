@@ -83,7 +83,11 @@ export default function ExerciseStatsPage() {
           ) : (
             <>
               <RepHeatmap sessions={sessions} bodyweight={bodyweight} />
-              <LastComparison sessions={sessions} bodyweight={bodyweight} />
+              <LastComparison
+                allSessions={sessionsFor(data, id, { key: 'all' })}
+                rangeSessions={sessions}
+                bodyweight={bodyweight}
+              />
               <section className="card">
                 <h2 className="block-title">{bodyweight ? 'Wiederholungen gesamt' : 'Geschätztes 1RM'}</h2>
                 <TrendChart
