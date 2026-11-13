@@ -1,13 +1,14 @@
 import type { MouseEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { t, type MessageKey } from '../i18n'
 import { navTarget, saveScroll, tabOf, tabSteps, type TabRoot } from '../lib/tabMemory'
 import { useRunSteps } from '../lib/useNavSteps'
 
-const ITEMS: { to: TabRoot; label: string; icon: string }[] = [
-  { to: '/verlauf', label: 'Verlauf', icon: '📅' },
-  { to: '/uebungen', label: 'Übungen', icon: '📋' },
-  { to: '/statistik', label: 'Statistik', icon: '📈' },
-  { to: '/einstellungen', label: 'Mehr', icon: '⚙️' },
+const ITEMS: { to: TabRoot; label: MessageKey; icon: string }[] = [
+  { to: '/verlauf', label: 'nav.history', icon: '📅' },
+  { to: '/uebungen', label: 'nav.exercises', icon: '📋' },
+  { to: '/statistik', label: 'nav.stats', icon: '📈' },
+  { to: '/einstellungen', label: 'nav.more', icon: '⚙️' },
 ]
 
 export default function BottomNav() {
@@ -27,7 +28,7 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className="bottom-nav" aria-label="Hauptnavigation">
+    <nav className="bottom-nav" aria-label={t('nav.main')}>
       {ITEMS.map((item) => {
         const active = activeTab === item.to
         return (
@@ -39,7 +40,7 @@ export default function BottomNav() {
             onClick={(e) => onClick(e, item.to)}
           >
             <span aria-hidden="true" className="nav-icon">{item.icon}</span>
-            <span>{item.label}</span>
+            <span>{t(item.label)}</span>
           </Link>
         )
       })}

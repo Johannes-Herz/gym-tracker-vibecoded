@@ -1,5 +1,5 @@
 import { Fragment, lazy, Suspense, useEffect } from 'react'
-import { useLang } from './i18n'
+import { t, useLang } from './i18n'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import BottomNav from './components/BottomNav'
 import { useTabMemory } from './lib/useTabMemory'
@@ -29,7 +29,7 @@ export default function App() {
   return (
     <Fragment key={lang}>
       <main className="page">
-        <Suspense fallback={<p className="muted">Lädt…</p>}>
+        <Suspense fallback={<p className="muted">{t('common.loading')}</p>}>
         <Routes>
           <Route path="/" element={<Navigate to="/verlauf" replace />} />
           <Route path="/verlauf" element={<HistoryPage />} />

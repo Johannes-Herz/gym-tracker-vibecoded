@@ -74,6 +74,14 @@ export function translatePlural(key: PluralKey, n: number, params?: Params, lang
   return fill(dictionaries[lang][variant], { n, ...params })
 }
 
+/**
+ * Components call `t` / `tp` directly. They read the current language at render
+ * time; `App` remounts the tree when the language changes, so every screen
+ * updates immediately without a reload.
+ */
+export const t = (key: MessageKey, params?: Params): string => translate(key, params)
+export const tp = (key: PluralKey, n: number, params?: Params): string => translatePlural(key, n, params)
+
 export interface Translator {
   lang: Language
   t: (key: MessageKey, params?: Params) => string

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { t } from '../../i18n'
 import { ADJUST_MS, PRESETS_SEC, formatRemaining } from './timerCore'
 import { timerStore, useTimer } from './timerStore'
 
@@ -32,9 +33,9 @@ export default function RestTimer() {
   const time = formatRemaining(remainingMs)
   const barLabel =
     status === 'idle' && remainingMs === 0
-      ? 'Pause-Timer'
+      ? t('timer.title')
       : status === 'finished'
-        ? 'Zeit abgelaufen'
+        ? t('timer.finished')
         : time
 
   return (
@@ -43,12 +44,12 @@ export default function RestTimer() {
         <button
           type="button"
           className="timer-bar-btn"
-          aria-label={`Pause-Timer öffnen${status === 'idle' ? '' : `, ${barLabel}`}`}
+          aria-label={status === 'idle' ? t('timer.open') : t('timer.openWith', { time: barLabel })}
           onClick={() => setOpen(true)}
         >
           <span aria-hidden="true">⏱</span>
           <span className="timer-bar-time">{barLabel}</span>
-          {status === 'paused' && <span className="muted small">pausiert</span>}
+          {status === 'paused' && <span className="muted small">{t('timer.paused')}</span>}
         </button>
       </div>
 
@@ -58,13 +59,13 @@ export default function RestTimer() {
             className={`timer-sheet ${status}`}
             role="dialog"
             aria-modal="true"
-            aria-label="Pause-Timer"
+            aria-label={t('timer.title')}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="timer-sheet-head">
-              <h2>Pause-Timer</h2>
+              <h2>{t('timer.title')}</h2>
               <button type="button" className="btn" onClick={() => setOpen(false)}>
-                Schließen
+                {t('timer.close')}
               </button>
             </div>
 
@@ -72,10 +73,10 @@ export default function RestTimer() {
               <button
                 type="button"
                 className="btn timer-adjust"
-                aria-label="30 Sekunden weniger"
+                aria-label={t('timer.minus30Label')}
                 onClick={() => timerStore.adjust(-ADJUST_MS)}
               >
-                −30 s
+                {t('timer.minus30')}
               </button>
               <div className="timer-display" role="timer" aria-live="off">
                 {time}
@@ -83,20 +84,20 @@ export default function RestTimer() {
               <button
                 type="button"
                 className="btn timer-adjust"
-                aria-label="30 Sekunden mehr"
+                aria-label={t('timer.plus30Label')}
                 onClick={() => timerStore.adjust(ADJUST_MS)}
               >
-                +30 s
+                {t('timer.plus30')}
               </button>
             </div>
             <p className="timer-status muted small" aria-live="polite">
-              {status === 'finished' ? 'Zeit abgelaufen' : status === 'paused' ? 'Pausiert' : ' '}
+              {status === 'finished' ? t('timer.finished') : status === 'paused' ? t('timer.pausedStatus') : ' '}
             </p>
 
             <div className="timer-presets">
               {PRESETS_SEC.map((sec) => (
                 <button key={sec} type="button" className="btn" onClick={() => timerStore.start(sec)}>
-                  {sec / 60} min
+                  {t('timer.minutes', { n: sec / 60 })}
                 </button>
               ))}
             </div>
@@ -104,12 +105,12 @@ export default function RestTimer() {
             <div className="timer-controls">
               {status === 'running' && (
                 <button type="button" className="btn grow" onClick={() => timerStore.pause()}>
-                  Pause
+                  {t('timer.pause')}
                 </button>
               )}
               {status === 'paused' && (
                 <button type="button" className="btn btn-primary grow" onClick={() => timerStore.resume()}>
-                  Weiter
+                  {t('timer.resume')}
                 </button>
               )}
               {status === 'idle' && (
@@ -119,7 +120,7 @@ export default function RestTimer() {
                   disabled={remainingMs === 0}
                   onClick={() => timerStore.resume()}
                 >
-                  Start
+                  {t('timer.start')}
                 </button>
               )}
               <button
@@ -128,7 +129,7 @@ export default function RestTimer() {
                 disabled={status === 'idle' && remainingMs === 0}
                 onClick={() => timerStore.stop()}
               >
-                {status === 'finished' ? 'Zurücksetzen' : 'Stopp'}
+                {status === 'finished' ? t('timer.reset') : t('timer.stop')}
               </button>
             </div>
           </div>
