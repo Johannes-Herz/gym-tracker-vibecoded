@@ -5,6 +5,7 @@ import type { AppData } from '../../types'
 import {
   axisLabels,
   bestSet,
+  chartSeries,
   cellKey,
   comparisonColumns,
   heatmapData,
@@ -187,5 +188,30 @@ describe('trendSeries', () => {
     expect(values(s, 'duration')).toEqual([30, 15])
     expect(values(s, 'distance')).toEqual([4.5])
     expect(values(s, 'pace')).toEqual([9])
+  })
+})
+
+describe('chartSeries', () => {
+  const mk = (id: string, sets: Partial<Session['sets'][number]>[]): Session => ({
+    workoutId: id,
+    startedAt: at(10, 1),
+    sets: sets.map((x, i) => ({ id: id + i, workoutId: id, exerciseId: 'x', order: i, weight: 0, reps: 0, ...x })),
+  })
+
+  it('returns the unit of every metric', () => {
+    const s = [mk('a', [{ weight: 80, reps: 5, durationMin: 20, distanceKm: 3 }])]
+    const units = (['e1rm', 'maxWeight', 'volume', 'maxReps', 'totalReps', 'maxAdded', 'duration', 'distance', 'pace'] as const).map(
+      (m) => chartSeries(s, m).unit,
+    )
+    expect(units).toEqual(['kg', 'kg', 'kg', 'Wdh.', 'Wdh.', 'kg', 'min', 'km', 'km/h'])
+  })
+
+  it('shows Volumen in t once the largest value reaches 10 000 kg', () => {
+    const small = [mk('a', [{ weight: 100, reps: 10 }]), mk('b', [{ weight: 100, reps: 99 }])] // 1000, 9900
+    expect(chartSeries(small, 'volume')).toEqual({ unit: 'kg', points: [expect.objectContaining({ value: 1000 }), expect.objectContaining({ value: 9900 })] })
+    const big = [mk('a', [{ weight: 100, reps: 10 }]), mk('b', [{ weight: 125, reps: 100 }])] // 1000, 12500
+    const r = chartSeries(big, 'volume')
+    expect(r.unit).toBe('t')
+    expect(r.points.map((p) => p.value)).toEqual([1, 12.5])
   })
 })

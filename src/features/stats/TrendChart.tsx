@@ -8,16 +8,23 @@ interface Props {
   unit: string
 }
 
-/** Compact single-line trend chart. */
+const tick = { fill: 'var(--muted)', fontSize: 11 }
+
+/** Compact single-line trend chart; unit on the y-axis and in the tooltip, German number format. */
 export default function TrendChart({ points, label, unit }: Props) {
   const data = points.map((p) => ({ label: dayMonth(p.startedAt), value: p.value }))
   return (
     <div className="chart chart-compact">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: -12 }}>
+        <LineChart data={data} margin={{ top: 20, right: 12, bottom: 0, left: -8 }}>
           <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" />
-          <XAxis dataKey="label" tick={{ fill: 'var(--muted)', fontSize: 11 }} />
-          <YAxis tick={{ fill: 'var(--muted)', fontSize: 11 }} domain={['auto', 'auto']} />
+          <XAxis dataKey="label" tick={tick} />
+          <YAxis
+            tick={tick}
+            domain={['auto', 'auto']}
+            tickFormatter={(v: number) => formatNumber(v)}
+            label={{ value: unit, position: 'top', offset: 8, fill: 'var(--muted)', fontSize: 10 }}
+          />
           <Tooltip
             formatter={(v: number) => [`${formatNumber(v)} ${unit}`, label]}
             contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}

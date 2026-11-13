@@ -217,3 +217,24 @@ export function trendSeries(sessions: Session[], metric: TrendMetric): { started
   }
   return points
 }
+
+/** Volume switches to tonnes from this many kg (largest value in the series). */
+export const VOLUME_TONNES_FROM = 10000
+
+/**
+ * Chart-ready series with its unit: the metric's unit, except Volumen, which is
+ * shown in t (one decimal) once the largest value reaches 10 000 kg.
+ */
+export function chartSeries(
+  sessions: Session[],
+  metric: TrendMetric,
+): { points: { startedAt: string; value: number }[]; unit: string } {
+  const points = trendSeries(sessions, metric)
+  const unit = Object.values(TREND_METRICS)
+    .flat()
+    .find((m) => m.key === metric)!.unit
+  if (metric === 'volume' && points.some((p) => p.value >= VOLUME_TONNES_FROM)) {
+    return { points: points.map((p) => ({ ...p, value: round1(p.value / 1000) })), unit: 't' }
+  }
+  return { points, unit }
+}
