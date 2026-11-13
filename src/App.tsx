@@ -9,6 +9,7 @@ import WorkoutDetailPage from './pages/WorkoutDetailPage'
 
 // Loaded on demand: pulls in the chart library.
 const StatsPage = lazy(() => import('./pages/StatsPage'))
+const ExerciseStatsPage = lazy(() => import('./pages/ExerciseStatsPage'))
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="/verlauf/:id" element={<WorkoutDetailPage />} />
           <Route path="/uebungen" element={<ExercisesPage />} />
           <Route path="/statistik" element={<StatsPage />} />
+          <Route path="/statistik/uebung/:id" element={<ExerciseStatsPage />} />
           <Route path="/einstellungen" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
