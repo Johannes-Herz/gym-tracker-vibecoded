@@ -19,11 +19,12 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
   const workoutSets = data.sets.filter((s) => s.workoutId === workoutId).sort((a, b) => a.order - b.order)
   const groups = new Map<string, WorkoutSet[]>()
   for (const s of workoutSets) groups.set(s.exerciseId, [...(groups.get(s.exerciseId) ?? []), s])
+  const orderIds = [...groups.keys()]
 
   function addExercise(exercise: Exercise) {
     setPicking(false)
     const values = initialValues(getState(), workoutId, exercise)
-    setsRepo.add({ workoutId, exerciseId: exercise.id, ...values })
+    setsRepo.add({ workoutId, exerciseId: exercise.id, ...values, suggested: true })
   }
 
   return (
@@ -42,10 +43,19 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
         </label>
       </div>
 
-      {[...groups.entries()].map(([exerciseId, sets]) => {
+      {[...groups.entries()].map(([exerciseId, sets], i) => {
         const exercise = data.exercises.find((e) => e.id === exerciseId)
         if (!exercise) return null
-        return <ExerciseBlock key={exerciseId} workoutId={workoutId} exercise={exercise} sets={sets} />
+        return (
+          <ExerciseBlock
+            key={exerciseId}
+            workoutId={workoutId}
+            exercise={exercise}
+            sets={sets}
+            canMoveUp={i > 0}
+            canMoveDown={i < orderIds.length - 1}
+          />
+        )
       })}
 
       <button type="button" className="btn btn-primary wide" onClick={() => setPicking(true)}>

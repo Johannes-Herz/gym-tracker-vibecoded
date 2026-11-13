@@ -99,7 +99,7 @@
 .block-title { margin: 0 0 8px; font-size: 1.05rem; }
 .set-row {
   display: grid;
-  grid-template-columns: 14px minmax(0, 1fr) minmax(0, 1fr) 36px;
+  grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr) 36px;
   align-items: center;
   gap: 4px;
   margin-bottom: 8px;
@@ -133,9 +133,16 @@
 .back-link { display: inline-flex; align-items: center; color: var(--text); text-decoration: none; }
 
 .set-row .stepper { gap: 2px; }
-.set-row .stepper .btn { min-width: 36px; width: 36px; }
+.set-row .stepper .btn { min-width: 32px; width: 32px; }
 .set-row .stepper input { flex: 1; width: 100%; min-width: 0; padding: 0 2px; }
 .set-row .btn-danger-text { min-width: 36px; }
+/* Suggested (prefilled, unconfirmed) sets: muted values and a ✓ to accept them. */
+.set-row.suggested .stepper input { color: var(--muted); font-style: italic; border-style: dashed; }
+.confirm-set { min-width: 30px; width: 30px; padding: 0; color: var(--primary); border-color: var(--primary); }
+.block-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.block-head .block-title { margin: 0; min-width: 0; padding-top: 8px; }
+.block-actions { display: flex; flex: none; }
+.block-actions .btn { min-width: 36px; padding: 0; }
 .exercise-block { padding: 10px; }
 .set-legend { margin-bottom: 4px; }
 .set-legend span:nth-child(2), .set-legend span:nth-child(3) { text-align: center; }

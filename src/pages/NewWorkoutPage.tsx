@@ -21,7 +21,7 @@ export default function NewWorkoutPage() {
 
   function addFirstExercise(exercise: Exercise) {
     const values = initialValues(getState(), '', exercise)
-    const workout = workouts.createWithFirstExercise(startedAt, exercise.id, values)
+    const workout = workouts.createWithFirstExercise(startedAt, exercise.id, values, true)
     navigate(`/verlauf/${workout.id}`, { replace: true })
   }
 

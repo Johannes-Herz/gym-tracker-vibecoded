@@ -1,3 +1,4 @@
+import { moveExercise } from '../lib/exerciseOrder'
 import { newId } from '../lib/id'
 import type { Equipment, Exercise, MuscleGroup, Template, Workout, WorkoutSet } from '../types'
 import { getState, update } from './store'
@@ -195,6 +196,23 @@ export const sets = {
     const set: WorkoutSet = { id: newId(), order, ...input }
     update((d) => ({ ...d, sets: [...d.sets, set] }))
     return set
+  },
+  /** Moves an exercise block up (-1) or down (+1) within its workout. */
+  moveExercise(workoutId: string, exerciseId: string, delta: -1 | 1): void {
+    const orders = moveExercise(
+      getState().sets.filter((s) => s.workoutId === workoutId),
+      exerciseId,
+      delta,
+    )
+    if (!orders) return
+    update((d) => ({ ...d, sets: d.sets.map((s) => (orders.has(s.id) ? { ...s, order: orders.get(s.id)! } : s)) }))
+  },
+  /** Removes all sets of one exercise from a workout. */
+  removeExercise(workoutId: string, exerciseId: string): void {
+    update((d) => ({
+      ...d,
+      sets: d.sets.filter((s) => !(s.workoutId === workoutId && s.exerciseId === exerciseId)),
+    }))
   },
   /** Editing a value confirms a suggested set. */
   update(id: string, patch: Partial<SetValues>): void {

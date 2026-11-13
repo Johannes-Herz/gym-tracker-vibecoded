@@ -12,8 +12,19 @@ interface Props {
 
 export default function SetRow({ set, index, cardio, bodyweight }: Props) {
   return (
-    <div className={cardio ? 'set-row cardio' : 'set-row'}>
-      <span className="set-index muted">{index + 1}</span>
+    <div className={`set-row${cardio ? ' cardio' : ''}${set.suggested ? ' suggested' : ''}`}>
+      {set.suggested ? (
+        <button
+          type="button"
+          className="btn confirm-set"
+          aria-label={`${cardio ? 'Eintrag' : 'Satz'} ${index + 1} übernehmen`}
+          onClick={() => sets.confirm(set.id)}
+        >
+          ✓
+        </button>
+      ) : (
+        <span className="set-index muted">{index + 1}</span>
+      )}
       {cardio ? (
         <>
           <NumberStepper
