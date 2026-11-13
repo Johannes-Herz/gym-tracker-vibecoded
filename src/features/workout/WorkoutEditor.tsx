@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import ConfirmDialog from '../../components/ConfirmDialog'
+import { exerciseOrder } from '../../lib/exerciseOrder'
 import { fromLocalInput, toLocalInput } from '../../lib/format'
-import { sets as setsRepo, workouts } from '../../storage/repo'
+import { sets as setsRepo, templates, workouts } from '../../storage/repo'
 import { getState, useStore } from '../../storage/store'
 import type { Exercise, WorkoutSet } from '../../types'
 import ExerciseBlock from './ExerciseBlock'
@@ -11,6 +13,8 @@ import { recentExerciseIds } from './recent'
 export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
   const data = useStore()
   const [picking, setPicking] = useState(false)
+  const [namingTemplate, setNamingTemplate] = useState<string | null>(null)
+  const [savedAs, setSavedAs] = useState<string | null>(null)
 
   const workout = data.workouts.find((w) => w.id === workoutId)
   if (!workout) return <p className="muted">Training nicht gefunden.</p>
@@ -20,6 +24,14 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
   const groups = new Map<string, WorkoutSet[]>()
   for (const s of workoutSets) groups.set(s.exerciseId, [...(groups.get(s.exerciseId) ?? []), s])
   const orderIds = [...groups.keys()]
+
+  function saveAsTemplate() {
+    const name = (namingTemplate ?? '').trim()
+    if (!name) return
+    templates.add(name, exerciseOrder(workoutSets))
+    setNamingTemplate(null)
+    setSavedAs(name)
+  }
 
   function addExercise(exercise: Exercise) {
     setPicking(false)
@@ -41,6 +53,7 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
             }}
           />
         </label>
+        {workout.templateName && <p className="muted small">Vorlage: {workout.templateName}</p>}
       </div>
 
       {[...groups.entries()].map(([exerciseId, sets], i) => {
@@ -62,6 +75,16 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
         + Übung hinzufügen
       </button>
 
+      <button
+        type="button"
+        className="btn wide"
+        disabled={groups.size === 0}
+        onClick={() => setNamingTemplate(workout.templateName ?? '')}
+      >
+        Als Vorlage speichern
+      </button>
+      {savedAs && <p className="muted small">Vorlage „{savedAs}“ gespeichert.</p>}
+
       <div className="card form note">
         <label>
           Notiz
@@ -72,6 +95,28 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
           />
         </label>
       </div>
+
+      {namingTemplate !== null && (
+        <ConfirmDialog
+          title="Als Vorlage speichern"
+          confirmLabel="Speichern"
+          onConfirm={saveAsTemplate}
+          onCancel={() => setNamingTemplate(null)}
+        >
+          <div className="form">
+            <label>
+              Name der Vorlage
+              <input
+                autoFocus
+                value={namingTemplate}
+                maxLength={60}
+                placeholder="z. B. Push Tag"
+                onChange={(e) => setNamingTemplate(e.target.value)}
+              />
+            </label>
+          </div>
+        </ConfirmDialog>
+      )}
 
       {picking && (
         <ExerciseSearchSheet

@@ -94,7 +94,10 @@ function WorkoutList() {
                 <li key={w.id}>
                   <Link to={`/verlauf/${w.id}`} className="list-item history-item">
                     <div className="grow">
-                      <div>{formatDateTime(w.startedAt)}</div>
+                      <div>
+                        {formatDateTime(w.startedAt)}
+                        {w.templateName && <span className="muted small"> · {w.templateName}</span>}
+                      </div>
                       <div className="muted small">
                         {workoutSets.length === 0
                           ? 'Leer'
