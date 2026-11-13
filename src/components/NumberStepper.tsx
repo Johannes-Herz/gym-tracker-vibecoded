@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { formatNumber } from '../lib/format'
+import { parseDecimal, stepValue } from '../lib/number'
 
 interface Props {
   value: number
@@ -12,8 +13,6 @@ interface Props {
   inputMode?: 'decimal' | 'numeric'
   onChange: (value: number) => void
 }
-
-const round = (n: number) => Math.round(n * 100) / 100
 
 export default function NumberStepper({
   value,
@@ -29,13 +28,13 @@ export default function NumberStepper({
 
   function handleInput(text: string) {
     setDraft(text)
-    const n = Number(text.replace(',', '.'))
-    if (text.trim() !== '' && Number.isFinite(n) && n >= min) onChange(round(n))
+    const n = parseDecimal(text)
+    if (n !== null && n >= min) onChange(n)
   }
 
   function bump(delta: number) {
     setDraft(null)
-    onChange(Math.max(min, round(value + delta)))
+    onChange(stepValue(value, delta, min))
   }
 
   return (
