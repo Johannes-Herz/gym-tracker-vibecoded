@@ -64,6 +64,13 @@ describe('aggregateBy', () => {
     expect(r.map((x) => x.key).sort()).toEqual(['Ohne Kategorie', 'Push'])
     expect(r.find((x) => x.key === 'Push')).toMatchObject({ sets: 1, volume: 375 })
   })
+
+  it('still counts hidden exercises', () => {
+    const d = sample()
+    d.exercises = d.exercises.map((e) => ({ ...e, hidden: true }))
+    expect(aggregateBy(d, 'muscleGroup')).toEqual(aggregateBy(sample(), 'muscleGroup'))
+    expect(exerciseProgress(d, 'bench')).toEqual(exerciseProgress(sample(), 'bench'))
+  })
 })
 
 describe('trainingDays', () => {

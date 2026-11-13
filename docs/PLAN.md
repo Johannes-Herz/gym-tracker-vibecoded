@@ -19,10 +19,10 @@
 - [x] Delete all data (with confirmation)
 - [x] PWA: manifest, service worker, home screen icon, offline use
 
-## Phase 4: Built-in standard exercises — IN PROGRESS
-- [ ] 56 preloaded exercises (German name + English alias, muscle group, category, equipment)
-- [ ] Schema v2: `source` (builtin/custom), `equipment`, `hidden`; stable IDs `builtin-*`
-- [ ] Migration: seed built-ins, merge matching custom exercises into built-ins (sets repointed)
-- [ ] Built-ins can only be hidden/unhidden, never edited or deleted; old workouts keep working
-- [ ] Exercise list: search, muscle group + equipment filter, "Standard" badge, show hidden
-- [ ] Exercise picker: search incl. alias, recently used on top, grouped by muscle group
+## Phase 4: Built-in standard exercises — DONE
+- [x] 56 preloaded exercises (German name + English alias, muscle group, category, equipment)
+- [x] Schema v2: `source` (builtin/custom), `equipment`, `hidden`; stable IDs `builtin-*`
+- [x] Migration: seed built-ins, merge matching custom exercises into built-ins (sets repointed)
+- [x] Built-ins can only be hidden/unhidden, never edited or deleted; old workouts keep working
+- [x] Exercise list: search, muscle group + equipment filter, "Standard" badge, show hidden
+- [x] Exercise picker: search incl. alias, recently used on top, grouped by muscle group
