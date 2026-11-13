@@ -97,10 +97,16 @@
 
 .wide { width: 100%; margin-bottom: 16px; }
 .block-title { margin: 0 0 8px; font-size: 1.05rem; }
-.set-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
-.set-index { width: 1.2rem; text-align: center; }
-.stepper { display: flex; align-items: center; gap: 4px; }
-.stepper .btn { min-width: 40px; padding: 0; }
+.set-row {
+  display: grid;
+  grid-template-columns: 1.2rem minmax(0, 1fr) 4rem 44px;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.set-index { text-align: center; }
+.stepper { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.stepper .btn { min-width: 40px; padding: 0; flex: none; }
 .stepper input {
   width: 3.4rem;
   min-height: 44px;
@@ -128,9 +134,9 @@
 .history-item { color: inherit; text-decoration: none; min-height: 56px; }
 .back-link { display: inline-flex; align-items: center; color: var(--text); text-decoration: none; }
 
-.set-legend { margin: 0 0 6px 26px; }
-.stepper .btn { min-width: 36px; }
-.stepper input { width: 2.9rem; }
+.set-row .stepper input { flex: 1; width: 100%; min-width: 0; }
+.set-legend { margin-bottom: 4px; }
+.set-legend span:nth-child(2), .set-legend span:nth-child(3) { text-align: center; }
 
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 button, a, input, select { touch-action: manipulation; }

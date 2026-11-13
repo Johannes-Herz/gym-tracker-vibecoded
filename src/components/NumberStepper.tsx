@@ -7,12 +7,24 @@ interface Props {
   label: string
   unit?: string
   min?: number
+  /** Show −/+ buttons (default true). Without them it is a plain input. */
+  buttons?: boolean
+  inputMode?: 'decimal' | 'numeric'
   onChange: (value: number) => void
 }
 
 const round = (n: number) => Math.round(n * 100) / 100
 
-export default function NumberStepper({ value, step, label, unit, min = 0, onChange }: Props) {
+export default function NumberStepper({
+  value,
+  step,
+  label,
+  unit,
+  min = 0,
+  buttons = true,
+  inputMode = 'decimal',
+  onChange,
+}: Props) {
   const [draft, setDraft] = useState<string | null>(null)
 
   function handleInput(text: string) {
@@ -28,20 +40,24 @@ export default function NumberStepper({ value, step, label, unit, min = 0, onCha
 
   return (
     <div className="stepper">
-      <button type="button" className="btn" aria-label={`${label} verringern`} onClick={() => bump(-step)}>
-        −
-      </button>
+      {buttons && (
+        <button type="button" className="btn" aria-label={`${label} verringern`} onClick={() => bump(-step)}>
+          −
+        </button>
+      )}
       <input
         aria-label={label}
-        inputMode="decimal"
+        inputMode={inputMode}
         value={draft ?? formatNumber(value)}
         onChange={(e) => handleInput(e.target.value)}
         onFocus={(e) => e.target.select()}
         onBlur={() => setDraft(null)}
       />
-      <button type="button" className="btn" aria-label={`${label} erhöhen`} onClick={() => bump(step)}>
-        +
-      </button>
+      {buttons && (
+        <button type="button" className="btn" aria-label={`${label} erhöhen`} onClick={() => bump(step)}>
+          +
+        </button>
+      )}
       {unit && <span className="muted small">{unit}</span>}
     </div>
   )

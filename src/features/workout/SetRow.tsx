@@ -15,6 +15,8 @@ export default function SetRow({ set, index }: { set: WorkoutSet; index: number 
       <NumberStepper
         label="Wiederholungen"
         step={1}
+        buttons={false}
+        inputMode="numeric"
         value={set.reps}
         onChange={(reps) => sets.update(set.id, { reps })}
       />
