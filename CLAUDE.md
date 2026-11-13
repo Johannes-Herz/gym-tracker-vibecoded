@@ -1,24 +1,28 @@
 # Gym Tracker
 
-Mobile-first Gym-Tracker als Web-App. UI-Sprache: Deutsch. Code, Bezeichner und Kommentare: Englisch.
+Mobile-first gym tracker as a web app.
+
+## Language
+- Write everything in English: code, comments, identifiers, commit messages, branch names, documentation (.md files, plans, README) and conversation with the user's tooling artifacts.
+- The only exception is the app's UI text (labels, buttons, messages shown to the user), which stays in German.
 
 ## Git
-- Entwicklung nur auf Branch `dev`. Nie direkt auf `main` committen, mergen oder pushen – das macht der User (oder vorher fragen).
-- Kleine, thematisch getrennte Commits.
+- Develop only on branch `dev`. Never commit, merge or push directly to `main` – the user does that (or ask first).
+- Small, thematically separate commits.
 
 ## Stack
-Vite + React 18 + TypeScript, `react-router-dom` (HashRouter, wegen GitHub Pages), plain CSS (Variablen in `src/styles/base.css`), Vitest.
-Vite `base` ist `/gym-tracker-vibecoded/`. Deployment: GitHub Actions (`.github/workflows/deploy.yml`) bei Push auf `main`.
+Vite + React 18 + TypeScript, `react-router-dom` (HashRouter, because of GitHub Pages), plain CSS (variables in `src/styles/base.css`), Vitest.
+Vite `base` is `/gym-tracker-vibecoded/`. Deployment: GitHub Actions (`.github/workflows/deploy.yml`) on push to `main`.
 
-## Befehle
-- `npm run dev` – Dev-Server
-- `npm run build` – Typecheck + Build
+## Commands
+- `npm run dev` – dev server
+- `npm run build` – typecheck + build
 - `npm test` – Vitest
 
-## Konventionen
-- Persistenz ausschließlich über `src/storage/` (localStorage, Key `gymtracker:v1`, mit `schemaVersion`). UI-Code greift nie direkt auf localStorage zu.
-- Schema-Änderung = `schemaVersion` erhöhen + Migration in `storage.ts` + Test.
-- IDs via `crypto.randomUUID()`, Zeiten als ISO-Strings, Gewicht in kg.
-- Mobile-first: Touch-Targets ≥ 44px, Safe-Area beachten.
-- Wenige Dependencies; neue nur mit guter Begründung.
-- Schlichtes Design, keine UI-Library.
+## Conventions
+- Persistence goes exclusively through `src/storage/` (localStorage, key `gymtracker:v1`, with `schemaVersion`). UI code never accesses localStorage directly.
+- Schema change = bump `schemaVersion` + migration in `storage.ts` + test.
+- IDs via `crypto.randomUUID()`, times as ISO strings, weight in kg.
+- Mobile-first: touch targets ≥ 44px, respect safe areas.
+- Few dependencies; add new ones only with good justification.
+- Simple design, no UI library.
