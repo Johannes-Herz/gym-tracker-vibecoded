@@ -49,9 +49,9 @@ describe('buildDemoData', () => {
     for (const n of perWeek) expect([3, 4]).toContain(n)
   })
 
-  it('has 4–5 exercises with 3–4 sets each per workout', () => {
+  it('has 4–5 strength exercises with 3–4 sets each per workout', () => {
     for (const w of data.workouts) {
-      const sets = data.sets.filter((s) => s.workoutId === w.id)
+      const sets = data.sets.filter((s) => s.workoutId === w.id && s.durationMin === undefined)
       const byExercise = new Map<string, number>()
       for (const s of sets) byExercise.set(s.exerciseId, (byExercise.get(s.exerciseId) ?? 0) + 1)
       expect([4, 5]).toContain(byExercise.size)
@@ -70,6 +70,26 @@ describe('buildDemoData', () => {
       return xs.reduce((sum, s) => sum + s.weight, 0) / xs.length
     }
     expect(avg(0, 14)).toBeGreaterThan(avg(DEMO_DAYS - 14, DEMO_DAYS))
+  })
+
+  it('adds 1–2 cardio sessions per week with improving distance', () => {
+    const start = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() - (DEMO_DAYS - 1))
+    const startedAt = new Map(data.workouts.map((w) => [w.id, new Date(w.startedAt).getTime()]))
+    const cardio = data.sets.filter((s) => s.durationMin !== undefined)
+    const perWeek = new Array(DEMO_DAYS / 7).fill(0)
+    for (const s of cardio) {
+      expect(['builtin-treadmill', 'builtin-cross-trainer']).toContain(s.exerciseId)
+      expect(s).toMatchObject({ weight: 0, reps: 0 })
+      perWeek[Math.floor((startedAt.get(s.workoutId)! - start.getTime()) / (7 * DAY_MS))]++
+    }
+    for (const n of perWeek) expect([1, 2]).toContain(n)
+
+    const runs = cardio
+      .filter((s) => s.exerciseId === 'builtin-treadmill')
+      .sort((a, b) => startedAt.get(a.workoutId)! - startedAt.get(b.workoutId)!)
+    const pace = (s: (typeof runs)[number]) => s.distanceKm! / s.durationMin!
+    const avg = (xs: typeof runs) => xs.reduce((sum, s) => sum + pace(s), 0) / xs.length
+    expect(avg(runs.slice(-3))).toBeGreaterThan(avg(runs.slice(0, 3)))
   })
 
   it('keeps built-ins and their hidden state', () => {
