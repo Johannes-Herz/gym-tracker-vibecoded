@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import ConfirmDialog from '../components/ConfirmDialog'
 import PageHeader from '../components/PageHeader'
-import { backupFileName, parseImport, replaceAllData, serializeBackup } from '../storage/backup'
+import { backupFileName, deleteAllData, parseImport, replaceAllData, serializeBackup } from '../storage/backup'
 import type { AppData } from '../types'
 import { useStore } from '../storage/store'
 
@@ -20,6 +20,7 @@ export default function SettingsPage() {
   const data = useStore()
   const fileInput = useRef<HTMLInputElement>(null)
   const [pending, setPending] = useState<AppData | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null)
 
   async function handleFile(file: File | undefined) {
@@ -29,6 +30,12 @@ export default function SettingsPage() {
     if (result.ok) setPending(result.data)
     else setMessage({ kind: 'error', text: result.error })
     if (fileInput.current) fileInput.current.value = ''
+  }
+
+  function handleDeleteAll() {
+    deleteAllData()
+    setConfirmDelete(false)
+    setMessage({ kind: 'ok', text: 'Alle Daten wurden gelöscht.' })
   }
 
   function confirmImport() {
@@ -76,8 +83,24 @@ export default function SettingsPage() {
 
       <section className="card settings-section">
         <h2>Gefahrenzone</h2>
-        <p className="muted">Alle Daten dauerhaft löschen.</p>
+        <p className="muted">Alle Daten dauerhaft löschen. Das kann nicht rückgängig gemacht werden.</p>
+        <button type="button" className="btn btn-danger" onClick={() => setConfirmDelete(true)}>
+          Alle Daten löschen
+        </button>
       </section>
+
+      {confirmDelete && (
+        <ConfirmDialog
+          title="Alle Daten löschen?"
+          confirmLabel="Endgültig löschen"
+          danger
+          onConfirm={handleDeleteAll}
+          onCancel={() => setConfirmDelete(false)}
+        >
+          Alle Übungen, Trainings und Körpergewichte werden dauerhaft gelöscht. Exportiere vorher ein
+          Backup, wenn du die Daten behalten möchtest.
+        </ConfirmDialog>
+      )}
 
       {pending && (
         <ConfirmDialog

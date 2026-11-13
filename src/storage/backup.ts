@@ -1,5 +1,5 @@
 import { MUSCLE_GROUPS, type AppData } from '../types'
-import { BACKUP_KEY, CURRENT_SCHEMA_VERSION, migrate } from './storage'
+import { BACKUP_KEY, CURRENT_SCHEMA_VERSION, emptyData, migrate } from './storage'
 import { getState, update } from './store'
 
 export const BACKUP_APP_ID = 'gymtracker'
@@ -135,4 +135,9 @@ export function replaceAllData(data: AppData, storage: Storage = localStorage): 
     // ignore: backup is best effort
   }
   update(() => data)
+}
+
+/** Deletes all app data (exercises, workouts, sets, body weights). */
+export function deleteAllData(): void {
+  update(() => emptyData())
 }

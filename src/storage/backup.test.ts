@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { AppData } from '../types'
-import { backupFileName, parseImport, serializeBackup } from './backup'
+import { backupFileName, deleteAllData, parseImport, serializeBackup } from './backup'
+import { _resetCache, getState, update } from './store'
 import { CURRENT_SCHEMA_VERSION, emptyData } from './storage'
 
 describe('backup export', () => {
@@ -77,5 +78,24 @@ describe('parseImport', () => {
 
   it('rejects duplicate ids', () => {
     expect(mutate((b) => { b.data.exercises.push({ ...ex }) }).ok).toBe(false)
+  })
+})
+
+describe('deleteAllData', () => {
+  it('empties the store', () => {
+    const mem = new Map<string, string>()
+    ;(globalThis as { localStorage?: unknown }).localStorage = {
+      getItem: (k: string) => mem.get(k) ?? null,
+      setItem: (k: string, v: string) => void mem.set(k, v),
+      removeItem: (k: string) => void mem.delete(k),
+    }
+    _resetCache()
+    update((d) => ({ ...d, bodyWeights: [{ id: 'b1', date: '2026-01-02', weightKg: 80 }] }))
+    expect(getState().bodyWeights).toHaveLength(1)
+    deleteAllData()
+    expect(getState()).toEqual(emptyData())
+    expect(JSON.parse(mem.get('gymtracker:v1')!)).toEqual(emptyData())
+    delete (globalThis as { localStorage?: unknown }).localStorage
+    _resetCache()
   })
 })
