@@ -25,10 +25,11 @@ describe('formatLoad / formatSet', () => {
   })
 
   it('shows added and assisted weight', () => {
-    expect(formatLoad(10, true)).toBe('KG + 10 kg')
-    expect(formatLoad(-20, true)).toBe('KG − 20 kg')
-    expect(formatSet(2.5, 8, true)).toBe('KG+2,5×8')
-    expect(formatSet(-20, 6, true)).toBe('KG−20×6')
+    expect(formatLoad(10, true)).toBe('+10')
+    expect(formatLoad(12.5, true)).toBe('+12,5')
+    expect(formatLoad(-20, true)).toBe('−20')
+    expect(formatSet(2.5, 8, true)).toBe('+2,5×8')
+    expect(formatSet(-20, 6, true)).toBe('−20×6')
   })
 
   it('formats plain strength sets', () => {
