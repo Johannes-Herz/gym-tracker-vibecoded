@@ -4,13 +4,12 @@ import { newWorkoutPath } from '../features/workout/newWorkout'
 import { realSets } from '../lib/realSets'
 import PageHeader from '../components/PageHeader'
 import WorkoutCalendar from '../features/history/WorkoutCalendar'
-import { formatDateTime } from '../lib/format'
+import { formatDateTime, formatMonthYear } from '../lib/format'
 import { workouts as workoutsRepo } from '../storage/repo'
 import { loadHistoryView, saveHistoryView, type HistoryView } from '../storage/preferences'
 import StartWorkoutSheet from '../features/workout/StartWorkoutSheet'
 import { useStore } from '../storage/store'
 
-const monthFormat = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' })
 
 const VIEWS: { key: HistoryView; label: string }[] = [
   { key: 'list', label: 'Liste' },
@@ -74,7 +73,7 @@ function WorkoutList() {
   const sorted = [...workouts].sort((a, b) => b.startedAt.localeCompare(a.startedAt))
   const months = new Map<string, typeof sorted>()
   for (const w of sorted) {
-    const key = monthFormat.format(new Date(w.startedAt))
+    const key = formatMonthYear(new Date(w.startedAt))
     months.set(key, [...(months.get(key) ?? []), w])
   }
 

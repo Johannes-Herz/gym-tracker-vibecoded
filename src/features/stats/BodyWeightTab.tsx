@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import NumberStepper from '../../components/NumberStepper'
-import { formatNumber, localDateKey } from '../../lib/format'
+import { formatDate, formatDayMonth, formatNumber, localDateKey } from '../../lib/format'
 import { bodyWeights } from '../../storage/repo'
 import { useStore } from '../../storage/store'
 
-const dateFormat = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-const shortFormat = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' })
 
 // Entries are stored as YYYY-MM-DD; parse as local noon to avoid timezone shifts.
 const parseDay = (key: string) => new Date(`${key}T12:00:00`)
@@ -20,7 +18,7 @@ export default function BodyWeightTab() {
   const [weight, setWeight] = useState(latest?.weightKg ?? 70)
 
   const existing = entries.find((e) => e.date === date)
-  const chartData = sorted.map((e) => ({ label: shortFormat.format(parseDay(e.date)), value: e.weightKg }))
+  const chartData = sorted.map((e) => ({ label: formatDayMonth(parseDay(e.date)), value: e.weightKg }))
 
   return (
     <>
@@ -65,7 +63,7 @@ export default function BodyWeightTab() {
               <li key={e.id} className="list-item">
                 <div className="grow">
                   <div>{formatNumber(e.weightKg)} kg</div>
-                  <div className="muted small">{dateFormat.format(parseDay(e.date))}</div>
+                  <div className="muted small">{formatDate(parseDay(e.date))}</div>
                 </div>
                 <button
                   type="button"
@@ -80,7 +78,7 @@ export default function BodyWeightTab() {
                 <button
                   type="button"
                   className="btn btn-danger-text"
-                  aria-label={`Eintrag vom ${dateFormat.format(parseDay(e.date))} löschen`}
+                  aria-label={`Eintrag vom ${formatDate(parseDay(e.date))} löschen`}
                   onClick={() => bodyWeights.remove(e.id)}
                 >
                   ✕

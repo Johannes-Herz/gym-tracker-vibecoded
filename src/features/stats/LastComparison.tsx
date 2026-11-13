@@ -1,4 +1,4 @@
-import { formatNumber } from '../../lib/format'
+import { formatNumber, formatWeekdayDayMonth } from '../../lib/format'
 import { formatLoad } from '../exercises/bodyweight'
 import { comparisonColumns, type ComparisonCell, type ComparisonColumn, type Delta, type Session } from './exerciseStats'
 
@@ -8,12 +8,10 @@ interface Props {
   bodyweight: boolean
 }
 
-const WEEKDAYS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa']
 
 /** "Mi, 12.11." */
 function sessionDate(iso: string): string {
-  const d = new Date(iso)
-  return `${WEEKDAYS[d.getDay()]}, ${d.getDate()}.${d.getMonth() + 1}.`
+  return formatWeekdayDayMonth(new Date(iso))
 }
 
 const ARROW: Partial<Record<Delta, string>> = { up: '↑', down: '↓' }

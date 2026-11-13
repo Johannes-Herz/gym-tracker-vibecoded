@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { formatDateTime, localDateKey } from '../../lib/format'
+import { formatDateTime, formatMonthYear, localDateKey, weekdayNamesMonday } from '../../lib/format'
 import { sessionState } from '../../lib/tabMemory'
 import { useStore } from '../../storage/store'
 import { monthGrid, trainingDays } from './calendar'
 
-const WEEKDAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
-const monthName = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' })
 
 export default function WorkoutCalendar({ onSelectDay }: { onSelectDay?: (dateKey: string | null) => void }) {
   const data = useStore()
@@ -58,13 +56,13 @@ export default function WorkoutCalendar({ onSelectDay }: { onSelectDay?: (dateKe
           <button type="button" className="btn" aria-label="Vorheriger Monat" onClick={() => shift(-1)}>
             ‹
           </button>
-          <strong>{monthName.format(new Date(view.year, view.month, 1))}</strong>
+          <strong>{formatMonthYear(new Date(view.year, view.month, 1))}</strong>
           <button type="button" className="btn" aria-label="Nächster Monat" onClick={() => shift(1)}>
             ›
           </button>
         </div>
         <div className="calendar-grid">
-          {WEEKDAYS.map((w) => (
+          {weekdayNamesMonday().map((w) => (
             <div key={w} className="calendar-weekday muted small">
               {w}
             </div>
