@@ -62,7 +62,7 @@ describe('heatmapData', () => {
     }]
     const { weights, cells } = heatmapData(s)
     expect(weights).toEqual([5, 0, -20])
-    expect(weights.map((w) => formatLoad(w, true))).toEqual(['+5', 'KG', '−20'])
+    expect(weights.map((w) => formatLoad(w, true))).toEqual(['+5 kg', 'BW', '−20 kg'])
     expect(cells.get(cellKey(5, 'a'))).toEqual({ best: 9, reps: [7, 9] })
   })
 })

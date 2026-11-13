@@ -35,7 +35,10 @@ export default function ExerciseStatsPage() {
       <button type="button" className="btn back-link" aria-label="Zurück" onClick={back}>
         ‹
       </button>
-      <h1>{exercise?.name ?? 'Übung'}</h1>
+      <div className="stats-title">
+        <h1>{exercise?.name ?? 'Übung'}</h1>
+        {exercise && isBodyweight(exercise) && <div className="muted small">Körpergewicht-Übung</div>}
+      </div>
     </header>
   )
 

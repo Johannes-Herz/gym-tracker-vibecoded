@@ -9,14 +9,24 @@ export function isBodyweight(e: Pick<Exercise, 'muscleGroup' | 'equipment'>): bo
   return !isCardio(e) && e.equipment === 'Körpergewicht'
 }
 
-/** "82,5 kg", or for bodyweight only the added weight: "KG", "+10", "−20". */
+/** Short label for pure bodyweight ("bodyweight"), so it can't be confused with "kg". */
+export const BW_LABEL = 'BW'
+
+const signed = (weight: number) => `${weight > 0 ? '+' : '−'}${formatNumber(Math.abs(weight))} kg`
+
+/** "82,5 kg", or for bodyweight the added weight: "BW", "+5 kg", "−20 kg". */
 export function formatLoad(weight: number, bodyweight: boolean): string {
   if (!bodyweight) return `${formatNumber(weight)} kg`
-  if (weight === 0) return 'KG'
-  return `${weight > 0 ? '+' : '−'}${formatNumber(Math.abs(weight))}`
+  return weight === 0 ? BW_LABEL : signed(weight)
 }
 
-/** Compact set: "82,5×5", "KG×12", "+10×8", "−20×6". */
+/** Spelled out where there is room: "Körpergewicht", "Körpergewicht + 5 kg", "Körpergewicht − 20 kg". */
+export function formatLoadLong(weight: number): string {
+  if (weight === 0) return 'Körpergewicht'
+  return `Körpergewicht ${weight > 0 ? '+' : '−'} ${formatNumber(Math.abs(weight))} kg`
+}
+
+/** One set: "82,5 kg × 5", "BW × 12", "+5 kg × 8", "−20 kg × 6". */
 export function formatSet(weight: number, reps: number, bodyweight: boolean): string {
-  return `${bodyweight ? formatLoad(weight, true) : formatNumber(weight)}×${reps}`
+  return `${formatLoad(weight, bodyweight)} × ${reps}`
 }
