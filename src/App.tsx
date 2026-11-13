@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import BottomNav from './components/BottomNav'
 import { useTabMemory } from './lib/useTabMemory'
+import { usePendingSteps } from './lib/useNavSteps'
 import ExercisesPage from './pages/ExercisesPage'
 import HistoryPage from './pages/HistoryPage'
 import NewWorkoutPage from './pages/NewWorkoutPage'
@@ -14,6 +15,7 @@ const ExerciseStatsPage = lazy(() => import('./pages/ExerciseStatsPage'))
 
 export default function App() {
   useTabMemory()
+  usePendingSteps()
 
   return (
     <>
