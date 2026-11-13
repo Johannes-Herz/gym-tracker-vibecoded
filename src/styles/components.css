@@ -163,3 +163,4 @@ html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
 .settings-section { margin-bottom: 12px; }
 .settings-section h2 { margin: 0 0 4px; font-size: 1.05rem; }
 .settings-section p { margin: 0 0 10px; }
+.form-error { color: var(--danger); }
