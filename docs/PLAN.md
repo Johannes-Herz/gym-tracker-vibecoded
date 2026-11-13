@@ -94,3 +94,23 @@ Templates are a starting point only: a name plus an ordered list of exercises (n
 - [x] 7. "Als Vorlage speichern" from a workout; template label in editor and Verlauf
 - [x] 8. Demo data: Push / Pull / Beine templates, some demo workouts labeled
 - [x] 9. Phone-width check (~360px), mark phase done
+
+## Phase 13: SZ-Stange exercises and German naming — DONE (pending phone-width check)
+EZ bar exercises ("SZ-Stange" is the common German gym term) plus a consistent naming pass over the built-in catalog.
+
+### Decisions
+- New equipment value `SZ-Stange` (filter, form, backup validation all use `EQUIPMENT`).
+- Built-ins get optional `aliases: string[]` (German variants, "EZ", previous names); search matches name, `aliasEn`, aliases and muscle group.
+- Naming: equipment prefix with hyphen for simple compounds (`Kabel-Rudern`), equipment in parentheses for phrase names (`Enges Bankdrücken (SZ)`); gym anglicisms stay (`Face Pulls`, `Cable Crossover`).
+- Renamed built-ins keep their IDs and list the old name as an alias. The v1 -> v2 merge also matches aliases.
+- "French Press" and "Scott-Curls" converted in place to equipment SZ-Stange (same IDs).
+- Schema v5: no data rewrite; `ensureBuiltins` adds the 8 new built-ins and refreshes names/aliases by ID. Custom exercises, hidden state, workouts and templates are untouched.
+- A custom exercise named like a new built-in (e.g. own "SZ-Curls") is kept next to it, no automatic merge.
+
+### Steps
+- [x] 1. Types: `SZ-Stange`, `aliases`, backup validation + test
+- [x] 2. Catalog: 8 new SZ-Stange exercises, conversions, renames, aliases
+- [x] 3. Search matches aliases + tests
+- [x] 4. Schema v5 + migration test
+- [x] 5. Demo data uses SZ-Curls and French Press
+- [ ] 6. Phone-width check of the equipment filter (6 values)
