@@ -70,6 +70,15 @@ describe('workout rules', () => {
     ])
   })
 
+  it('removeIfEmpty deletes a workout whose last set was removed, but keeps filled ones', () => {
+    const empty = workouts.createWithFirstExercise('2026-11-12T18:00:00.000Z', 'builtin-squat', { weight: 100, reps: 5 })
+    const filled = workouts.createWithFirstExercise('2026-11-13T18:00:00.000Z', 'builtin-squat', { weight: 100, reps: 5 })
+    sets.remove(getState().sets.find((s) => s.workoutId === empty.id)!.id)
+    workouts.removeIfEmpty(empty.id)
+    workouts.removeIfEmpty(filled.id)
+    expect(getState().workouts.map((w) => w.id)).toEqual([filled.id])
+  })
+
   it('deleting a workout removes it and its sets, leaving others untouched', () => {
     const a = workouts.createWithFirstExercise('2026-11-12T18:00:00.000Z', 'builtin-squat', { weight: 100, reps: 5 })
     sets.add({ workoutId: a.id, exerciseId: 'builtin-squat', weight: 100, reps: 5 })

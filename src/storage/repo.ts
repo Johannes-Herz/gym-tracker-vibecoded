@@ -88,6 +88,12 @@ export const workouts = {
     update((d) => ({ ...d, workouts: [...d.workouts, workout], sets: [...d.sets, set] }))
     return workout
   },
+  /** Deletes the workout if it has no sets (called when leaving the editor). */
+  removeIfEmpty(id: string): void {
+    if (getState().sets.some((s) => s.workoutId === id)) return
+    if (!getState().workouts.some((w) => w.id === id)) return
+    update((d) => ({ ...d, workouts: d.workouts.filter((w) => w.id !== id) }))
+  },
   /** Deletes the workout and all of its sets. */
   remove(id: string): void {
     update((d) => ({
