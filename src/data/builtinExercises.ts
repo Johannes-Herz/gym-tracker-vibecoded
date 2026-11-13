@@ -1,6 +1,6 @@
 import type { Equipment, MuscleGroup } from '../types'
 
-export type BuiltinCategory = 'Push' | 'Pull' | 'Legs' | 'Core'
+export type BuiltinCategory = 'Push' | 'Pull' | 'Legs' | 'Core' | 'Cardio'
 
 export interface BuiltinExercise {
   id: string // stable: never change once released
@@ -89,6 +89,14 @@ const GROUPS: [MuscleGroup, BuiltinCategory, Row[]][] = [
     ['hanging-leg-raise', 'Beinheben hängend', 'Hanging Leg Raise', KG],
     ['russian-twist', 'Russian Twists', 'Russian Twist', KG],
     ['ab-wheel-rollout', 'Ab Wheel', 'Ab Wheel Rollout', KG],
+  ]],
+  ['Cardio', 'Cardio', [
+    ['treadmill', 'Laufband', 'Treadmill', M],
+    ['cross-trainer', 'Crosstrainer', 'Elliptical Trainer', M],
+    ['rowing-machine', 'Rudergerät', 'Rowing Machine', M],
+    ['stationary-bike', 'Fahrradergometer', 'Stationary Bike', M],
+    ['stair-climber', 'Stepper', 'Stair Climber', M],
+    ['jump-rope', 'Seilspringen', 'Jump Rope', KG],
   ]],
 ]
 

@@ -1,4 +1,4 @@
-import { EQUIPMENT, MUSCLE_GROUPS, type AppData } from '../types'
+import { EQUIPMENT, MUSCLE_GROUPS, isCardio, type AppData } from '../types'
 import { BACKUP_KEY, CURRENT_SCHEMA_VERSION, emptyData, migrate } from './storage'
 import { getState, update } from './store'
 
@@ -99,7 +99,9 @@ export function parseImport(text: string): ImportResult {
       !isId(s.exerciseId) ||
       !isNonNeg(s.order) ||
       !isNonNeg(s.weight) ||
-      !isNonNeg(s.reps)
+      !isNonNeg(s.reps) ||
+      (s.durationMin !== undefined && !(isNonNeg(s.durationMin) && s.durationMin > 0)) ||
+      (s.distanceKm !== undefined && !isNonNeg(s.distanceKm))
     ) {
       return fail('Sätze: ungültiger Eintrag.')
     }
@@ -117,11 +119,18 @@ export function parseImport(text: string): ImportResult {
     checkUniqueIds('Körpergewicht', data.bodyWeights)
   if (dup) return fail(dup)
 
-  const exerciseIds = new Set(data.exercises.map((e) => e.id))
+  const exerciseById = new Map(data.exercises.map((e) => [e.id, e]))
+  const exerciseIds = new Set(exerciseById.keys())
   const workoutIds = new Set(data.workouts.map((w) => w.id))
   for (const s of data.sets) {
     if (!workoutIds.has(s.workoutId) || !exerciseIds.has(s.exerciseId)) {
       return fail('Sätze verweisen auf fehlende Trainings oder Übungen.')
+    }
+  }
+  for (const s of data.sets) {
+    // Cardio entries need a duration; strength sets must not carry one.
+    if (isCardio(exerciseById.get(s.exerciseId)!) !== (s.durationMin !== undefined)) {
+      return fail('Sätze passen nicht zum Übungstyp (Kraft/Cardio).')
     }
   }
 

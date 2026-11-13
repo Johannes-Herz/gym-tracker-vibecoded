@@ -1,4 +1,4 @@
-import { prefillFor } from './prefill'
+import { initialValues } from './prefill'
 import SetRow from './SetRow'
 import { sets as setsRepo } from '../../storage/repo'
 import { getState } from '../../storage/store'
@@ -12,7 +12,7 @@ interface Props {
 
 export default function ExerciseBlock({ workoutId, exercise, sets }: Props) {
   function addSet() {
-    const values = prefillFor(getState(), workoutId, exercise.id) ?? { weight: 0, reps: 0 }
+    const values = initialValues(getState(), workoutId, exercise)
     setsRepo.add({ workoutId, exerciseId: exercise.id, ...values })
   }
 

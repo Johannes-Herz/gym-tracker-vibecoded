@@ -4,7 +4,7 @@ import BackToHistory from '../components/BackToHistory'
 import PageHeader from '../components/PageHeader'
 import ExercisePicker from '../features/workout/ExercisePicker'
 import { defaultStartFor } from '../features/workout/newWorkout'
-import { prefillFor } from '../features/workout/prefill'
+import { initialValues } from '../features/workout/prefill'
 import { recentExerciseIds } from '../features/workout/recent'
 import { fromLocalInput, toLocalInput } from '../lib/format'
 import { workouts } from '../storage/repo'
@@ -20,7 +20,7 @@ export default function NewWorkoutPage() {
   const [picking, setPicking] = useState(false)
 
   function addFirstExercise(exercise: Exercise) {
-    const values = prefillFor(getState(), '', exercise.id) ?? { weight: 0, reps: 0 }
+    const values = initialValues(getState(), '', exercise)
     const workout = workouts.createWithFirstExercise(startedAt, exercise.id, values)
     navigate(`/verlauf/${workout.id}`, { replace: true })
   }
