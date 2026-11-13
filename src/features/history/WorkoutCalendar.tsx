@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatDateTime, localDateKey } from '../../lib/format'
+import { sessionState } from '../../lib/tabMemory'
 import { useStore } from '../../storage/store'
 import { monthGrid, trainingDays } from './calendar'
 
@@ -10,12 +11,25 @@ const monthName = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numer
 export default function WorkoutCalendar({ onSelectDay }: { onSelectDay?: (dateKey: string | null) => void }) {
   const data = useStore()
   const now = new Date()
-  const [view, setView] = useState({ year: now.getFullYear(), month: now.getMonth() })
-  const [selected, setSelectedState] = useState<string | null>(null)
+  // Month and selected day survive tab switches for this session.
+  const remembered = sessionState.calendar
+  const [view, setView] = useState(
+    remembered ? { year: remembered.year, month: remembered.month } : { year: now.getFullYear(), month: now.getMonth() },
+  )
+  const [selected, setSelectedState] = useState<string | null>(remembered?.selected ?? null)
   const setSelected = (key: string | null) => {
     setSelectedState(key)
     onSelectDay?.(key)
   }
+
+  useEffect(() => {
+    sessionState.calendar = { ...view, selected }
+  }, [view, selected])
+
+  // Tell the page about a restored selection (the floating + uses it); once on mount.
+  useEffect(() => {
+    if (remembered?.selected) onSelectDay?.(remembered.selected)
+  }, [])
 
   const days = trainingDays(data)
   const todayKey = localDateKey(now)
