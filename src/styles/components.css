@@ -33,3 +33,64 @@
 }
 .nav-item.active { color: var(--primary); font-weight: 600; }
 .nav-icon { font-size: 1.25rem; line-height: 1; }
+
+.small { font-size: 0.85rem; }
+.grow { flex: 1; min-width: 0; }
+.row { display: flex; gap: 8px; justify-content: flex-end; }
+
+.btn {
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+.btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+.btn-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+.btn-danger-text { color: var(--danger); min-width: 44px; padding: 0; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-bottom: 16px;
+}
+.form { display: flex; flex-direction: column; gap: 12px; }
+.form label { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; color: var(--muted); }
+.form input, .form select {
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.group-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 20px 0 6px; }
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 8px 8px 12px;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 10;
+}
+.dialog { background: var(--surface); border-radius: var(--radius); padding: 16px; width: 100%; max-width: 360px; }
+.dialog h2 { margin: 0 0 8px; font-size: 1.1rem; }
+.dialog-body { margin-bottom: 16px; color: var(--muted); }
+.dialog-actions { display: flex; gap: 8px; justify-content: flex-end; }
