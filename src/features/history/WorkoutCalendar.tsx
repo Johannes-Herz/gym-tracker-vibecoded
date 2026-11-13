@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { newWorkoutPath } from '../workout/newWorkout'
 import { formatDateTime, localDateKey } from '../../lib/format'
 import { useStore } from '../../storage/store'
 import { monthGrid, trainingDays } from './calendar'
@@ -7,11 +8,15 @@ import { monthGrid, trainingDays } from './calendar'
 const WEEKDAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 const monthName = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' })
 
-export default function WorkoutCalendar() {
+export default function WorkoutCalendar({ onSelectDay }: { onSelectDay?: (dateKey: string | null) => void }) {
   const data = useStore()
   const now = new Date()
   const [view, setView] = useState({ year: now.getFullYear(), month: now.getMonth() })
-  const [selected, setSelected] = useState<string | null>(null)
+  const [selected, setSelectedState] = useState<string | null>(null)
+  const setSelected = (key: string | null) => {
+    setSelectedState(key)
+    onSelectDay?.(key)
+  }
 
   const days = trainingDays(data)
   const todayKey = localDateKey(now)
@@ -79,17 +84,22 @@ export default function WorkoutCalendar() {
       </div>
 
       {selected && (
-        <ul className="list">
-          {selectedWorkouts.length === 0 && <li className="muted">Kein Training an diesem Tag.</li>}
-          {selectedWorkouts.map((w) => (
-            <li key={w.id}>
-              <Link to={`/verlauf/${w.id}`} className="list-item history-item">
-                <div className="grow">{formatDateTime(w.startedAt)}</div>
-                <span aria-hidden="true" className="muted">›</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="list">
+            {selectedWorkouts.length === 0 && <li className="muted">Kein Training an diesem Tag.</li>}
+            {selectedWorkouts.map((w) => (
+              <li key={w.id}>
+                <Link to={`/verlauf/${w.id}`} className="list-item history-item">
+                  <div className="grow">{formatDateTime(w.startedAt)}</div>
+                  <span aria-hidden="true" className="muted">›</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <Link to={newWorkoutPath(selected)} className="btn wide day-add">
+            + Training an diesem Tag
+          </Link>
+        </>
       )}
     </>
   )

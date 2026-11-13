@@ -1,3 +1,8 @@
+/** Route of the new-workout draft, optionally preset to a local day (YYYY-MM-DD). */
+export function newWorkoutPath(dateKey?: string | null): string {
+  return dateKey ? `/verlauf/neu?datum=${dateKey}` : '/verlauf/neu'
+}
+
 /**
  * Start time for a new workout: now for today (or no date), otherwise the
  * given local day (YYYY-MM-DD) at the current time of day.

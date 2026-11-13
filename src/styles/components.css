@@ -199,3 +199,23 @@ html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
   vertical-align: middle;
 }
 .list-item.is-hidden { opacity: 0.55; }
+.day-add { display: flex; align-items: center; justify-content: center; margin-top: 8px; text-decoration: none; color: var(--text); }
+.fab-spacer { height: 72px; }
+.fab {
+  position: fixed;
+  right: max(16px, calc((100vw - 640px) / 2 + 16px), env(safe-area-inset-right));
+  bottom: calc(var(--nav-h) + 16px + env(safe-area-inset-bottom));
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff;
+  font-size: 2rem;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  z-index: 5;
+}
