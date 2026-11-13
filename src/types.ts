@@ -10,12 +10,22 @@ export const MUSCLE_GROUPS = [
 
 export type MuscleGroup = (typeof MUSCLE_GROUPS)[number]
 
+export const EQUIPMENT = ['Langhantel', 'Kurzhantel', 'Maschine', 'Kabelzug', 'Körpergewicht'] as const
+
+export type Equipment = (typeof EQUIPMENT)[number]
+
+export type ExerciseSource = 'builtin' | 'custom'
+
 export interface Exercise {
   id: string
   name: string
   muscleGroup: MuscleGroup
   category: string
   createdAt: string // ISO
+  source: ExerciseSource
+  aliasEn?: string // built-ins only
+  equipment?: Equipment
+  hidden?: boolean // only ever true for built-ins
 }
 
 export interface Workout {

@@ -16,6 +16,7 @@ export const exercises = {
       muscleGroup: input.muscleGroup,
       category: input.category.trim(),
       createdAt: new Date().toISOString(),
+      source: 'custom',
     }
     update((d) => ({ ...d, exercises: [...d.exercises, exercise] }))
     return exercise

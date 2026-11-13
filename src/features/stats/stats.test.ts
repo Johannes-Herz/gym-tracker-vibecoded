@@ -6,8 +6,8 @@ import { aggregateBy, estimate1RM, exerciseProgress, trainingDays } from './stat
 function sample(): AppData {
   const d = emptyData()
   d.exercises.push(
-    { id: 'bench', name: 'Bankdrücken', muscleGroup: 'Brust', category: 'Push', createdAt: '' },
-    { id: 'squat', name: 'Kniebeuge', muscleGroup: 'Beine', category: '', createdAt: '' },
+    { id: 'bench', name: 'Bankdrücken', muscleGroup: 'Brust', category: 'Push', createdAt: '', source: 'custom' },
+    { id: 'squat', name: 'Kniebeuge', muscleGroup: 'Beine', category: '', createdAt: '', source: 'custom' },
   )
   d.workouts.push(
     { id: 'w2', startedAt: '2026-02-10T12:00:00' },
