@@ -1,4 +1,4 @@
-import { MUSCLE_GROUPS, type AppData } from '../types'
+import { EQUIPMENT, MUSCLE_GROUPS, type AppData } from '../types'
 import { BACKUP_KEY, CURRENT_SCHEMA_VERSION, emptyData, migrate } from './storage'
 import { getState, update } from './store'
 
@@ -77,7 +77,11 @@ export function parseImport(text: string): ImportResult {
       !e.name.trim() ||
       !(MUSCLE_GROUPS as readonly unknown[]).includes(e.muscleGroup) ||
       typeof e.category !== 'string' ||
-      !isIso(e.createdAt)
+      !isIso(e.createdAt) ||
+      (e.source !== 'builtin' && e.source !== 'custom') ||
+      (e.aliasEn !== undefined && typeof e.aliasEn !== 'string') ||
+      (e.equipment !== undefined && !(EQUIPMENT as readonly unknown[]).includes(e.equipment)) ||
+      (e.hidden !== undefined && typeof e.hidden !== 'boolean')
     ) {
       return fail('Übungen: ungültiger Eintrag.')
     }

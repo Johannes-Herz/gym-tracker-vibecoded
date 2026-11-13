@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { BUILTIN_EXERCISES } from '../data/builtinExercises'
 import {
   BACKUP_KEY,
   CURRENT_SCHEMA_VERSION,
   STORAGE_KEY,
   emptyData,
+  ensureBuiltins,
   load,
   migrate,
   save,
@@ -65,12 +67,68 @@ describe('storage', () => {
 
 describe('migrate', () => {
   it('fills missing collections', () => {
-    expect(migrate({ schemaVersion: 1, exercises: [{ id: 'e' }] })).toMatchObject({
-      exercises: [{ id: 'e' }],
-      workouts: [],
-      sets: [],
-      bodyWeights: [],
-    })
+    const data = migrate({ schemaVersion: 1, exercises: [{ id: 'e', name: 'Eigene Übung' }] })!
+    expect(data.exercises[0]).toEqual({ id: 'e', name: 'Eigene Übung', source: 'custom' })
+    expect(data).toMatchObject({ workouts: [], sets: [], bodyWeights: [] })
+  })
+
+  it('seeds all built-ins into empty data', () => {
+    const data = emptyData()
+    expect(data.exercises).toHaveLength(BUILTIN_EXERCISES.length)
+    expect(data.exercises.every((e) => e.source === 'builtin' && !e.hidden)).toBe(true)
+  })
+
+  const v1 = () => ({
+    schemaVersion: 1,
+    exercises: [
+      { id: 'c1', name: ' bankdrücken ', muscleGroup: 'Brust', category: '', createdAt: '2025-05-01T00:00:00.000Z' },
+      { id: 'c2', name: 'Lat Pulldown', muscleGroup: 'Rücken', category: '', createdAt: '2025-05-01T00:00:00.000Z' },
+      { id: 'c3', name: 'Meine Spezialübung', muscleGroup: 'Bauch', category: 'X', createdAt: '2025-05-01T00:00:00.000Z' },
+    ],
+    workouts: [{ id: 'w1', startedAt: '2025-06-01T10:00:00.000Z', note: 'Gut' }],
+    sets: [
+      { id: 's1', workoutId: 'w1', exerciseId: 'c1', order: 0, weight: 80, reps: 8 },
+      { id: 's2', workoutId: 'w1', exerciseId: 'c2', order: 1, weight: 50, reps: 10 },
+      { id: 's3', workoutId: 'w1', exerciseId: 'c3', order: 2, weight: 0, reps: 20 },
+    ],
+    bodyWeights: [{ id: 'b1', date: '2025-06-01', weightKg: 82 }],
+  })
+
+  it('keeps v1 workouts, body weights and non-matching custom exercises intact', () => {
+    const before = v1()
+    const data = migrate(before)!
+    expect(data.schemaVersion).toBe(CURRENT_SCHEMA_VERSION)
+    expect(data.workouts).toEqual(before.workouts)
+    expect(data.bodyWeights).toEqual(before.bodyWeights)
+    expect(data.exercises.find((e) => e.id === 'c3')).toEqual({ ...before.exercises[2], source: 'custom' })
+    expect(data.sets.map((s) => [s.id, s.weight, s.reps])).toEqual(before.sets.map((s) => [s.id, s.weight, s.reps]))
+  })
+
+  it('merges custom exercises matching a built-in name or alias and repoints their sets', () => {
+    const data = migrate(v1())!
+    expect(data.exercises.some((e) => e.id === 'c1' || e.id === 'c2')).toBe(false)
+    expect(data.sets.find((s) => s.id === 's1')!.exerciseId).toBe('builtin-bench-press')
+    expect(data.sets.find((s) => s.id === 's2')!.exerciseId).toBe('builtin-lat-pulldown')
+    expect(data.sets.find((s) => s.id === 's3')!.exerciseId).toBe('c3')
+  })
+
+  it('is idempotent', () => {
+    const once = migrate(v1())!
+    expect(migrate(JSON.parse(JSON.stringify(once)))).toEqual(once)
+  })
+
+  it('seeds newly added catalog entries and preserves hidden state', () => {
+    const data = emptyData()
+    data.exercises = data.exercises.map((e) =>
+      e.id === 'builtin-squat' ? { ...e, hidden: true, name: 'Alter Name' } : e,
+    )
+    const extra = { id: 'builtin-new', name: 'Neu', aliasEn: 'New', muscleGroup: 'Beine', category: 'Legs', equipment: 'Maschine' } as const
+    const result = ensureBuiltins(data, [...BUILTIN_EXERCISES, extra])
+    const squat = result.exercises.find((e) => e.id === 'builtin-squat')!
+    expect(squat.hidden).toBe(true)
+    expect(squat.name).toBe('Kniebeuge')
+    expect(result.exercises.find((e) => e.id === 'builtin-new')).toMatchObject({ source: 'builtin', name: 'Neu' })
+    expect(result.exercises).toHaveLength(BUILTIN_EXERCISES.length + 1)
   })
 
   it('returns null for invalid input', () => {

@@ -20,15 +20,17 @@ describe('backup export', () => {
 })
 
 describe('parseImport', () => {
-  const ex = { id: 'e1', name: 'Bankdrücken', muscleGroup: 'Brust', category: 'Langhantel', createdAt: '2026-01-01T10:00:00.000Z' }
+  const ex = { id: 'e1', name: 'Eigene Übung', muscleGroup: 'Brust', category: 'Push', createdAt: '2026-01-01T10:00:00.000Z', source: 'custom', equipment: 'Kurzhantel' }
   const wo = { id: 'w1', startedAt: '2026-01-02T10:00:00.000Z' }
   const set = { id: 's1', workoutId: 'w1', exerciseId: 'e1', order: 0, weight: 80, reps: 8 }
   const bw = { id: 'b1', date: '2026-01-02', weightKg: 80.5 }
-  const valid = () => ({
-    app: 'gymtracker',
-    exportedAt: '2026-01-03T00:00:00.000Z',
-    data: { schemaVersion: CURRENT_SCHEMA_VERSION, exercises: [ex], workouts: [wo], sets: [set], bodyWeights: [bw] },
-  })
+  // Deep copy so mutations in one test never leak into the shared fixtures.
+  const valid = () =>
+    structuredClone({
+      app: 'gymtracker',
+      exportedAt: '2026-01-03T00:00:00.000Z',
+      data: { schemaVersion: CURRENT_SCHEMA_VERSION, exercises: [ex], workouts: [wo], sets: [set], bodyWeights: [bw] },
+    })
   const parse = (v: unknown) => parseImport(JSON.stringify(v))
   const mutate = (fn: (b: ReturnType<typeof valid>) => void) => {
     const b = valid()
@@ -36,10 +38,26 @@ describe('parseImport', () => {
     return parse(b)
   }
 
-  it('round-trips an export', () => {
-    const data = valid().data
-    const result = parseImport(serializeBackup(data as AppData))
+  it('round-trips an export, including hidden built-ins', () => {
+    const builtins = emptyData().exercises.map((e) => (e.id === 'builtin-squat' ? { ...e, hidden: true } : e))
+    const data = { ...valid().data, exercises: [...builtins, ex] } as AppData
+    const result = parseImport(serializeBackup(data))
     expect(result).toEqual({ ok: true, data })
+  })
+
+  it('migrates v1 backups: seeds built-ins and merges matching custom exercises', () => {
+    const b = valid()
+    const v1Ex = { id: 'old', name: 'Bankdrücken', muscleGroup: 'Brust', category: '', createdAt: '2025-01-01T00:00:00.000Z' }
+    const result = parse({ ...b, data: { ...b.data, schemaVersion: 1, exercises: [v1Ex], sets: [{ ...set, exerciseId: 'old' }] } })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.data.sets[0].exerciseId).toBe('builtin-bench-press')
+    expect(result.data.exercises.some((e) => e.id === 'old')).toBe(false)
+  })
+
+  it('rejects invalid new exercise fields', () => {
+    expect(mutate((b) => { (b.data.exercises[0] as { source: unknown }).source = 'x' }).ok).toBe(false)
+    expect(mutate((b) => { (b.data.exercises[0] as { equipment: unknown }).equipment = 'Hantel' }).ok).toBe(false)
   })
 
   it('accepts valid data', () => {
