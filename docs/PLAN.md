@@ -55,10 +55,10 @@
 - [x] Per-exercise stats page: KPIs, rep heatmap, last vs. previous, compact trend; cardio variant
 - [x] Demo data with bodyweight exercises
 
-## Phase 10: Logging and stats refinements — IN PROGRESS
-- [ ] Compact bodyweight labels ("KG", "+10", "−20") everywhere
-- [ ] Editor: −/+ for reps, wider inputs
-- [ ] Heatmap: 30px cells, continuous teal gradient with legend
-- [ ] "Letztes Training": per-set weight/reps deltas vs. previous session (arrows + colors)
-- [ ] Trend chart with switchable metrics (strength / bodyweight / cardio), remembered per device
-- [ ] Demo data: straight, pyramid, back-off and warm-up patterns; mixed bodyweight sets
+## Phase 10: Logging and stats refinements — DONE
+- [x] Compact bodyweight labels ("KG", "+10", "−20") everywhere
+- [x] Editor: −/+ for reps, wider inputs
+- [x] Heatmap: 30px cells, continuous teal gradient with legend
+- [x] "Letztes Training": per-set weight/reps deltas vs. previous session (arrows + colors)
+- [x] Trend chart with switchable metrics (strength / bodyweight / cardio), remembered per device
+- [x] Demo data: straight, pyramid, back-off and warm-up patterns; mixed bodyweight sets
