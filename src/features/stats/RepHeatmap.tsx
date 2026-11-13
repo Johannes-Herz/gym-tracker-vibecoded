@@ -1,9 +1,16 @@
 import { useLayoutEffect, useRef, useState } from 'react'
+import { usePrefersDark } from '../../lib/usePrefersDark'
 import { formatLoad } from '../exercises/bodyweight'
-import { axisLabels, cellKey, dayMonth, heatmapData, repLevel, type Session } from './exerciseStats'
+import { axisLabels, cellKey, dayMonth, heatmapData, type Session } from './exerciseStats'
+import { heatColor, heatGradientCss } from './heatColor'
 
 const MAX_DOTS = 5
-const LEGEND = ['≤5', '6', '7', '8+']
+const LEGEND_TICKS = [
+  { label: '5', at: 0 },
+  { label: '8', at: 37.5 },
+  { label: '12', at: 87.5 },
+  { label: '13+', at: 100 },
+]
 
 interface Props {
   sessions: Session[]
@@ -14,6 +21,7 @@ export default function RepHeatmap({ sessions, bodyweight }: Props) {
   const { weights, cells } = heatmapData(sessions)
   const labels = axisLabels(sessions)
   const scroller = useRef<HTMLDivElement>(null)
+  const dark = usePrefersDark()
   const [selected, setSelected] = useState<{ weight: number; workoutId: string } | null>(null)
 
   // Start at the newest session (right edge).
@@ -41,11 +49,13 @@ export default function RepHeatmap({ sessions, bodyweight }: Props) {
                   if (!cell) return <td key={s.workoutId} />
                   const isSelected = selected?.weight === w && selected.workoutId === s.workoutId
                   const extra = cell.reps.length - MAX_DOTS
+                  const color = heatColor(cell.best, dark)
                   return (
                     <td key={s.workoutId}>
                       <button
                         type="button"
-                        className={`heat-cell lv-${repLevel(cell.best)}${isSelected ? ' selected' : ''}`}
+                        className={isSelected ? 'heat-cell selected' : 'heat-cell'}
+                        style={{ background: color.bg, color: color.fg }}
                         aria-label={`${dayMonth(s.startedAt)} ${formatLoad(w, bodyweight)}: ${cell.reps.join(', ')} Wiederholungen`}
                         aria-pressed={isSelected}
                         onClick={() => setSelected(isSelected ? null : { weight: w, workoutId: s.workoutId })}
@@ -84,13 +94,18 @@ export default function RepHeatmap({ sessions, bodyweight }: Props) {
         <p className="heat-detail muted small">Tippe auf ein Feld für die Sätze.</p>
       )}
 
-      <div className="heat-legend muted small" aria-label="Legende Wiederholungen">
-        Wdh.
-        {LEGEND.map((label, i) => (
-          <span key={label} className={`heat-swatch lv-${i}`}>
-            {label}
-          </span>
-        ))}
+      <div className="heat-legend muted small" aria-label="Legende: helle Felder wenige, dunkle Felder viele Wiederholungen">
+        <span>Wdh.</span>
+        <div className="heat-scale">
+          <div className="heat-bar" style={{ background: heatGradientCss(dark) }} />
+          <div className="heat-ticks">
+            {LEGEND_TICKS.map((t) => (
+              <span key={t.label} style={{ left: `${t.at}%` }}>
+                {t.label}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   )

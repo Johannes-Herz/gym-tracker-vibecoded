@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { emptyData } from '../../storage/storage'
+import { formatLoad } from '../exercises/bodyweight'
 import type { AppData } from '../../types'
 import {
   axisLabels,
@@ -7,7 +8,6 @@ import {
   cellKey,
   compareLast,
   heatmapData,
-  repLevel,
   sessionsFor,
   trend,
   type Session,
@@ -54,8 +54,16 @@ describe('heatmapData', () => {
     expect(cells.has(cellKey(80, 'w1'))).toBe(false)
   })
 
-  it('maps reps to color levels', () => {
-    expect([3, 5, 6, 7, 8, 12].map(repLevel)).toEqual([0, 0, 1, 2, 3, 3])
+  it('puts bodyweight, added and assisted sets in one table, heaviest first', () => {
+    const s: Session[] = [{
+      workoutId: 'a',
+      startedAt: at(10, 1),
+      sets: [0, 5, -20, 5].map((weight, i) => ({ id: `${i}`, workoutId: 'a', exerciseId: 'builtin-pull-up', order: i, weight, reps: 6 + i })),
+    }]
+    const { weights, cells } = heatmapData(s)
+    expect(weights).toEqual([5, 0, -20])
+    expect(weights.map((w) => formatLoad(w, true))).toEqual(['+5', 'KG', '−20'])
+    expect(cells.get(cellKey(5, 'a'))).toEqual({ best: 9, reps: [7, 9] })
   })
 })
 

@@ -53,14 +53,6 @@ export function heatmapData(sessions: Session[]): { weights: number[]; cells: Ma
   return { weights: [...weights].sort((a, b) => b - a), cells }
 }
 
-/** Color level for a cell: ≤5 → 0, 6 → 1, 7 → 2, 8+ → 3. */
-export function repLevel(reps: number): 0 | 1 | 2 | 3 {
-  if (reps >= 8) return 3
-  if (reps === 7) return 2
-  if (reps === 6) return 1
-  return 0
-}
-
 const MONTHS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez']
 
 /** "9.11." */
