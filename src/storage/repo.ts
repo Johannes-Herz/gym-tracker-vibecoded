@@ -1,42 +1,62 @@
 import { newId } from '../lib/id'
-import type { Exercise, MuscleGroup, Workout, WorkoutSet } from '../types'
+import type { Equipment, Exercise, MuscleGroup, Workout, WorkoutSet } from '../types'
 import { getState, update } from './store'
 
 export type ExerciseInput = {
   name: string
   muscleGroup: MuscleGroup
   category: string
+  equipment?: Equipment
+}
+
+function isBuiltin(id: string): boolean {
+  return getState().exercises.some((e) => e.id === id && e.source === 'builtin')
+}
+
+function fromInput(input: ExerciseInput) {
+  return {
+    name: input.name.trim(),
+    muscleGroup: input.muscleGroup,
+    category: input.category.trim(),
+    equipment: input.equipment || undefined,
+  }
 }
 
 export const exercises = {
   add(input: ExerciseInput): Exercise {
     const exercise: Exercise = {
       id: newId(),
-      name: input.name.trim(),
-      muscleGroup: input.muscleGroup,
-      category: input.category.trim(),
+      ...fromInput(input),
       createdAt: new Date().toISOString(),
       source: 'custom',
     }
     update((d) => ({ ...d, exercises: [...d.exercises, exercise] }))
     return exercise
   },
-  update(id: string, input: ExerciseInput): void {
+  /** Built-ins cannot be edited; returns false for them. */
+  update(id: string, input: ExerciseInput): boolean {
+    if (isBuiltin(id)) return false
     update((d) => ({
       ...d,
-      exercises: d.exercises.map((e) =>
-        e.id === id
-          ? { ...e, name: input.name.trim(), muscleGroup: input.muscleGroup, category: input.category.trim() }
-          : e,
-      ),
+      exercises: d.exercises.map((e) => (e.id === id ? { ...e, ...fromInput(input) } : e)),
     }))
+    return true
+  },
+  /** Hides or shows a built-in. Custom exercises are deleted instead; returns false for them. */
+  setHidden(id: string, hidden: boolean): boolean {
+    if (!isBuiltin(id)) return false
+    update((d) => ({
+      ...d,
+      exercises: d.exercises.map((e) => (e.id === id ? { ...e, hidden } : e)),
+    }))
+    return true
   },
   isInUse(id: string): boolean {
     return getState().sets.some((s) => s.exerciseId === id)
   },
-  /** Returns false (and deletes nothing) if the exercise is used by any set. */
+  /** Returns false (and deletes nothing) for built-ins and exercises used by any set. */
   remove(id: string): boolean {
-    if (exercises.isInUse(id)) return false
+    if (isBuiltin(id) || exercises.isInUse(id)) return false
     update((d) => ({ ...d, exercises: d.exercises.filter((e) => e.id !== id) }))
     return true
   },

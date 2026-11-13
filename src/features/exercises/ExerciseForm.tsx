@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { ExerciseInput } from '../../storage/repo'
-import { MUSCLE_GROUPS, type MuscleGroup } from '../../types'
+import { EQUIPMENT, MUSCLE_GROUPS, type Equipment, type MuscleGroup } from '../../types'
 
 interface Props {
   initial?: ExerciseInput
@@ -13,11 +13,12 @@ export default function ExerciseForm({ initial, categories, onSubmit, onCancel }
   const [name, setName] = useState(initial?.name ?? '')
   const [muscleGroup, setMuscleGroup] = useState<MuscleGroup>(initial?.muscleGroup ?? MUSCLE_GROUPS[0])
   const [category, setCategory] = useState(initial?.category ?? '')
+  const [equipment, setEquipment] = useState<Equipment | ''>(initial?.equipment ?? '')
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!name.trim()) return
-    onSubmit({ name, muscleGroup, category })
+    onSubmit({ name, muscleGroup, category, equipment: equipment || undefined })
   }
 
   return (
@@ -31,6 +32,15 @@ export default function ExerciseForm({ initial, categories, onSubmit, onCancel }
         <select value={muscleGroup} onChange={(e) => setMuscleGroup(e.target.value as MuscleGroup)}>
           {MUSCLE_GROUPS.map((g) => (
             <option key={g}>{g}</option>
+          ))}
+        </select>
+      </label>
+      <label>
+        Gerät
+        <select value={equipment} onChange={(e) => setEquipment(e.target.value as Equipment | '')}>
+          <option value="">–</option>
+          {EQUIPMENT.map((eq) => (
+            <option key={eq}>{eq}</option>
           ))}
         </select>
       </label>
