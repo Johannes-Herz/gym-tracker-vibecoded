@@ -57,7 +57,7 @@ export default function SetRow({ set, index, cardio, bodyweight }: Props) {
           <NumberStepper
             label="Wiederholungen"
             step={1}
-            buttons={false}
+            min={0}
             inputMode="numeric"
             value={set.reps}
             onChange={(reps) => sets.update(set.id, { reps })}
