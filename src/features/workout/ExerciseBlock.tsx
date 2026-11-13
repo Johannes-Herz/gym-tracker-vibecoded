@@ -21,7 +21,12 @@ export default function ExerciseBlock({ workoutId, exercise, sets }: Props) {
       <h2 className="block-title">
         {exercise.name} <span className="muted small">{exercise.muscleGroup}</span>
       </h2>
-      <div className="muted small set-legend">Gewicht (kg) · Wiederholungen</div>
+      <div className="muted small set-row set-legend" aria-hidden="true">
+        <span />
+        <span>Gewicht (kg)</span>
+        <span>Wdh.</span>
+        <span />
+      </div>
       {sets.map((s, i) => (
         <SetRow key={s.id} set={s} index={i} />
       ))}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import BackToHistory, { useBackToHistory } from '../components/BackToHistory'
 import ConfirmDialog from '../components/ConfirmDialog'
 import PageHeader from '../components/PageHeader'
 import WorkoutEditor from '../features/workout/WorkoutEditor'
@@ -8,7 +9,7 @@ import { useStore } from '../storage/store'
 
 export default function WorkoutDetailPage() {
   const { id = '' } = useParams()
-  const navigate = useNavigate()
+  const back = useBackToHistory()
   const { workouts: all } = useStore()
   const [confirming, setConfirming] = useState(false)
 
@@ -16,18 +17,14 @@ export default function WorkoutDetailPage() {
 
   function handleDelete() {
     workouts.remove(id)
-    navigate('/verlauf', { replace: true })
+    back()
   }
 
   return (
     <>
       <PageHeader
         title="Training"
-        action={
-          <Link to="/verlauf" className="btn back-link">
-            ‹ Verlauf
-          </Link>
-        }
+        action={<BackToHistory />}
       />
       {exists ? (
         <>

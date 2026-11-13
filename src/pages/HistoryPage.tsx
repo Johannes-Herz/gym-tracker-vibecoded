@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { newWorkoutPath } from '../features/workout/newWorkout'
 import PageHeader from '../components/PageHeader'
 import WorkoutCalendar from '../features/history/WorkoutCalendar'
 import { formatDateTime } from '../lib/format'
@@ -15,9 +16,11 @@ const VIEWS: { key: HistoryView; label: string }[] = [
 
 export default function HistoryPage() {
   const [view, setView] = useState<HistoryView>(() => loadHistoryView())
+  const [selectedDay, setSelectedDay] = useState<string | null>(null)
 
   function choose(next: HistoryView) {
     setView(next)
+    setSelectedDay(null)
     saveHistoryView(next)
   }
 
@@ -38,7 +41,15 @@ export default function HistoryPage() {
           </button>
         ))}
       </div>
-      {view === 'list' ? <WorkoutList /> : <WorkoutCalendar />}
+      {view === 'list' ? <WorkoutList /> : <WorkoutCalendar onSelectDay={setSelectedDay} />}
+      <div className="fab-spacer" />
+      <Link
+        to={newWorkoutPath(view === 'calendar' ? selectedDay : null)}
+        className="fab"
+        aria-label="Neues Training"
+      >
+        +
+      </Link>
     </>
   )
 }

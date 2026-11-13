@@ -35,3 +35,8 @@
 ## Phase 6: Calendar in Verlauf — DONE
 - [x] Move the calendar from Statistik into Verlauf; remove the Statistik calendar tab
 - [x] Verlauf toggle "Liste" / "Kalender", last view remembered per device (via `src/storage/`)
+
+## Phase 7: Workout logging rework — DONE
+- [x] Set rows use the full card width (weight stepper, reps typed)
+- [x] Weight steps of 1.25 kg
+- [x] Training tab removed: "+" in Verlauf (list and calendar), draft until first exercise, delete in editor

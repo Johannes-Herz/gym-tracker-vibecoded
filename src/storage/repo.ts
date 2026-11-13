@@ -74,6 +74,20 @@ export const workouts = {
       workouts: d.workouts.map((w) => (w.id === id ? { ...w, ...patch } : w)),
     }))
   },
+  /**
+   * Creates a workout together with its first set in one update, so a new
+   * workout is only ever saved once it has content.
+   */
+  createWithFirstExercise(
+    startedAt: string,
+    exerciseId: string,
+    values: { weight: number; reps: number },
+  ): Workout {
+    const workout: Workout = { id: newId(), startedAt }
+    const set: WorkoutSet = { id: newId(), workoutId: workout.id, exerciseId, order: 0, ...values }
+    update((d) => ({ ...d, workouts: [...d.workouts, workout], sets: [...d.sets, set] }))
+    return workout
+  },
   /** Deletes the workout and all of its sets. */
   remove(id: string): void {
     update((d) => ({
