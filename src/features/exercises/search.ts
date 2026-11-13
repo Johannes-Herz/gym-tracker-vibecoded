@@ -1,4 +1,5 @@
-import { equipmentLabelsAll, muscleLabelsAll } from '../../i18n/labels'
+import { t } from '../../i18n'
+import { equipmentLabelsAll, muscleLabel, muscleLabelsAll } from '../../i18n/labels'
 import { MUSCLE_GROUPS, type Equipment, type Exercise, type MuscleGroup } from '../../types'
 import { byDisplayName } from './exerciseName'
 
@@ -45,10 +46,10 @@ export function searchSections(
   const recent = (opts.recentIds ?? [])
     .map((id) => pool.find((e) => e.id === id))
     .filter((e): e is Exercise => e !== undefined)
-  if (recent.length) sections.push({ title: 'Zuletzt verwendet', items: recent })
+  if (recent.length) sections.push({ title: t('search.recent'), items: recent })
   for (const g of MUSCLE_GROUPS) {
     const items = pool.filter((e) => e.muscleGroup === g).sort(byName)
-    if (items.length) sections.push({ title: g, items })
+    if (items.length) sections.push({ title: muscleLabel(g), items })
   }
   return sections
 }

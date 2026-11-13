@@ -1,4 +1,7 @@
+import { t } from '../../i18n'
+import { equipmentLabel, muscleLabel } from '../../i18n/labels'
 import { MUSCLE_GROUPS, type Exercise } from '../../types'
+import { exerciseName, otherName } from './exerciseName'
 import { byName } from './search'
 
 interface Props {
@@ -9,7 +12,7 @@ interface Props {
 }
 
 function details(e: Exercise): string {
-  return [e.aliasEn !== e.name ? e.aliasEn : undefined, e.equipment, e.source === 'custom' ? e.category : undefined]
+  return [otherName(e), e.equipment ? equipmentLabel(e.equipment) : undefined, e.source === 'custom' ? e.category : undefined]
     .filter(Boolean)
     .join(' · ')
 }
@@ -22,30 +25,30 @@ export default function ExerciseList({ exercises, onEdit, onDelete, onToggleHidd
         if (items.length === 0) return null
         return (
           <section key={group}>
-            <h2 className="group-title">{group}</h2>
+            <h2 className="group-title">{muscleLabel(group)}</h2>
             <ul className="list">
               {items.map((e) => (
                 <li key={e.id} className={e.hidden ? 'list-item is-hidden' : 'list-item'}>
                   <div className="grow">
                     <div>
-                      {e.name}
-                      {e.source === 'builtin' && <span className="badge">Standard</span>}
+                      {exerciseName(e)}
+                      {e.source === 'builtin' && <span className="badge">{t('ex.badge')}</span>}
                     </div>
                     {details(e) && <div className="muted small">{details(e)}</div>}
                   </div>
                   {e.source === 'builtin' ? (
                     <button type="button" className="btn" onClick={() => onToggleHidden(e)}>
-                      {e.hidden ? 'Einblenden' : 'Ausblenden'}
+                      {e.hidden ? t('ex.show') : t('ex.hide')}
                     </button>
                   ) : (
                     <>
                       <button type="button" className="btn" onClick={() => onEdit(e)}>
-                        Bearbeiten
+                        {t('ex.edit')}
                       </button>
                       <button
                         type="button"
                         className="btn btn-danger-text"
-                        aria-label={`${e.name} löschen`}
+                        aria-label={t('ex.deleteLabel', { name: exerciseName(e) })}
                         onClick={() => onDelete(e)}
                       >
                         ✕

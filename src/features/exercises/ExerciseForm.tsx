@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from 'react'
+import { t } from '../../i18n'
+import { equipmentLabel, muscleLabel } from '../../i18n/labels'
 import type { ExerciseInput } from '../../storage/repo'
 import { EQUIPMENT, MUSCLE_GROUPS, isCardio, type Equipment, type MuscleGroup } from '../../types'
 
@@ -26,33 +28,37 @@ export default function ExerciseForm({ initial, categories, lockKind = false, on
   return (
     <form className="card form" onSubmit={handleSubmit}>
       <label>
-        Name
+        {t('ex.name')}
         <input value={name} onChange={(e) => setName(e.target.value)} required autoFocus />
       </label>
       <label>
-        Muskelgruppe
+        {t('ex.muscleGroup')}
         <select value={muscleGroup} onChange={(e) => setMuscleGroup(e.target.value as MuscleGroup)}>
           {MUSCLE_GROUPS.filter(
             (g) => !lockKind || !initial || isCardio({ muscleGroup: g }) === isCardio(initial),
           ).map((g) => (
-            <option key={g}>{g}</option>
+            <option key={g} value={g}>
+              {muscleLabel(g)}
+            </option>
           ))}
         </select>
         {lockKind && (
-          <span className="small">Bereits trainiert: Wechsel zwischen Kraft und Cardio nicht möglich.</span>
+          <span className="small">{t('ex.lockedKind')}</span>
         )}
       </label>
       <label>
-        Gerät
+        {t('ex.equipment')}
         <select value={equipment} onChange={(e) => setEquipment(e.target.value as Equipment | '')}>
           <option value="">–</option>
           {EQUIPMENT.map((eq) => (
-            <option key={eq}>{eq}</option>
+            <option key={eq} value={eq}>
+              {equipmentLabel(eq)}
+            </option>
           ))}
         </select>
       </label>
       <label>
-        Kategorie (z. B. Push, Pull, Legs)
+        {t('ex.category')}
         <input value={category} onChange={(e) => setCategory(e.target.value)} list="category-options" />
         <datalist id="category-options">
           {categories.map((c) => (
@@ -62,10 +68,10 @@ export default function ExerciseForm({ initial, categories, lockKind = false, on
       </label>
       <div className="row">
         <button type="button" className="btn" onClick={onCancel}>
-          Abbrechen
+          {t('common.cancel')}
         </button>
         <button type="submit" className="btn btn-primary">
-          Speichern
+          {t('common.save')}
         </button>
       </div>
     </form>

@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import ConfirmDialog from '../components/ConfirmDialog'
+import { t } from '../i18n'
+import { equipmentLabel, muscleLabel } from '../i18n/labels'
+import { exerciseName } from '../features/exercises/exerciseName'
 import PageHeader from '../components/PageHeader'
 import ExerciseViewToggle from '../features/templates/ExerciseViewToggle'
 import ExerciseForm from '../features/exercises/ExerciseForm'
@@ -48,11 +51,11 @@ export default function ExercisesPage() {
   return (
     <>
       <PageHeader
-        title="Übungen"
+        title={t('nav.exercises')}
         action={
           mode.kind === 'idle' && (
             <button type="button" className="btn btn-primary" onClick={() => setMode({ kind: 'new' })}>
-              + Neu
+              {t('common.new')}
             </button>
           )
         }
@@ -74,12 +77,12 @@ export default function ExercisesPage() {
       <div className="form filters">
         <input
           type="search"
-          placeholder="Suchen (auch englisch)…"
-          aria-label="Übungen suchen"
+          placeholder={t('ex.pageSearchPlaceholder')}
+          aria-label={t('ex.pageSearchLabel')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <div className="chips" role="group" aria-label="Muskelgruppe">
+        <div className="chips" role="group" aria-label={t('ex.muscleGroup')}>
           {(['', ...MUSCLE_GROUPS] as const).map((g) => (
             <button
               key={g || 'all'}
@@ -88,31 +91,33 @@ export default function ExercisesPage() {
               aria-pressed={group === g}
               onClick={() => setGroup(g)}
             >
-              {g || 'Alle'}
+              {g ? muscleLabel(g) : t('ex.all')}
             </button>
           ))}
         </div>
         <div className="filter-row">
           <select
-            aria-label="Gerät"
+            aria-label={t('ex.equipment')}
             value={equipment}
             onChange={(e) => setEquipment(e.target.value as Equipment | '')}
           >
-            <option value="">Alle Geräte</option>
+            <option value="">{t('ex.allEquipment')}</option>
             {EQUIPMENT.map((eq) => (
-              <option key={eq}>{eq}</option>
+              <option key={eq} value={eq}>
+                {equipmentLabel(eq)}
+              </option>
             ))}
           </select>
           {hiddenCount > 0 && (
             <label className="check">
               <input type="checkbox" checked={showHidden} onChange={(e) => setShowHidden(e.target.checked)} />
-              Ausgeblendete anzeigen ({hiddenCount})
+              {t('ex.showHidden', { n: hiddenCount })}
             </label>
           )}
         </div>
       </div>
 
-      {visible.length === 0 && <p className="muted">Keine passenden Übungen.</p>}
+      {visible.length === 0 && <p className="muted">{t('ex.none')}</p>}
 
       <ExerciseList
         exercises={visible}
@@ -123,15 +128,15 @@ export default function ExercisesPage() {
 
       {toDelete && (
         <ConfirmDialog
-          title={blocked ? 'Übung wird verwendet' : 'Übung löschen?'}
-          confirmLabel={blocked ? 'OK' : 'Löschen'}
+          title={blocked ? t('ex.inUseTitle') : t('ex.deleteTitle')}
+          confirmLabel={blocked ? t('common.ok') : t('common.delete')}
           danger={!blocked}
           onConfirm={confirmDelete}
           onCancel={() => setToDelete(null)}
         >
           {blocked
-            ? `„${toDelete.name}“ kommt in ${inUse ? 'Trainings' : 'Vorlagen'} vor und kann nicht gelöscht werden.`
-            : `„${toDelete.name}“ wird endgültig gelöscht.`}
+            ? t(inUse ? 'ex.blockedWorkouts' : 'ex.blockedTemplates', { name: exerciseName(toDelete) })
+            : t('ex.deleteText', { name: exerciseName(toDelete) })}
         </ConfirmDialog>
       )}
     </>
