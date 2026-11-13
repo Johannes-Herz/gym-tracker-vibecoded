@@ -5,7 +5,8 @@ import ExerciseForm from '../features/exercises/ExerciseForm'
 import ExerciseList from '../features/exercises/ExerciseList'
 import { exercises as repo, type ExerciseInput } from '../storage/repo'
 import { useStore } from '../storage/store'
-import type { Exercise } from '../types'
+import { matchesQuery } from '../features/exercises/search'
+import { EQUIPMENT, MUSCLE_GROUPS, type Equipment, type Exercise, type MuscleGroup } from '../types'
 
 type Mode = { kind: 'idle' } | { kind: 'new' } | { kind: 'edit'; exercise: Exercise }
 
@@ -14,8 +15,21 @@ export default function ExercisesPage() {
   const [mode, setMode] = useState<Mode>({ kind: 'idle' })
   const [toDelete, setToDelete] = useState<Exercise | null>(null)
 
+  const [query, setQuery] = useState('')
+  const [group, setGroup] = useState<MuscleGroup | ''>('')
+  const [equipment, setEquipment] = useState<Equipment | ''>('')
+  const [showHidden, setShowHidden] = useState(false)
+
   const categories = [...new Set(exercises.map((e) => e.category).filter(Boolean))].sort()
   const inUse = toDelete ? repo.isInUse(toDelete.id) : false
+  const hiddenCount = exercises.filter((e) => e.hidden).length
+  const visible = exercises.filter(
+    (e) =>
+      (showHidden || !e.hidden) &&
+      (!group || e.muscleGroup === group) &&
+      (!equipment || e.equipment === equipment) &&
+      matchesQuery(e, query),
+  )
 
   function handleSubmit(input: ExerciseInput) {
     if (mode.kind === 'edit') repo.update(mode.exercise.id, input)
@@ -51,14 +65,54 @@ export default function ExercisesPage() {
         />
       )}
 
-      {exercises.length === 0 && mode.kind === 'idle' && (
-        <p className="muted">Noch keine Übungen. Lege deine erste Übung mit „+ Neu“ an.</p>
-      )}
+      <div className="form filters">
+        <input
+          type="search"
+          placeholder="Suchen (auch englisch)…"
+          aria-label="Übungen suchen"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <div className="chips" role="group" aria-label="Muskelgruppe">
+          {(['', ...MUSCLE_GROUPS] as const).map((g) => (
+            <button
+              key={g || 'all'}
+              type="button"
+              className={group === g ? 'chip active' : 'chip'}
+              aria-pressed={group === g}
+              onClick={() => setGroup(g)}
+            >
+              {g || 'Alle'}
+            </button>
+          ))}
+        </div>
+        <div className="filter-row">
+          <select
+            aria-label="Gerät"
+            value={equipment}
+            onChange={(e) => setEquipment(e.target.value as Equipment | '')}
+          >
+            <option value="">Alle Geräte</option>
+            {EQUIPMENT.map((eq) => (
+              <option key={eq}>{eq}</option>
+            ))}
+          </select>
+          {hiddenCount > 0 && (
+            <label className="check">
+              <input type="checkbox" checked={showHidden} onChange={(e) => setShowHidden(e.target.checked)} />
+              Ausgeblendete anzeigen ({hiddenCount})
+            </label>
+          )}
+        </div>
+      </div>
+
+      {visible.length === 0 && <p className="muted">Keine passenden Übungen.</p>}
 
       <ExerciseList
-        exercises={exercises}
+        exercises={visible}
         onEdit={(e) => setMode({ kind: 'edit', exercise: e })}
         onDelete={setToDelete}
+        onToggleHidden={(e) => repo.setHidden(e.id, !e.hidden)}
       />
 
       {toDelete && (

@@ -164,3 +164,32 @@ html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
 .settings-section h2 { margin: 0 0 4px; font-size: 1.05rem; }
 .settings-section p { margin: 0 0 10px; }
 .form-error { color: var(--danger); }
+
+.filters { gap: 8px; margin-bottom: 4px; }
+.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.chip {
+  flex: none;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+.chip.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.filter-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.filter-row select { flex: 1; min-width: 140px; }
+.form label.check { flex-direction: row; align-items: center; gap: 8px; min-height: 44px; color: var(--text); }
+.check input { width: 20px; height: 20px; min-height: 0; }
+.badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--border);
+  color: var(--muted);
+  font-size: 0.7rem;
+  vertical-align: middle;
+}
+.list-item.is-hidden { opacity: 0.55; }
