@@ -8,14 +8,12 @@ export default function SetRow({ set, index }: { set: WorkoutSet; index: number 
       <span className="set-index muted">{index + 1}</span>
       <NumberStepper
         label="Gewicht"
-        unit="kg"
         step={2.5}
         value={set.weight}
         onChange={(weight) => sets.update(set.id, { weight })}
       />
       <NumberStepper
         label="Wiederholungen"
-        unit="Wdh"
         step={1}
         value={set.reps}
         onChange={(reps) => sets.update(set.id, { reps })}

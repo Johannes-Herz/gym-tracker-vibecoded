@@ -127,3 +127,11 @@
 
 .history-item { color: inherit; text-decoration: none; min-height: 56px; }
 .back-link { display: inline-flex; align-items: center; color: var(--text); text-decoration: none; }
+
+.set-legend { margin: 0 0 6px 26px; }
+.stepper .btn { min-width: 36px; }
+.stepper input { width: 2.9rem; }
+
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+button, a, input, select { touch-action: manipulation; }
+html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
