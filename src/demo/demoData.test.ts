@@ -121,6 +121,26 @@ describe('buildDemoData', () => {
     expect(data.sets.every((s) => s.weight >= 0)).toBe(true)
   })
 
+  it('has Push / Pull / Beine templates with valid, ordered exercises', () => {
+    expect(data.templates.map((t) => t.name)).toEqual(['Push Tag', 'Pull Tag', 'Beine'])
+    const ids = new Set(data.exercises.map((e) => e.id))
+    for (const t of data.templates) {
+      expect(t.exerciseIds.length).toBeGreaterThanOrEqual(4)
+      expect(t.exerciseIds.every((id) => ids.has(id))).toBe(true)
+    }
+    expect(data.templates[0].exerciseIds[0]).toBe('builtin-bench-press')
+  })
+
+  it('labels recent workouts with the matching template, older ones stay unlabeled', () => {
+    const labeled = data.workouts.filter((w) => w.templateId)
+    expect(labeled.length).toBeGreaterThan(5)
+    expect(labeled.length).toBeLessThan(data.workouts.length)
+    const byId = new Map(data.templates.map((t) => [t.id, t.name]))
+    for (const w of labeled) expect(byId.get(w.templateId!)).toBe(w.templateName)
+    const first = data.workouts[0]
+    expect(first.templateId).toBeUndefined()
+  })
+
   it('keeps built-ins and their hidden state', () => {
     const builtins = emptyData().exercises.map((e) => (e.id === 'builtin-squat' ? { ...e, hidden: true } : e))
     const result = build({ builtins })
@@ -143,6 +163,11 @@ describe('hasUserData', () => {
     const d = emptyData()
     d.exercises[0] = { ...d.exercises[0], hidden: true }
     expect(hasUserData(d)).toBe(false)
+  })
+
+  it('detects templates', () => {
+    const t = { id: 't', name: 'X', exerciseIds: [], createdAt: TODAY.toISOString(), updatedAt: TODAY.toISOString() }
+    expect(hasUserData({ ...emptyData(), templates: [t] })).toBe(true)
   })
 
   it('detects workouts and custom exercises', () => {

@@ -1,6 +1,6 @@
 import { newId as defaultNewId } from '../lib/id'
 import { CURRENT_SCHEMA_VERSION, ensureBuiltins } from '../storage/storage'
-import type { AppData, BodyWeightEntry, Exercise, Workout, WorkoutSet } from '../types'
+import type { AppData, BodyWeightEntry, Exercise, Template as WorkoutTemplate, Workout, WorkoutSet } from '../types'
 import { createRandom, type Random } from './random'
 
 export const DEMO_SEED = 20261113
@@ -12,6 +12,7 @@ export function hasUserData(data: AppData): boolean {
     data.workouts.length > 0 ||
     data.sets.length > 0 ||
     data.bodyWeights.length > 0 ||
+    data.templates.length > 0 ||
     data.exercises.some((e) => e.source !== 'builtin')
   )
 }
@@ -80,6 +81,29 @@ export function buildDemoData({ builtins, today = new Date(), seed = DEMO_SEED, 
   const start = new Date(end)
   start.setDate(start.getDate() - (DEMO_DAYS - 1))
 
+  // One template per split day, in the order a session usually runs.
+  const templateDefs: { name: string; exerciseIds: string[] }[] = [
+    {
+      name: 'Push Tag',
+      exerciseIds: ['builtin-bench-press', 'builtin-overhead-press', 'builtin-incline-dumbbell-press', 'builtin-lateral-raise', 'builtin-triceps-pushdown'],
+    },
+    {
+      name: 'Pull Tag',
+      exerciseIds: ['builtin-lat-pulldown', 'builtin-barbell-row', 'builtin-face-pull', 'builtin-barbell-curl'],
+    },
+    {
+      name: 'Beine',
+      exerciseIds: ['builtin-squat', 'builtin-romanian-deadlift', 'builtin-leg-press', 'builtin-leg-curl', 'builtin-standing-calf-raise'],
+    },
+  ]
+  const templates: WorkoutTemplate[] = templateDefs.map((d) => ({
+    id: newId(),
+    name: d.name,
+    exerciseIds: d.exerciseIds,
+    createdAt: start.toISOString(),
+    updatedAt: start.toISOString(),
+  }))
+
   const workouts: Workout[] = []
   const sets: WorkoutSet[] = []
   const bodyWeights: BodyWeightEntry[] = []
@@ -110,10 +134,17 @@ export function buildDemoData({ builtins, today = new Date(), seed = DEMO_SEED, 
     startedAt.setHours(evening ? rnd.int(18, 20) : 7, rnd.int(0, evening ? 59 : 30))
     if (startedAt > today) continue
 
-    const workout: Workout = { id: newId(), startedAt: startedAt.toISOString() }
+    const planIndex = splitIndex % split.length
+    // The second half of the demo period was started from templates, so the label shows up.
+    const label = day >= DEMO_DAYS / 2 ? templates[planIndex] : undefined
+    const workout: Workout = {
+      id: newId(),
+      startedAt: startedAt.toISOString(),
+      ...(label && { templateId: label.id, templateName: label.name }),
+    }
     workouts.push(workout)
 
-    const plan = split[splitIndex % split.length]
+    const plan = split[planIndex]
     if (splitIndex % split.length === 1) pullDays++
     splitIndex++
     const core = plan === split[1] && pullDays % 2 === 1 ? [deadlift, ...plan.core] : plan.core
@@ -158,7 +189,7 @@ export function buildDemoData({ builtins, today = new Date(), seed = DEMO_SEED, 
     workouts,
     sets,
     bodyWeights,
-    templates: [],
+    templates,
   })
 }
 

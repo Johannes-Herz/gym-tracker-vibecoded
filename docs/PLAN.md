@@ -91,5 +91,5 @@ Templates are a starting point only: a name plus an ordered list of exercises (n
 - [x] 5. Start from template: "+" sheet in Verlauf (list and calendar), prefill per exercise (cardio, bodyweight, hidden, no history) + tests
 - [x] 6. Template management: Vorlagen toggle in Übungen, edit page (rename, add via search picker, reorder, remove, delete with confirmation)
 - [x] 7. "Als Vorlage speichern" from a workout; template label in editor and Verlauf
-- [ ] 8. Demo data: Push / Pull / Beine templates, some demo workouts labeled
+- [x] 8. Demo data: Push / Pull / Beine templates, some demo workouts labeled
 - [ ] 9. Phone-width check (~360px), mark phase done
