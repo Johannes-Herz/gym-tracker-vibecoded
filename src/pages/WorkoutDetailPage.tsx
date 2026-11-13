@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import BackToHistory from '../components/BackToHistory'
 import { useGoUp } from '../lib/useNavSteps'
 import ConfirmDialog from '../components/ConfirmDialog'
+import { t } from '../i18n'
 import PageHeader from '../components/PageHeader'
 import WorkoutEditor from '../features/workout/WorkoutEditor'
 import { workouts } from '../storage/repo'
@@ -39,28 +40,28 @@ export default function WorkoutDetailPage() {
   return (
     <>
       <PageHeader
-        title="Training"
+        title={t('detail.title')}
         action={<BackToHistory />}
       />
       {exists ? (
         <>
           <WorkoutEditor workoutId={id} />
           <button type="button" className="btn btn-danger wide" onClick={() => setConfirming(true)}>
-            Training löschen
+            {t('detail.delete')}
           </button>
         </>
       ) : (
-        <p className="muted">Training nicht gefunden.</p>
+        <p className="muted">{t('workout.notFound')}</p>
       )}
       {confirming && (
         <ConfirmDialog
-          title="Training löschen?"
-          confirmLabel="Löschen"
+          title={t('detail.deleteTitle')}
+          confirmLabel={t('common.delete')}
           danger
           onConfirm={handleDelete}
           onCancel={() => setConfirming(false)}
         >
-          Das Training und alle Sätze werden endgültig gelöscht.
+          {t('detail.deleteText')}
         </ConfirmDialog>
       )}
     </>

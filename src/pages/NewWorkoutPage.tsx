@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import BackToHistory from '../components/BackToHistory'
+import { t } from '../i18n'
 import PageHeader from '../components/PageHeader'
 import ExerciseSearchSheet from '../features/exercises/ExerciseSearchSheet'
 import { defaultStartFor } from '../features/workout/newWorkout'
@@ -27,10 +28,10 @@ export default function NewWorkoutPage() {
 
   return (
     <>
-      <PageHeader title="Neues Training" action={<BackToHistory />} />
+      <PageHeader title={t('new.title')} action={<BackToHistory />} />
       <div className="card form">
         <label>
-          Datum und Uhrzeit
+          {t('workout.date')}
           <input
             type="datetime-local"
             value={toLocalInput(startedAt)}
@@ -42,9 +43,9 @@ export default function NewWorkoutPage() {
         </label>
       </div>
       <button type="button" className="btn btn-primary wide" onClick={() => setPicking(true)}>
-        + Übung hinzufügen
+        {t('workout.addExercise')}
       </button>
-      <p className="muted small">Das Training wird gespeichert, sobald du die erste Übung hinzufügst.</p>
+      <p className="muted small">{t('new.hint')}</p>
       {picking && (
         <ExerciseSearchSheet
           exercises={data.exercises}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import { t } from '../../i18n'
 import { exerciseOrder } from '../../lib/exerciseOrder'
 import { fromLocalInput, toLocalInput } from '../../lib/format'
 import { sets as setsRepo, templates, workouts } from '../../storage/repo'
@@ -19,7 +20,7 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
   const [overwriting, setOverwriting] = useState<string | null>(null)
 
   const workout = data.workouts.find((w) => w.id === workoutId)
-  if (!workout) return <p className="muted">Training nicht gefunden.</p>
+  if (!workout) return <p className="muted">{t('workout.notFound')}</p>
 
   // Exercises in order of first appearance within this workout.
   const workoutSets = data.sets.filter((s) => s.workoutId === workoutId).sort((a, b) => a.order - b.order)
@@ -53,7 +54,7 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
       <RestTimer />
       <div className="card form">
         <label>
-          Datum und Uhrzeit
+          {t('workout.date')}
           <input
             type="datetime-local"
             value={toLocalInput(workout.startedAt)}
@@ -63,7 +64,7 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
             }}
           />
         </label>
-        {workout.templateName && <p className="muted small">Vorlage: {workout.templateName}</p>}
+        {workout.templateName && <p className="muted small">{t('workout.template', { name: workout.templateName })}</p>}
       </div>
 
       {[...groups.entries()].map(([exerciseId, sets], i) => {
@@ -82,7 +83,7 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
       })}
 
       <button type="button" className="btn btn-primary wide" onClick={() => setPicking(true)}>
-        + Übung hinzufügen
+        {t('workout.addExercise')}
       </button>
 
       <button
@@ -91,13 +92,13 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
         disabled={groups.size === 0}
         onClick={() => setNamingTemplate(workout.templateName ?? '')}
       >
-        Als Vorlage speichern
+        {t('workout.saveAsTemplate')}
       </button>
-      {savedAs && <p className="muted small">Vorlage „{savedAs}“ gespeichert.</p>}
+      {savedAs && <p className="muted small">{t('workout.templateSaved', { name: savedAs })}</p>}
 
       <div className="card form note">
         <label>
-          Notiz
+          {t('workout.note')}
           <textarea
             rows={2}
             value={workout.note ?? ''}
@@ -108,19 +109,19 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
 
       {namingTemplate !== null && (
         <ConfirmDialog
-          title="Als Vorlage speichern"
-          confirmLabel="Speichern"
+          title={t('workout.saveAsTemplate')}
+          confirmLabel={t('common.save')}
           onConfirm={saveAsTemplate}
           onCancel={() => setNamingTemplate(null)}
         >
           <div className="form">
             <label>
-              Name der Vorlage
+              {t('workout.templateName')}
               <input
                 autoFocus
                 value={namingTemplate}
                 maxLength={60}
-                placeholder="z. B. Push Tag"
+                placeholder={t('workout.templateNamePlaceholder')}
                 onChange={(e) => setNamingTemplate(e.target.value)}
               />
             </label>
@@ -130,13 +131,13 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
 
       {overwriting !== null && (
         <ConfirmDialog
-          title="Vorlage überschreiben?"
-          confirmLabel="Überschreiben"
+          title={t('workout.overwriteTitle')}
+          confirmLabel={t('workout.overwriteConfirm')}
           danger
           onConfirm={() => writeTemplate(overwriting)}
           onCancel={() => setOverwriting(null)}
         >
-          Die Vorlage „{overwriting}“ existiert bereits und wird mit den Übungen dieses Trainings überschrieben.
+          {t('workout.overwriteText', { name: overwriting })}
         </ConfirmDialog>
       )}
 

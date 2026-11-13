@@ -1,4 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
+import { exerciseName } from '../features/exercises/exerciseName'
+import { t, tp } from '../i18n'
 import PageHeader from '../components/PageHeader'
 import ExerciseViewToggle from '../features/templates/ExerciseViewToggle'
 import { useStore } from '../storage/store'
@@ -11,29 +13,32 @@ export default function TemplatesPage() {
   return (
     <>
       <PageHeader
-        title="Übungen"
+        title={t('nav.exercises')}
         action={
           <button type="button" className="btn btn-primary" onClick={() => navigate('/uebungen/vorlagen/neu')}>
-            + Neu
+            {t('common.new')}
           </button>
         }
       />
       <ExerciseViewToggle view="templates" />
       {sorted.length === 0 && (
-        <p className="muted">
-          Noch keine Vorlagen. Lege eine an oder speichere ein Training in der Trainingsansicht als Vorlage.
-        </p>
+        <p className="muted">{t('tpl.none')}</p>
       )}
       <ul className="list">
-        {sorted.map((t) => {
-          const names = t.exerciseIds.map((id) => exercises.find((e) => e.id === id)?.name).filter(Boolean)
+        {sorted.map((tpl) => {
+          const names = tpl.exerciseIds
+            .map((id) => exercises.find((e) => e.id === id))
+            .filter((e) => e !== undefined)
+            .map((e) => exerciseName(e))
           return (
-            <li key={t.id}>
-              <Link to={`/uebungen/vorlagen/${t.id}`} className="list-item history-item">
+            <li key={tpl.id}>
+              <Link to={`/uebungen/vorlagen/${tpl.id}`} className="list-item history-item">
                 <div className="grow">
-                  <div>{t.name}</div>
+                  <div>{tpl.name}</div>
                   <div className="muted small">
-                    {names.length === 0 ? 'Keine Übungen' : `${names.length} Übungen · ${names.join(', ')}`}
+                    {names.length === 0
+                      ? t('common.noExercises')
+                      : t('tpl.summary', { count: tp('count.exercises', names.length), names: names.join(', ') })}
                   </div>
                 </div>
                 <span aria-hidden="true" className="muted">›</span>

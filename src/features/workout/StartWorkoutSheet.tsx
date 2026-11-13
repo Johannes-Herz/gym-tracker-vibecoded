@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { t, tp } from '../../i18n'
 import { workouts } from '../../storage/repo'
 import { getState } from '../../storage/store'
 import type { Template } from '../../types'
@@ -25,25 +26,25 @@ export default function StartWorkoutSheet({ templates, dateKey, onClose }: Props
 
   return (
     <div className="overlay" onClick={onClose}>
-      <div className="dialog" role="dialog" aria-modal="true" aria-label="Training starten" onClick={(e) => e.stopPropagation()}>
-        <h2>Training starten</h2>
+      <div className="dialog" role="dialog" aria-modal="true" aria-label={t('start.title')} onClick={(e) => e.stopPropagation()}>
+        <h2>{t('start.title')}</h2>
         <div className="start-options">
           <button type="button" className="btn btn-primary" onClick={() => navigate(newWorkoutPath(dateKey))}>
-            Leeres Training
+            {t('start.empty')}
           </button>
-          {templates.map((t) => {
-            const count = templateEntries(getState(), t).length
+          {templates.map((tpl) => {
+            const count = templateEntries(getState(), tpl).length
             return (
-              <button key={t.id} type="button" className="btn start-template" disabled={count === 0} onClick={() => start(t)}>
-                <span>{t.name}</span>
-                <span className="muted small">{count === 0 ? 'Keine Übungen' : `${count} Übungen`}</span>
+              <button key={tpl.id} type="button" className="btn start-template" disabled={count === 0} onClick={() => start(tpl)}>
+                <span>{tpl.name}</span>
+                <span className="muted small">{count === 0 ? t('common.noExercises') : tp('count.exercises', count)}</span>
               </button>
             )
           })}
         </div>
         <div className="dialog-actions">
           <button type="button" className="btn" onClick={onClose}>
-            Abbrechen
+            {t('common.cancel')}
           </button>
         </div>
       </div>
