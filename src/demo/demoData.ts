@@ -24,9 +24,18 @@ interface Template {
   perWeek: number
   /** Rounding step in kg. */
   step: number
+  /** Body weight exercises (start 0): base reps, rep gain per week, week from which +2.5 kg appears. */
+  bw?: { reps: number; perWeek: number; addedFromWeek?: number }
 }
 
 const t = (id: string, start: number, perWeek: number, step = 2.5): Template => ({ id, start, perWeek, step })
+const bw = (id: string, reps: number, perWeek: number, addedFromWeek?: number): Template => ({
+  id,
+  start: 0,
+  perWeek: 0,
+  step: 2.5,
+  bw: { reps, perWeek, addedFromWeek },
+})
 
 interface Options {
   builtins: Exercise[]
@@ -44,17 +53,17 @@ export function buildDemoData({ builtins, today = new Date(), seed = DEMO_SEED, 
     {
       // Push
       core: [t('builtin-bench-press', 70, 1.25), t('builtin-overhead-press', 42.5, 0.6), t('builtin-incline-dumbbell-press', 24, 0.4, 2)],
-      extras: [t('builtin-lateral-raise', 8, 0.2, 2), t('builtin-triceps-pushdown', 25, 0.5), t(arnoldId, 16, 0.3, 2)],
+      extras: [t('builtin-lateral-raise', 8, 0.2, 2), t('builtin-triceps-pushdown', 25, 0.5), t(arnoldId, 16, 0.3, 2), t('builtin-dips', 5, 0.75)],
     },
     {
       // Pull (deadlift is added on every other pull day)
       core: [t('builtin-lat-pulldown', 55, 0.8), t('builtin-barbell-row', 60, 1)],
-      extras: [t('builtin-face-pull', 20, 0.4), t('builtin-barbell-curl', 30, 0.5), t('builtin-hammer-curl', 12, 0.25, 2)],
+      extras: [t('builtin-face-pull', 20, 0.4), t('builtin-barbell-curl', 30, 0.5), t('builtin-hammer-curl', 12, 0.25, 2), bw('builtin-pull-up', 6, 0.35, 6)],
     },
     {
       // Legs
       core: [t('builtin-squat', 90, 1.5), t('builtin-romanian-deadlift', 80, 1.25), t('builtin-leg-press', 140, 3)],
-      extras: [t('builtin-leg-curl', 40, 0.6), t('builtin-standing-calf-raise', 60, 1), t(sissyId, 0, 0)],
+      extras: [t('builtin-leg-curl', 40, 0.6), t('builtin-standing-calf-raise', 60, 1), bw(sissyId, 12, 0.6)],
     },
   ]
   const deadlift = t('builtin-deadlift', 110, 2)
@@ -147,10 +156,15 @@ export function buildDemoData({ builtins, today = new Date(), seed = DEMO_SEED, 
 function generateSets(rnd: Random, ex: Template, weeks: number, badDay: boolean) {
   const count = rnd.int(3, 4)
   let reps = rnd.int(8, 10) - (badDay ? 1 : 0)
-  if (ex.start === 0) reps = 12 + Math.floor(weeks * 0.6) + rnd.int(-1, 1) - (badDay ? 2 : 0)
-
   let weight = 0
-  if (ex.start > 0) {
+  if (ex.bw) {
+    reps = ex.bw.reps + Math.floor(weeks * ex.bw.perWeek) + rnd.int(-1, 1) - (badDay ? 2 : 0)
+    // Later on, some days with a little added weight (and a rep less).
+    if (ex.bw.addedFromWeek !== undefined && weeks >= ex.bw.addedFromWeek && rnd.chance(0.5)) {
+      weight = 2.5
+      reps -= 1
+    }
+  } else if (ex.start > 0) {
     const raw = (ex.start + weeks * ex.perWeek + (rnd.next() - 0.5) * ex.step) * (badDay ? 0.9 : 1)
     weight = Math.max(ex.step, Math.round(raw / ex.step) * ex.step)
   }
