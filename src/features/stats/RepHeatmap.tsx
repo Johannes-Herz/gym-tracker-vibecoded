@@ -8,7 +8,6 @@ const MAX_DOTS = 5
 const LEGEND_TICKS = [
   { label: '5', at: 0 },
   { label: '8', at: 37.5 },
-  { label: '12', at: 87.5 },
   { label: '13+', at: 100 },
 ]
 

@@ -6,7 +6,7 @@ import {
   axisLabels,
   bestSet,
   cellKey,
-  compareWithPrevious,
+  comparisonColumns,
   heatmapData,
   sessionsFor,
   trendSeries,
@@ -99,51 +99,57 @@ describe('bestSet', () => {
   })
 })
 
-describe('compareWithPrevious', () => {
-  const all = () => sessionsFor(data(), 'builtin-bench-press', { key: 'all' }, now)
-  const deltas = (r: ReturnType<typeof compareWithPrevious>) => r!.rows.map((x) => [x.weightDelta, x.repsDelta])
+describe('comparisonColumns', () => {
+  const mk = (id: string, day: number, sets: [number, number][]): Session => ({
+    workoutId: id,
+    startedAt: at(10, day),
+    sets: sets.map(([weight, reps], i) => ({ id: id + i, workoutId: id, exerciseId: 'x', order: i, weight, reps })),
+  })
+  const deltas = (col: { cells: ({ weightDelta: string; repsDelta: string } | undefined)[] } | null) =>
+    col!.cells.map((c) => (c ? [c.weightDelta, c.repsDelta] : null))
 
-  it('compares weight and reps per set with the previous session', () => {
-    // w2: 75×6, 75×7, 75×5  →  w3: 80×5, 75×8
-    const r = compareWithPrevious(all(), all())!
-    expect([r.last.workoutId, r.prev?.workoutId]).toEqual(['w3', 'w2'])
-    expect(deltas(r)).toEqual([
-      ['up', 'down'],
-      ['same', 'up'],
-    ])
+  // Mon → Tue → Wed
+  const mon = mk('mon', 10, [[80, 8], [80, 6]])
+  const tue = mk('tue', 11, [[82.5, 8], [80, 5], [70, 10]])
+  const wed = mk('wed', 12, [[80, 9], [80, 5]])
+  const all = [mon, tue, wed]
+
+  it('colors "Letztes Training" against "Davor" and "Davor" against the session before it', () => {
+    const r = comparisonColumns(all, all)!
+    expect(r.last.session.workoutId).toBe('wed')
+    expect(r.prev?.session.workoutId).toBe('tue')
+    expect(r.rows).toBe(3)
+    // Wed vs Tue: lighter & more reps, equal weight & equal reps, no third set
+    expect(deltas(r.last)).toEqual([['down', 'up'], ['same', 'same'], null])
+    // Tue vs Mon: heavier & equal reps, equal weight & fewer reps, set 3 is new
+    expect(deltas(r.prev)).toEqual([['up', 'same'], ['same', 'down'], ['new', 'new']])
   })
 
-  it('detects lighter weight, equal values and sets without counterpart', () => {
-    // w1: 70×8, 75×6  →  w2: 75×6, 75×7, 75×5
-    const s = all()
-    expect(deltas(compareWithPrevious(s, s.slice(0, 2)))).toEqual([
-      ['up', 'down'],
-      ['same', 'up'],
-      ['new', 'new'],
-    ])
-    // reversed order: w2 → w1 means lighter first set
-    const reversed = [s[1], s[0]]
-    expect(deltas(compareWithPrevious(reversed, reversed))[0]).toEqual(['down', 'up'])
+  it('shows a single neutral column when there is only one session', () => {
+    const r = comparisonColumns([wed], [wed])!
+    expect(r.prev).toBeNull()
+    expect(r.rows).toBe(2)
+    expect(deltas(r.last)).toEqual([['none', 'none'], ['none', 'none']])
   })
 
-  it('uses the previous session even if it is outside the range', () => {
-    const inRange = sessionsFor(data(), 'builtin-bench-press', { key: 'custom', from: '2026-11-10' }, now)
-    expect(inRange.map((x) => x.workoutId)).toEqual(['w3'])
-    expect(compareWithPrevious(all(), inRange)!.prev?.workoutId).toBe('w2')
+  it('leaves "Davor" neutral when there are only two sessions', () => {
+    const r = comparisonColumns([tue, wed], [tue, wed])!
+    expect(deltas(r.last)).toEqual([['down', 'up'], ['same', 'same'], null])
+    expect(deltas(r.prev)).toEqual([['none', 'none'], ['none', 'none'], ['none', 'none']])
   })
 
-  it('compares added weight for bodyweight and handles a first session', () => {
-    const mk = (id: string, day: number, weights: number[]): Session => ({
-      workoutId: id,
-      startedAt: at(10, day),
-      sets: weights.map((weight, i) => ({ id: id + i, workoutId: id, exerciseId: 'p', order: i, weight, reps: 6 })),
-    })
-    const sessions = [mk('a', 1, [5, 0]), mk('b', 2, [10, 0, -20])]
-    expect(compareWithPrevious(sessions, sessions)!.rows.map((x) => x.weightDelta)).toEqual(['up', 'same', 'new'])
-    const first = compareWithPrevious(sessions.slice(0, 1), sessions.slice(0, 1))!
-    expect(first.prev).toBeNull()
-    expect(first.rows.every((x) => x.weightDelta === 'new' && x.repsDelta === 'new')).toBe(true)
-    expect(compareWithPrevious(sessions, [])).toBeNull()
+  it('uses sessions before the range for "Davor" and its comparison', () => {
+    const r = comparisonColumns(all, [wed])!
+    expect(r.prev?.session.workoutId).toBe('tue')
+    expect(deltas(r.prev)[0]).toEqual(['up', 'same'])
+    expect(comparisonColumns(all, [])).toBeNull()
+  })
+
+  it('compares added weight for bodyweight', () => {
+    const a = mk('a', 1, [[5, 6], [0, 10]])
+    const b = mk('b', 2, [[10, 6], [0, 9], [-20, 8]])
+    const r = comparisonColumns([a, b], [a, b])!
+    expect(deltas(r.last)).toEqual([['up', 'same'], ['same', 'down'], ['new', 'new']])
   })
 })
 

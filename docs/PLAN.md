@@ -59,6 +59,6 @@
 - [x] Compact bodyweight labels ("KG", "+10", "−20") everywhere
 - [x] Editor: −/+ for reps, wider inputs
 - [x] Heatmap: 30px cells, continuous teal gradient with legend
-- [x] "Letztes Training": per-set weight/reps deltas vs. previous session (arrows + colors)
+- [x] "Letztes Training" vs. "Davor": two columns per set number, each color-coded against the session before it (arrows + colors)
 - [x] Trend chart with switchable metrics (strength / bodyweight / cardio), remembered per device
 - [x] Demo data: straight, pyramid, back-off and warm-up patterns; mixed bodyweight sets

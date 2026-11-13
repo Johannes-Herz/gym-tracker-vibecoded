@@ -93,42 +93,68 @@ export function bestSet(sessions: Session[], bodyweight: boolean): WorkoutSet | 
   return best
 }
 
-export type Delta = 'up' | 'down' | 'same' | 'new'
+/**
+ * Change of a value against the same set number of the session before:
+ * 'new' = that session had no such set, 'none' = there is no session before.
+ */
+export type Delta = 'up' | 'down' | 'same' | 'new' | 'none'
 
-export interface ComparisonRow {
-  index: number
+export interface ComparisonCell {
   weight: number
   reps: number
   weightDelta: Delta
   repsDelta: Delta
 }
 
-const delta = (now: number, before: number | undefined): Delta =>
-  before === undefined ? 'new' : now > before ? 'up' : now < before ? 'down' : 'same'
+export interface ComparisonColumn {
+  session: Session
+  /** One entry per set number up to the table's row count; undefined = no such set. */
+  cells: (ComparisonCell | undefined)[]
+}
+
+function delta(now: number, before: number | undefined, hasBase: boolean): Delta {
+  if (!hasBase) return 'none'
+  if (before === undefined) return 'new'
+  return now > before ? 'up' : now < before ? 'down' : 'same'
+}
 
 /**
- * The newest session in the range, set by set against the session directly
- * before it (regardless of the range). For bodyweight the added weight is compared.
+ * Two columns: the newest session in the range ("Letztes Training") and the
+ * session before it ("Davor", regardless of the range). Each column is compared,
+ * set by set, with the session directly before *it*. For bodyweight the added
+ * weight is compared. Null when the range has no session.
  */
-export function compareWithPrevious(
+export function comparisonColumns(
   allSessions: Session[],
   rangeSessions: Session[],
-): { last: Session; prev: Session | null; rows: ComparisonRow[] } | null {
-  const last = rangeSessions[rangeSessions.length - 1]
-  if (!last) return null
-  const at = allSessions.findIndex((s) => s.workoutId === last.workoutId)
-  const prev = at > 0 ? allSessions[at - 1] : null
-  const rows = last.sets.map((s, index) => {
-    const p = prev?.sets[index]
-    return {
-      index,
-      weight: s.weight,
-      reps: s.reps,
-      weightDelta: delta(s.weight, p?.weight),
-      repsDelta: delta(s.reps, p?.reps),
-    }
+): { rows: number; last: ComparisonColumn; prev: ComparisonColumn | null } | null {
+  const lastSession = rangeSessions[rangeSessions.length - 1]
+  if (!lastSession) return null
+  const at = allSessions.findIndex((s) => s.workoutId === lastSession.workoutId)
+  const before = (i: number) => (i > 0 ? allSessions[i - 1] : null)
+  const prevSession = before(at)
+  const rows = Math.max(lastSession.sets.length, prevSession?.sets.length ?? 0)
+
+  const column = (session: Session, base: Session | null): ComparisonColumn => ({
+    session,
+    cells: Array.from({ length: rows }, (_, i) => {
+      const s = session.sets[i]
+      if (!s) return undefined
+      const b = base?.sets[i]
+      return {
+        weight: s.weight,
+        reps: s.reps,
+        weightDelta: delta(s.weight, b?.weight, base !== null),
+        repsDelta: delta(s.reps, b?.reps, base !== null),
+      }
+    }),
   })
-  return { last, prev, rows }
+
+  return {
+    rows,
+    last: column(lastSession, prevSession),
+    prev: prevSession ? column(prevSession, before(at - 1)) : null,
+  }
 }
 
 export type ExerciseKind = 'strength' | 'bodyweight' | 'cardio'
