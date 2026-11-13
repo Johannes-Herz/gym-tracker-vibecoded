@@ -6,6 +6,7 @@ import type { Exercise, WorkoutSet } from '../../types'
 import ExerciseBlock from './ExerciseBlock'
 import ExercisePicker from './ExercisePicker'
 import { prefillFor } from './prefill'
+import { recentExerciseIds } from './recent'
 
 export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
   const data = useStore()
@@ -63,7 +64,12 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
       </div>
 
       {picking && (
-        <ExercisePicker exercises={data.exercises} onPick={addExercise} onClose={() => setPicking(false)} />
+        <ExercisePicker
+          exercises={data.exercises}
+          recentIds={recentExerciseIds(data)}
+          onPick={addExercise}
+          onClose={() => setPicking(false)}
+        />
       )}
     </>
   )

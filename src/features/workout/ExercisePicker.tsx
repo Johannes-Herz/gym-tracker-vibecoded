@@ -1,50 +1,97 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { Exercise } from '../../types'
+import { byName, matchesQuery } from '../exercises/search'
+import { MUSCLE_GROUPS, type Exercise } from '../../types'
 
 interface Props {
   exercises: Exercise[]
+  recentIds: string[]
   onPick: (exercise: Exercise) => void
   onClose: () => void
 }
 
-export default function ExercisePicker({ exercises, onPick, onClose }: Props) {
+function Item({ exercise, onPick }: { exercise: Exercise; onPick: (e: Exercise) => void }) {
+  return (
+    <li>
+      <button type="button" className="btn picker-item" onClick={() => onPick(exercise)}>
+        <span>
+          {exercise.name}
+          {exercise.aliasEn && exercise.aliasEn !== exercise.name && (
+            <span className="muted small"> · {exercise.aliasEn}</span>
+          )}
+        </span>
+        <span className="muted small">{exercise.muscleGroup}</span>
+      </button>
+    </li>
+  )
+}
+
+export default function ExercisePicker({ exercises, recentIds, onPick, onClose }: Props) {
   const [query, setQuery] = useState('')
-  const q = query.trim().toLowerCase()
-  const matches = exercises
-    .filter((e) => e.name.toLowerCase().includes(q) || e.muscleGroup.toLowerCase().includes(q))
-    .sort((a, b) => a.name.localeCompare(b.name, 'de'))
+  const available = exercises.filter((e) => !e.hidden)
+  const searching = query.trim() !== ''
+  const matches = available.filter((e) => matchesQuery(e, query)).sort(byName)
+  const recent = recentIds
+    .map((id) => available.find((e) => e.id === id))
+    .filter((e): e is Exercise => e !== undefined)
 
   return (
     <div className="overlay" onClick={onClose}>
       <div className="dialog picker" role="dialog" aria-modal="true" aria-label="Übung wählen" onClick={(e) => e.stopPropagation()}>
         <h2>Übung wählen</h2>
-        {exercises.length === 0 ? (
+        {available.length === 0 ? (
           <p className="muted">
-            Noch keine Übungen. <Link to="/uebungen">Übung anlegen</Link>
+            Keine Übungen verfügbar. <Link to="/uebungen">Übungen verwalten</Link>
           </p>
         ) : (
           <>
             <div className="form">
               <input
                 type="search"
-                placeholder="Suchen…"
+                placeholder="Suchen (auch englisch)…"
+                aria-label="Übung suchen"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 autoFocus
               />
             </div>
-            <ul className="list picker-list">
-              {matches.map((e) => (
-                <li key={e.id}>
-                  <button type="button" className="btn picker-item" onClick={() => onPick(e)}>
-                    <span>{e.name}</span>
-                    <span className="muted small">{e.muscleGroup}</span>
-                  </button>
-                </li>
-              ))}
-              {matches.length === 0 && <li className="muted">Nichts gefunden.</li>}
-            </ul>
+            <div className="picker-list">
+              {searching ? (
+                <ul className="list">
+                  {matches.map((e) => (
+                    <Item key={e.id} exercise={e} onPick={onPick} />
+                  ))}
+                  {matches.length === 0 && <li className="muted">Nichts gefunden.</li>}
+                </ul>
+              ) : (
+                <>
+                  {recent.length > 0 && (
+                    <section>
+                      <h3 className="group-title">Zuletzt verwendet</h3>
+                      <ul className="list">
+                        {recent.map((e) => (
+                          <Item key={e.id} exercise={e} onPick={onPick} />
+                        ))}
+                      </ul>
+                    </section>
+                  )}
+                  {MUSCLE_GROUPS.map((group) => {
+                    const items = matches.filter((e) => e.muscleGroup === group)
+                    if (items.length === 0) return null
+                    return (
+                      <section key={group}>
+                        <h3 className="group-title">{group}</h3>
+                        <ul className="list">
+                          {items.map((e) => (
+                            <Item key={e.id} exercise={e} onPick={onPick} />
+                          ))}
+                        </ul>
+                      </section>
+                    )
+                  })}
+                </>
+              )}
+            </div>
           </>
         )}
         <div className="dialog-actions">
