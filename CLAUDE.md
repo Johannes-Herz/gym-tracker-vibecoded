@@ -7,8 +7,9 @@ Mobile-first gym tracker as a web app.
 - The only exception is the app's UI text (labels, buttons, messages shown to the user), which stays in German.
 
 ## Git
-- Develop only on branch `dev`. Never commit, merge or push directly to `main` – the user does that (or ask first).
-- Small, thematically separate commits.
+- Only ever commit on `dev`. Never commit, merge or push to `main` – the user merges to `main` themselves.
+- Run `git branch --show-current` before every commit. If it is not `dev`, switch to `dev` first.
+- Small, thematically separate commits, one per completed step.
 
 ## Stack
 Vite + React 18 + TypeScript, `react-router-dom` (HashRouter, because of GitHub Pages), plain CSS (variables in `src/styles/base.css`), Vitest.
