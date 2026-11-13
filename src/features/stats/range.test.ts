@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PREFS_KEY, loadStatsRange, saveStatsRange } from '../../storage/preferences'
+import { PREFS_KEY, loadStatsRange, loadTrendMetric, saveStatsRange, saveTrendMetric } from '../../storage/preferences'
 import { inRange, rangeDays } from './range'
 
 const now = new Date(2026, 10, 13, 9, 0) // 13.11.2026
@@ -53,5 +53,24 @@ describe('stats range preference', () => {
     expect(loadStatsRange(s)).toEqual({ key: '1m' })
     saveStatsRange({ key: '3m' }, s)
     expect(JSON.parse(s.getItem(PREFS_KEY)!)).toEqual({ historyView: 'calendar', statsRange: { key: '3m' } })
+  })
+})
+
+describe('trend metric preference', () => {
+  function memory(): Storage {
+    const map = new Map<string, string>()
+    return { getItem: (k: string) => map.get(k) ?? null, setItem: (k: string, v: string) => void map.set(k, v) } as unknown as Storage
+  }
+  const allowed = ['e1rm', 'maxWeight', 'volume'] as const
+
+  it('remembers the metric per kind and falls back to the first one', () => {
+    const s = memory()
+    expect(loadTrendMetric('strength', allowed, s)).toBe('e1rm')
+    saveTrendMetric('strength', 'volume', s)
+    saveTrendMetric('cardio', 'pace', s)
+    expect(loadTrendMetric('strength', allowed, s)).toBe('volume')
+    expect(loadTrendMetric('cardio', ['duration', 'distance', 'pace'] as const, s)).toBe('pace')
+    s.setItem(PREFS_KEY, JSON.stringify({ trendMetric: { strength: 'nope' } }))
+    expect(loadTrendMetric('strength', allowed, s)).toBe('e1rm')
   })
 })

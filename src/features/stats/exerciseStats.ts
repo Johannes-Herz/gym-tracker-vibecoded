@@ -131,12 +131,63 @@ export function compareWithPrevious(
   return { last, prev, rows }
 }
 
-/** Trend per session: best estimated 1RM for strength, total reps for bodyweight. */
-export function trend(sessions: Session[], bodyweight: boolean): { startedAt: string; value: number }[] {
-  return sessions.map((s) => ({
-    startedAt: s.startedAt,
-    value: bodyweight
-      ? s.sets.reduce((sum, x) => sum + x.reps, 0)
-      : Math.round(Math.max(...s.sets.map((x) => estimate1RM(x.weight, x.reps))) * 10) / 10,
-  }))
+export type ExerciseKind = 'strength' | 'bodyweight' | 'cardio'
+
+export const TREND_METRICS = {
+  strength: [
+    { key: 'e1rm', label: '1RM', unit: 'kg' },
+    { key: 'maxWeight', label: 'Max. Gewicht', unit: 'kg' },
+    { key: 'volume', label: 'Volumen', unit: 'kg' },
+  ],
+  bodyweight: [
+    { key: 'maxReps', label: 'Max. Wdh.', unit: 'Wdh.' },
+    { key: 'totalReps', label: 'Wdh. gesamt', unit: 'Wdh.' },
+    { key: 'maxAdded', label: 'Max. Zusatz', unit: 'kg' },
+  ],
+  cardio: [
+    { key: 'duration', label: 'Dauer', unit: 'min' },
+    { key: 'distance', label: 'Distanz', unit: 'km' },
+    { key: 'pace', label: 'Tempo', unit: 'km/h' },
+  ],
+} as const
+
+export type TrendMetric = (typeof TREND_METRICS)[ExerciseKind][number]['key']
+
+const round1 = (n: number) => Math.round(n * 10) / 10
+const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0)
+
+function metricValue(sets: WorkoutSet[], metric: TrendMetric): number | null {
+  const withDistance = sets.filter((s) => s.distanceKm !== undefined)
+  switch (metric) {
+    case 'e1rm':
+      return Math.max(...sets.map((s) => estimate1RM(s.weight, s.reps)))
+    case 'maxWeight':
+    case 'maxAdded':
+      return Math.max(...sets.map((s) => s.weight))
+    case 'volume':
+      return sum(sets.map((s) => s.weight * s.reps))
+    case 'maxReps':
+      return Math.max(...sets.map((s) => s.reps))
+    case 'totalReps':
+      return sum(sets.map((s) => s.reps))
+    case 'duration':
+      return sum(sets.map((s) => s.durationMin ?? 0))
+    case 'distance':
+      return withDistance.length ? sum(withDistance.map((s) => s.distanceKm ?? 0)) : null
+    case 'pace': {
+      const minutes = sum(withDistance.map((s) => s.durationMin ?? 0))
+      if (!withDistance.length || minutes <= 0) return null
+      return sum(withDistance.map((s) => s.distanceKm ?? 0)) / (minutes / 60)
+    }
+  }
+}
+
+/** One point per session for the chosen metric; sessions without a value (e.g. no distance) are skipped. */
+export function trendSeries(sessions: Session[], metric: TrendMetric): { startedAt: string; value: number }[] {
+  const points: { startedAt: string; value: number }[] = []
+  for (const s of sessions) {
+    const value = metricValue(s.sets, metric)
+    if (value !== null && Number.isFinite(value)) points.push({ startedAt: s.startedAt, value: round1(value) })
+  }
+  return points
 }

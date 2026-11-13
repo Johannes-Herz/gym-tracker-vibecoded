@@ -9,7 +9,7 @@ import {
   compareWithPrevious,
   heatmapData,
   sessionsFor,
-  trend,
+  trendSeries,
   type Session,
 } from './exerciseStats'
 
@@ -147,10 +147,39 @@ describe('compareWithPrevious', () => {
   })
 })
 
-describe('trend', () => {
-  it('is total reps per session for bodyweight and best e1RM for strength', () => {
-    const s = sessionsFor(data(), 'builtin-bench-press', { key: 'all' }, now)
-    expect(trend(s, true).map((p) => p.value)).toEqual([14, 18, 13])
-    expect(trend(s, false)[0].value).toBe(90) // 75×6 beats 70×8 (88.7)
+describe('trendSeries', () => {
+  const strength = () => sessionsFor(data(), 'builtin-bench-press', { key: 'all' }, now)
+  const values = (sessions: Session[], m: Parameters<typeof trendSeries>[1]) => trendSeries(sessions, m).map((p) => p.value)
+
+  it('computes 1RM, max weight and volume per session for strength', () => {
+    expect(values(strength(), 'e1rm')).toEqual([90, 92.5, 95]) // 75×6, 75×7, 75×8
+    expect(values(strength(), 'maxWeight')).toEqual([75, 75, 80])
+    expect(values(strength(), 'volume')).toEqual([1010, 1350, 1000])
+  })
+
+  it('computes max reps, total reps and max added weight for bodyweight (incl. assisted)', () => {
+    const mk = (id: string, sets: [number, number][]): Session => ({
+      workoutId: id,
+      startedAt: at(10, 1),
+      sets: sets.map(([weight, reps], i) => ({ id: id + i, workoutId: id, exerciseId: 'p', order: i, weight, reps })),
+    })
+    const s = [mk('a', [[0, 10], [0, 8]]), mk('b', [[5, 6], [0, 9]]), mk('c', [[-20, 7]])]
+    expect(values(s, 'maxReps')).toEqual([10, 9, 7])
+    expect(values(s, 'totalReps')).toEqual([18, 15, 7])
+    expect(values(s, 'maxAdded')).toEqual([0, 5, -20])
+  })
+
+  it('computes duration, distance and pace for cardio, skipping sessions without distance', () => {
+    const mk = (id: string, entries: [number, number | undefined][]): Session => ({
+      workoutId: id,
+      startedAt: at(10, 1),
+      sets: entries.map(([durationMin, distanceKm], i) => ({
+        id: id + i, workoutId: id, exerciseId: 'builtin-treadmill', order: i, weight: 0, reps: 0, durationMin, distanceKm,
+      })),
+    })
+    const s = [mk('a', [[20, 3], [10, 1.5]]), mk('b', [[15, undefined]])]
+    expect(values(s, 'duration')).toEqual([30, 15])
+    expect(values(s, 'distance')).toEqual([4.5])
+    expect(values(s, 'pace')).toEqual([9])
   })
 })
