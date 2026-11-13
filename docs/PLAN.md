@@ -68,7 +68,7 @@
 - [x] Trend charts show units on axis and tooltip (German number format; Volumen in t from 10 000 kg)
 - [x] Each tab remembers its last route, scroll position and view state for the session
 
-## Phase 12: Workout templates — PLANNED
+## Phase 12: Workout templates — DONE
 Templates are a starting point only: a name plus an ordered list of exercises (no sets/weights). The result is a normal workout.
 
 ### Decisions
@@ -92,4 +92,4 @@ Templates are a starting point only: a name plus an ordered list of exercises (n
 - [x] 6. Template management: Vorlagen toggle in Übungen, edit page (rename, add via search picker, reorder, remove, delete with confirmation)
 - [x] 7. "Als Vorlage speichern" from a workout; template label in editor and Verlauf
 - [x] 8. Demo data: Push / Pull / Beine templates, some demo workouts labeled
-- [ ] 9. Phone-width check (~360px), mark phase done
+- [x] 9. Phone-width check (~360px), mark phase done
