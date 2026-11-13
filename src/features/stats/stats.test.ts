@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { emptyData } from '../../storage/storage'
 import type { AppData } from '../../types'
-import { aggregateBy, estimate1RM, exerciseProgress } from './stats'
+import { estimate1RM, exerciseProgress } from './stats'
 
 function sample(): AppData {
   const d = emptyData()
@@ -52,23 +52,10 @@ describe('exerciseProgress', () => {
   })
 })
 
-describe('aggregateBy', () => {
-  it('sums by muscle group, biggest volume first', () => {
-    const r = aggregateBy(sample(), 'muscleGroup')
-    expect(r.map((x) => x.key)).toEqual(['Brust', 'Beine'])
-    expect(r[0]).toMatchObject({ sets: 3, volume: 1325 })
-  })
-
-  it('labels empty categories and respects since', () => {
-    const r = aggregateBy(sample(), 'category', '2026-02-01T00:00:00')
-    expect(r.map((x) => x.key).sort()).toEqual(['Ohne Kategorie', 'Push'])
-    expect(r.find((x) => x.key === 'Push')).toMatchObject({ sets: 1, volume: 375 })
-  })
-
-  it('still counts hidden exercises', () => {
+describe('hidden exercises', () => {
+  it('still show their progress', () => {
     const d = sample()
     d.exercises = d.exercises.map((e) => ({ ...e, hidden: true }))
-    expect(aggregateBy(d, 'muscleGroup')).toEqual(aggregateBy(sample(), 'muscleGroup'))
     expect(exerciseProgress(d, 'bench')).toEqual(exerciseProgress(sample(), 'bench'))
   })
 })

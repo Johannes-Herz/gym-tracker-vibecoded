@@ -32,38 +32,3 @@ export function exerciseProgress(data: AppData, exerciseId: string): ExercisePoi
   }
   return points.sort((a, b) => a.startedAt.localeCompare(b.startedAt))
 }
-
-export interface GroupTotal {
-  key: string
-  sets: number
-  volume: number
-}
-
-/**
- * Totals per muscle group or category, optionally only for workouts starting
- * at or after `since` (ISO). Empty categories are grouped as "Ohne Kategorie".
- */
-export function aggregateBy(
-  data: AppData,
-  by: 'muscleGroup' | 'category',
-  since?: string,
-): GroupTotal[] {
-  const exercises = new Map(data.exercises.map((e) => [e.id, e]))
-  const included = new Set(
-    data.workouts.filter((w) => !since || w.startedAt >= since).map((w) => w.id),
-  )
-  const totals = new Map<string, GroupTotal>()
-  for (const s of data.sets) {
-    if (!included.has(s.workoutId)) continue
-    const ex = exercises.get(s.exerciseId)
-    if (!ex) continue
-    const key = (by === 'muscleGroup' ? ex.muscleGroup : ex.category) || 'Ohne Kategorie'
-    const t = totals.get(key) ?? { key, sets: 0, volume: 0 }
-    t.sets += 1
-    t.volume += s.weight * s.reps
-    totals.set(key, t)
-  }
-  return [...totals.values()]
-    .map((t) => ({ ...t, volume: round1(t.volume) }))
-    .sort((a, b) => b.volume - a.volume)
-}
