@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import PageHeader from '../components/PageHeader'
 import ExerciseProgressTab from '../features/stats/ExerciseProgressTab'
+import GroupsTab from '../features/stats/GroupsTab'
 
 const TABS = [
   { key: 'exercise', label: 'Übung' },
@@ -31,7 +32,9 @@ export default function StatsPage() {
           </button>
         ))}
       </div>
-      {tab === 'exercise' ? <ExerciseProgressTab /> : <p className="muted">Kommt bald.</p>}
+      {tab === 'exercise' && <ExerciseProgressTab />}
+      {tab === 'groups' && <GroupsTab />}
+      {(tab === 'body' || tab === 'calendar') && <p className="muted">Kommt bald.</p>}
     </>
   )
 }
