@@ -144,6 +144,38 @@ export const workouts = {
     update((d) => ({ ...d, workouts: d.workouts.filter((w) => w.id !== id) }))
   },
   /**
+   * Creates a workout from a template: all sets are suggestions, and the template
+   * name is stored as label. Returns null (saving nothing) if there are no sets.
+   */
+  createFromTemplate(
+    startedAt: string,
+    template: Pick<Template, 'id' | 'name'>,
+    entries: { exerciseId: string; sets: SetValues[] }[],
+  ): Workout | null {
+    const workout: Workout = {
+      id: newId(),
+      startedAt,
+      templateId: template.id,
+      templateName: template.name,
+    }
+    const created: WorkoutSet[] = []
+    for (const entry of entries) {
+      for (const values of entry.sets) {
+        created.push({
+          id: newId(),
+          workoutId: workout.id,
+          exerciseId: entry.exerciseId,
+          order: created.length,
+          ...values,
+          suggested: true,
+        })
+      }
+    }
+    if (created.length === 0) return null
+    update((d) => ({ ...d, workouts: [...d.workouts, workout], sets: [...d.sets, ...created] }))
+    return workout
+  },
+  /**
    * Drops all unconfirmed (suggested) sets and the workouts that have no sets
    * left. Called when the Verlauf list opens, i.e. when no editor is open.
    */

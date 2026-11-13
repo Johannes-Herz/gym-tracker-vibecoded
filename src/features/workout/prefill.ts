@@ -5,7 +5,7 @@ import { isCardio, type AppData, type Exercise, type WorkoutSet } from '../../ty
 export type { SetValues }
 
 /** Copies only the value fields that are set, so strength sets stay free of cardio keys. */
-function valuesOf(s: WorkoutSet): SetValues {
+export function valuesOf(s: WorkoutSet): SetValues {
   const v: SetValues = { weight: s.weight, reps: s.reps }
   if (s.durationMin !== undefined) v.durationMin = s.durationMin
   if (s.distanceKm !== undefined) v.distanceKm = s.distanceKm

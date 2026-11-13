@@ -7,6 +7,7 @@ import WorkoutCalendar from '../features/history/WorkoutCalendar'
 import { formatDateTime } from '../lib/format'
 import { workouts as workoutsRepo } from '../storage/repo'
 import { loadHistoryView, saveHistoryView, type HistoryView } from '../storage/preferences'
+import StartWorkoutSheet from '../features/workout/StartWorkoutSheet'
 import { useStore } from '../storage/store'
 
 const monthFormat = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' })
@@ -19,6 +20,9 @@ const VIEWS: { key: HistoryView; label: string }[] = [
 export default function HistoryPage() {
   const [view, setView] = useState<HistoryView>(() => loadHistoryView())
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  const [starting, setStarting] = useState(false)
+  const { templates } = useStore()
+  const dateKey = view === 'calendar' ? selectedDay : null
 
   // No editor is open here, so unconfirmed suggestions (and workouts left empty by that) can go.
   useEffect(() => {
@@ -50,13 +54,16 @@ export default function HistoryPage() {
       </div>
       {view === 'list' ? <WorkoutList /> : <WorkoutCalendar onSelectDay={setSelectedDay} />}
       <div className="fab-spacer" />
-      <Link
-        to={newWorkoutPath(view === 'calendar' ? selectedDay : null)}
-        className="fab"
-        aria-label="Neues Training"
-      >
-        +
-      </Link>
+      {templates.length === 0 ? (
+        <Link to={newWorkoutPath(dateKey)} className="fab" aria-label="Neues Training">
+          +
+        </Link>
+      ) : (
+        <button type="button" className="fab" aria-label="Neues Training" onClick={() => setStarting(true)}>
+          +
+        </button>
+      )}
+      {starting && <StartWorkoutSheet templates={templates} dateKey={dateKey} onClose={() => setStarting(false)} />}
     </>
   )
 }

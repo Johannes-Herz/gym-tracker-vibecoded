@@ -88,7 +88,7 @@ Templates are a starting point only: a name plus an ordered list of exercises (n
 - [x] 2. Template repo (CRUD, exercise-in-use check) + tests
 - [x] 3. Suggestion logic: shared selector, stats/history/prefill ignore suggestions, empty-workout rules, cleanup on leaving the editor + tests
 - [x] 4. Editor: suggested styling + ✓, "+ Satz"/"+ Übung" as suggestions, move up/down for exercises
-- [ ] 5. Start from template: "+" sheet in Verlauf (list and calendar), prefill per exercise (cardio, bodyweight, hidden, no history) + tests
+- [x] 5. Start from template: "+" sheet in Verlauf (list and calendar), prefill per exercise (cardio, bodyweight, hidden, no history) + tests
 - [ ] 6. Template management: Vorlagen toggle in Übungen, edit page (rename, add via search picker, reorder, remove, delete with confirmation)
 - [ ] 7. "Als Vorlage speichern" from a workout; template label in editor and Verlauf
 - [ ] 8. Demo data: Push / Pull / Beine templates, some demo workouts labeled
