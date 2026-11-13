@@ -63,7 +63,7 @@
 - [x] Trend chart with switchable metrics (strength / bodyweight / cardio), remembered per device
 - [x] Demo data: straight, pyramid, back-off and warm-up patterns; mixed bodyweight sets
 
-## Phase 11: Labels, chart units, tab memory — IN PROGRESS
-- [ ] Bodyweight labels "BW", "+5 kg", long form "Körpergewicht + 5 kg"; one formatter
-- [ ] Trend charts show units on axis and tooltip (German number format; Volumen in t from 10 000 kg)
-- [ ] Each tab remembers its last route, scroll position and view state for the session
+## Phase 11: Labels, chart units, tab memory — DONE
+- [x] Bodyweight labels "BW", "+5 kg", long form "Körpergewicht + 5 kg"; one formatter
+- [x] Trend charts show units on axis and tooltip (German number format; Volumen in t from 10 000 kg)
+- [x] Each tab remembers its last route, scroll position and view state for the session
