@@ -13,8 +13,8 @@
 - [x] Body weight tracker with chart
 - [x] Calendar view
 
-## Phase 3 — TODO
-- [ ] Settings page with JSON export
-- [ ] Import with validation
-- [ ] Delete all data (with confirmation)
-- [ ] PWA: manifest, service worker, home screen icon, offline use
+## Phase 3 — DONE
+- [x] Settings page with JSON export
+- [x] Import with validation
+- [x] Delete all data (with confirmation)
+- [x] PWA: manifest, service worker, home screen icon, offline use
