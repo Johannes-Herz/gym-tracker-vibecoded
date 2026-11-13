@@ -82,6 +82,7 @@ Templates are a starting point only: a name plus an ordered list of exercises (n
 - Hidden exercises stay in templates and are still used when starting a workout. A custom exercise used only by a template cannot be deleted (like exercises with sets).
 - Workout stores `templateId?` and `templateName?` (name copied, survives rename/delete); shown as a label in the editor and the Verlauf list.
 - Editing a workout (add/remove/reorder exercises and sets) never changes the template.
+- Template names are unique (trimmed, case-insensitive). Saving under an existing name asks for confirmation and overwrites that template, from "Als Vorlage speichern" as well as from the Vorlagen page; renaming onto another name merges into it.
 
 ### Steps
 - [x] 1. Schema v4: `templates`, `Workout.templateId/templateName`, `WorkoutSet.suggested`; migration (`templates: []`) + test, backup export/import validation + test
