@@ -3,7 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import BottomNav from './components/BottomNav'
 import ExercisesPage from './pages/ExercisesPage'
 import HistoryPage from './pages/HistoryPage'
-import PlaceholderPage from './pages/PlaceholderPage'
+import SettingsPage from './pages/SettingsPage'
 import TrainingPage from './pages/TrainingPage'
 import WorkoutDetailPage from './pages/WorkoutDetailPage'
 
@@ -21,7 +21,7 @@ export default function App() {
           <Route path="/verlauf/:id" element={<WorkoutDetailPage />} />
           <Route path="/uebungen" element={<ExercisesPage />} />
           <Route path="/statistik" element={<StatsPage />} />
-          <Route path="/einstellungen" element={<PlaceholderPage title="Einstellungen" />} />
+          <Route path="/einstellungen" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </Suspense>

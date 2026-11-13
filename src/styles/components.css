@@ -159,3 +159,7 @@ html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
 .calendar-day.today { border-color: var(--text); }
 .calendar-day.selected { outline: 2px solid var(--primary); outline-offset: 1px; }
 .calendar-summary { margin-top: 8px; text-align: center; }
+
+.settings-section { margin-bottom: 12px; }
+.settings-section h2 { margin: 0 0 4px; font-size: 1.05rem; }
+.settings-section p { margin: 0 0 10px; }
