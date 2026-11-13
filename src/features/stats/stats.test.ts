@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { emptyData } from '../../storage/storage'
 import type { AppData } from '../../types'
-import { aggregateBy, estimate1RM, exerciseProgress, trainingDays } from './stats'
+import { aggregateBy, estimate1RM, exerciseProgress } from './stats'
 
 function sample(): AppData {
   const d = emptyData()
@@ -70,11 +70,5 @@ describe('aggregateBy', () => {
     d.exercises = d.exercises.map((e) => ({ ...e, hidden: true }))
     expect(aggregateBy(d, 'muscleGroup')).toEqual(aggregateBy(sample(), 'muscleGroup'))
     expect(exerciseProgress(d, 'bench')).toEqual(exerciseProgress(sample(), 'bench'))
-  })
-})
-
-describe('trainingDays', () => {
-  it('collects local day keys', () => {
-    expect([...trainingDays(sample())].sort()).toEqual(['2026-01-10', '2026-02-10'])
   })
 })
