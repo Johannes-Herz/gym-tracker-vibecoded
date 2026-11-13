@@ -158,6 +158,7 @@ export function buildDemoData({ builtins, today = new Date(), seed = DEMO_SEED, 
     workouts,
     sets,
     bodyWeights,
+    templates: [],
   })
 }
 

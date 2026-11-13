@@ -3,7 +3,7 @@ import type { AppData, Exercise } from '../types'
 
 export const STORAGE_KEY = 'gymtracker:v1'
 export const BACKUP_KEY = 'gymtracker:backup'
-export const CURRENT_SCHEMA_VERSION = 3
+export const CURRENT_SCHEMA_VERSION = 4
 
 /** Fixed creation time for built-ins, so seeding is deterministic. */
 export const BUILTIN_CREATED_AT = '2026-01-01T00:00:00.000Z'
@@ -16,6 +16,7 @@ export function emptyData(): AppData {
     workouts: [],
     sets: [],
     bodyWeights: [],
+    templates: [],
   })
 }
 
@@ -104,6 +105,8 @@ export function migrate(raw: unknown): AppData | null {
     workouts: arr(obj.workouts),
     sets: arr(obj.sets),
     bodyWeights: arr(obj.bodyWeights),
+    // v4: workout templates (absent in older data).
+    templates: arr(obj.templates),
   }
   if (version < 2) data = migrateV1toV2(data)
   // v3: empty workouts are no longer allowed; pruned on every load as a safety net.

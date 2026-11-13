@@ -23,13 +23,14 @@ describe('parseImport', () => {
   const ex = { id: 'e1', name: 'Eigene Übung', muscleGroup: 'Brust', category: 'Push', createdAt: '2026-01-01T10:00:00.000Z', source: 'custom', equipment: 'Kurzhantel' }
   const wo = { id: 'w1', startedAt: '2026-01-02T10:00:00.000Z' }
   const set = { id: 's1', workoutId: 'w1', exerciseId: 'e1', order: 0, weight: 80, reps: 8 }
+  const tpl = { id: 't1', name: 'Push Tag', exerciseIds: ['e1', 'builtin-squat'], createdAt: '2026-01-02T10:00:00.000Z', updatedAt: '2026-01-02T10:00:00.000Z' }
   const bw = { id: 'b1', date: '2026-01-02', weightKg: 80.5 }
   // Deep copy so mutations in one test never leak into the shared fixtures.
   const valid = () =>
     structuredClone({
       app: 'gymtracker',
       exportedAt: '2026-01-03T00:00:00.000Z',
-      data: { schemaVersion: CURRENT_SCHEMA_VERSION, exercises: [ex], workouts: [wo], sets: [set], bodyWeights: [bw] },
+      data: { schemaVersion: CURRENT_SCHEMA_VERSION, exercises: [ex], workouts: [wo], sets: [set], bodyWeights: [bw], templates: [tpl] },
     })
   const parse = (v: unknown) => parseImport(JSON.stringify(v))
   const mutate = (fn: (b: ReturnType<typeof valid>) => void) => {
@@ -43,6 +44,24 @@ describe('parseImport', () => {
     const data = { ...valid().data, exercises: [...builtins, ex] } as AppData
     const result = parseImport(serializeBackup(data))
     expect(result).toEqual({ ok: true, data })
+  })
+
+  it('accepts v3 backups without templates and imports templates from v4', () => {
+    const v3 = valid()
+    v3.data.schemaVersion = 3
+    delete (v3.data as { templates?: unknown }).templates
+    const old = parse(v3)
+    expect(old.ok && old.data.templates).toEqual([])
+    const v4 = parse(valid())
+    expect(v4.ok && v4.data.templates).toEqual([tpl])
+  })
+
+  it('rejects invalid or duplicate templates and drops unknown exercise references', () => {
+    expect(mutate((b) => { b.data.templates[0].name = ' ' }).ok).toBe(false)
+    expect(mutate((b) => { b.data.templates.push({ ...tpl }) }).ok).toBe(false)
+    expect(mutate((b) => { delete (b.data as { templates?: unknown }).templates }).ok).toBe(false)
+    const result = mutate((b) => { b.data.templates[0].exerciseIds.push('gone') })
+    expect(result.ok && result.data.templates[0].exerciseIds).toEqual(['e1', 'builtin-squat'])
   })
 
   it('migrates v1 backups: seeds built-ins and merges matching custom exercises', () => {

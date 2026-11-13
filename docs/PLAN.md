@@ -84,7 +84,7 @@ Templates are a starting point only: a name plus an ordered list of exercises (n
 - Editing a workout (add/remove/reorder exercises and sets) never changes the template.
 
 ### Steps
-- [ ] 1. Schema v4: `templates`, `Workout.templateId/templateName`, `WorkoutSet.suggested`; migration (`templates: []`) + test, backup export/import validation + test
+- [x] 1. Schema v4: `templates`, `Workout.templateId/templateName`, `WorkoutSet.suggested`; migration (`templates: []`) + test, backup export/import validation + test
 - [ ] 2. Template repo (CRUD, exercise-in-use check) + tests
 - [ ] 3. Suggestion logic: shared selector, stats/history/prefill ignore suggestions, empty-workout rules, cleanup on leaving the editor + tests
 - [ ] 4. Editor: suggested styling + ✓, "+ Satz"/"+ Übung" as suggestions, move up/down for exercises

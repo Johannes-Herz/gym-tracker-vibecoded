@@ -66,6 +66,10 @@ export function parseImport(text: string): ImportResult {
   for (const key of ['exercises', 'workouts', 'sets', 'bodyWeights']) {
     if (!Array.isArray(raw[key])) return fail(`Feld „${key}“ fehlt oder ist ungültig.`)
   }
+  // Templates exist from schema v4 on; older backups simply have none.
+  if (raw.schemaVersion >= 4 && !Array.isArray(raw.templates)) {
+    return fail('Feld „templates“ fehlt oder ist ungültig.')
+  }
 
   const data = migrate(raw)
   if (!data) return fail('Die Daten konnten nicht migriert werden.')
@@ -88,7 +92,14 @@ export function parseImport(text: string): ImportResult {
     }
   }
   for (const w of data.workouts) {
-    if (!isObj(w) || !isId(w.id) || !isIso(w.startedAt) || (w.note !== undefined && typeof w.note !== 'string')) {
+    if (
+      !isObj(w) ||
+      !isId(w.id) ||
+      !isIso(w.startedAt) ||
+      (w.note !== undefined && typeof w.note !== 'string') ||
+      (w.templateId !== undefined && !isId(w.templateId)) ||
+      (w.templateName !== undefined && typeof w.templateName !== 'string')
+    ) {
       return fail('Trainings: ungültiger Eintrag.')
     }
   }
@@ -103,7 +114,8 @@ export function parseImport(text: string): ImportResult {
       !Number.isFinite(s.weight) ||
       !isNonNeg(s.reps) ||
       (s.durationMin !== undefined && !(isNonNeg(s.durationMin) && s.durationMin > 0)) ||
-      (s.distanceKm !== undefined && !isNonNeg(s.distanceKm))
+      (s.distanceKm !== undefined && !isNonNeg(s.distanceKm)) ||
+      (s.suggested !== undefined && s.suggested !== true)
     ) {
       return fail('Sätze: ungültiger Eintrag.')
     }
@@ -114,15 +126,36 @@ export function parseImport(text: string): ImportResult {
     }
   }
 
+  for (const t of data.templates) {
+    if (
+      !isObj(t) ||
+      !isId(t.id) ||
+      typeof t.name !== 'string' ||
+      !t.name.trim() ||
+      !Array.isArray(t.exerciseIds) ||
+      !t.exerciseIds.every(isId) ||
+      !isIso(t.createdAt) ||
+      !isIso(t.updatedAt)
+    ) {
+      return fail('Vorlagen: ungültiger Eintrag.')
+    }
+  }
+
   const dup =
     checkUniqueIds('Übungen', data.exercises) ??
     checkUniqueIds('Trainings', data.workouts) ??
     checkUniqueIds('Sätze', data.sets) ??
-    checkUniqueIds('Körpergewicht', data.bodyWeights)
+    checkUniqueIds('Körpergewicht', data.bodyWeights) ??
+    checkUniqueIds('Vorlagen', data.templates)
   if (dup) return fail(dup)
 
   const exerciseById = new Map(data.exercises.map((e) => [e.id, e]))
   const exerciseIds = new Set(exerciseById.keys())
+  // Templates may only reference existing exercises; unknown ones are dropped.
+  data.templates = data.templates.map((t) => ({
+    ...t,
+    exerciseIds: t.exerciseIds.filter((id) => exerciseIds.has(id)),
+  }))
   const workoutIds = new Set(data.workouts.map((w) => w.id))
   for (const s of data.sets) {
     if (!workoutIds.has(s.workoutId) || !exerciseIds.has(s.exerciseId)) {
