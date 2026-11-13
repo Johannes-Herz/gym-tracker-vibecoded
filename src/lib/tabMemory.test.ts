@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { _resetTabMemory, navTarget, rememberPath, saveScroll, savedScroll, tabOf } from './tabMemory'
+import { _resetTabMemory, navTarget, rememberPath, saveScroll, savedScroll, parentOf, tabOf } from './tabMemory'
 
 describe('tab memory', () => {
   beforeEach(() => _resetTabMemory())
@@ -29,5 +29,14 @@ describe('tab memory', () => {
     saveScroll('/statistik/uebung/x', 420)
     expect(savedScroll('/statistik/uebung/x')).toBe(420)
     expect(savedScroll('/verlauf')).toBe(0)
+  })
+})
+
+describe("template routes", () => {
+  it("belong to the Uebungen tab and go up level by level", () => {
+    expect(tabOf("/uebungen/vorlagen/abc")).toBe("/uebungen")
+    expect(parentOf("/uebungen/vorlagen/abc")).toBe("/uebungen/vorlagen")
+    expect(parentOf("/uebungen/vorlagen/neu")).toBe("/uebungen/vorlagen")
+    expect(parentOf("/uebungen/vorlagen")).toBe("/uebungen")
   })
 })

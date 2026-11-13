@@ -6,6 +6,8 @@ import { usePendingSteps } from './lib/useNavSteps'
 import ExercisesPage from './pages/ExercisesPage'
 import HistoryPage from './pages/HistoryPage'
 import NewWorkoutPage from './pages/NewWorkoutPage'
+import TemplateEditPage from './pages/TemplateEditPage'
+import TemplatesPage from './pages/TemplatesPage'
 import SettingsPage from './pages/SettingsPage'
 import WorkoutDetailPage from './pages/WorkoutDetailPage'
 
@@ -27,6 +29,8 @@ export default function App() {
           <Route path="/verlauf/neu" element={<NewWorkoutPage />} />
           <Route path="/verlauf/:id" element={<WorkoutDetailPage />} />
           <Route path="/uebungen" element={<ExercisesPage />} />
+          <Route path="/uebungen/vorlagen" element={<TemplatesPage />} />
+          <Route path="/uebungen/vorlagen/:id" element={<TemplateEditPage />} />
           <Route path="/statistik" element={<StatsPage />} />
           <Route path="/statistik/uebung/:id" element={<ExerciseStatsPage />} />
           <Route path="/einstellungen" element={<SettingsPage />} />

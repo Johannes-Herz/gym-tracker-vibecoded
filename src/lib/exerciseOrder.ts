@@ -31,3 +31,12 @@ export function moveExercise(
   }
   return result
 }
+
+/** Returns a copy of the list with the item at `index` moved by `delta`; unchanged if it cannot move. */
+export function moveItem<T>(items: T[], index: number, delta: -1 | 1): T[] {
+  const to = index + delta
+  if (index < 0 || index >= items.length || to < 0 || to >= items.length) return items
+  const next = [...items]
+  ;[next[index], next[to]] = [next[to], next[index]]
+  return next
+}

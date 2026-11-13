@@ -312,3 +312,7 @@ html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
 .delta-down { color: var(--danger); font-weight: 600; }
 .tag { margin-left: 4px; font-size: 0.65rem; padding: 1px 5px; border-radius: 999px; background: var(--border); color: var(--muted); }
 .chart-compact { height: 180px; }
+
+.template-exercises { margin-bottom: 12px; }
+.template-exercises .list-item { padding: 6px 8px 6px 12px; }
+.template-exercises .btn { min-width: 36px; padding: 0; }

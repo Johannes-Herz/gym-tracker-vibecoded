@@ -40,6 +40,8 @@ export function navTarget(root: TabRoot, currentPathname: string): string {
 const PARENT_ROUTES: { pattern: RegExp; parent: string }[] = [
   { pattern: /^\/verlauf\/neu$/, parent: '/verlauf' },
   { pattern: /^\/verlauf\/[^/]+$/, parent: '/verlauf' },
+  { pattern: /^\/uebungen\/vorlagen$/, parent: '/uebungen' },
+  { pattern: /^\/uebungen\/vorlagen\/[^/]+$/, parent: '/uebungen/vorlagen' },
   { pattern: /^\/statistik\/uebung\/[^/]+$/, parent: '/statistik' },
 ]
 

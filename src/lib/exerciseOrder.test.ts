@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { exerciseOrder, moveExercise } from './exerciseOrder'
+import { exerciseOrder, moveExercise, moveItem } from './exerciseOrder'
 
 const s = (id: string, exerciseId: string, order: number) => ({ id, exerciseId, order })
 const sets = [s('1', 'a', 0), s('2', 'b', 1), s('3', 'a', 2), s('4', 'c', 3)]
@@ -21,5 +21,15 @@ describe('exerciseOrder', () => {
     expect(exerciseOrder(sets.map((x) => ({ ...x, order: m.get(x.id)! })))).toEqual(['a', 'c', 'b'])
     expect(moveExercise(sets, 'a', -1)).toBeNull()
     expect(moveExercise(sets, 'c', 1)).toBeNull()
+  })
+})
+
+describe('moveItem', () => {
+  it('moves within bounds and leaves the list alone at the ends', () => {
+    expect(moveItem(['a', 'b', 'c'], 0, 1)).toEqual(['b', 'a', 'c'])
+    expect(moveItem(['a', 'b', 'c'], 2, -1)).toEqual(['a', 'c', 'b'])
+    const list = ['a', 'b']
+    expect(moveItem(list, 0, -1)).toBe(list)
+    expect(moveItem(list, 1, 1)).toBe(list)
   })
 })

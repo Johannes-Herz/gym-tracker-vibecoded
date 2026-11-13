@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import ConfirmDialog from '../components/ConfirmDialog'
 import PageHeader from '../components/PageHeader'
+import ExerciseViewToggle from '../features/templates/ExerciseViewToggle'
 import ExerciseForm from '../features/exercises/ExerciseForm'
 import ExerciseList from '../features/exercises/ExerciseList'
 import { exercises as repo, type ExerciseInput } from '../storage/repo'
@@ -56,6 +57,8 @@ export default function ExercisesPage() {
           )
         }
       />
+
+      <ExerciseViewToggle view="exercises" />
 
       {mode.kind !== 'idle' && (
         <ExerciseForm
