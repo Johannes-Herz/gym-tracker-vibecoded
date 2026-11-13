@@ -2,11 +2,9 @@ import { useState } from 'react'
 import PageHeader from '../components/PageHeader'
 import BodyWeightTab from '../features/stats/BodyWeightTab'
 import ExerciseProgressTab from '../features/stats/ExerciseProgressTab'
-import GroupsTab from '../features/stats/GroupsTab'
 
 const TABS = [
   { key: 'exercise', label: 'Übung' },
-  { key: 'groups', label: 'Gruppen' },
   { key: 'body', label: 'Körper' },
 ] as const
 
@@ -33,7 +31,6 @@ export default function StatsPage() {
         ))}
       </div>
       {tab === 'exercise' && <ExerciseProgressTab />}
-      {tab === 'groups' && <GroupsTab />}
       {tab === 'body' && <BodyWeightTab />}
     </>
   )

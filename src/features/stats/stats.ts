@@ -20,7 +20,10 @@ export interface ExercisePoint {
 export function exerciseProgress(data: AppData, exerciseId: string): ExercisePoint[] {
   const points: ExercisePoint[] = []
   for (const w of data.workouts) {
-    const sets = data.sets.filter((s) => s.workoutId === w.id && s.exerciseId === exerciseId)
+    // Cardio entries never count towards strength metrics.
+    const sets = data.sets.filter(
+      (s) => s.workoutId === w.id && s.exerciseId === exerciseId && s.durationMin === undefined,
+    )
     if (sets.length === 0) continue
     points.push({
       workoutId: w.id,
@@ -33,37 +36,27 @@ export function exerciseProgress(data: AppData, exerciseId: string): ExercisePoi
   return points.sort((a, b) => a.startedAt.localeCompare(b.startedAt))
 }
 
-export interface GroupTotal {
-  key: string
-  sets: number
-  volume: number
+export interface CardioPoint {
+  workoutId: string
+  startedAt: string
+  durationMin: number
+  distanceKm: number
 }
 
-/**
- * Totals per muscle group or category, optionally only for workouts starting
- * at or after `since` (ISO). Empty categories are grouped as "Ohne Kategorie".
- */
-export function aggregateBy(
-  data: AppData,
-  by: 'muscleGroup' | 'category',
-  since?: string,
-): GroupTotal[] {
-  const exercises = new Map(data.exercises.map((e) => [e.id, e]))
-  const included = new Set(
-    data.workouts.filter((w) => !since || w.startedAt >= since).map((w) => w.id),
-  )
-  const totals = new Map<string, GroupTotal>()
-  for (const s of data.sets) {
-    if (!included.has(s.workoutId)) continue
-    const ex = exercises.get(s.exerciseId)
-    if (!ex) continue
-    const key = (by === 'muscleGroup' ? ex.muscleGroup : ex.category) || 'Ohne Kategorie'
-    const t = totals.get(key) ?? { key, sets: 0, volume: 0 }
-    t.sets += 1
-    t.volume += s.weight * s.reps
-    totals.set(key, t)
+/** Total duration and distance per workout for a cardio exercise, oldest first. */
+export function cardioProgress(data: AppData, exerciseId: string): CardioPoint[] {
+  const points: CardioPoint[] = []
+  for (const w of data.workouts) {
+    const entries = data.sets.filter(
+      (s) => s.workoutId === w.id && s.exerciseId === exerciseId && s.durationMin !== undefined,
+    )
+    if (entries.length === 0) continue
+    points.push({
+      workoutId: w.id,
+      startedAt: w.startedAt,
+      durationMin: round1(entries.reduce((sum, s) => sum + (s.durationMin ?? 0), 0)),
+      distanceKm: round1(entries.reduce((sum, s) => sum + (s.distanceKm ?? 0), 0)),
+    })
   }
-  return [...totals.values()]
-    .map((t) => ({ ...t, volume: round1(t.volume) }))
-    .sort((a, b) => b.volume - a.volume)
+  return points.sort((a, b) => a.startedAt.localeCompare(b.startedAt))
 }

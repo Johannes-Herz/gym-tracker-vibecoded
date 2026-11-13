@@ -5,7 +5,7 @@ import { getState, useStore } from '../../storage/store'
 import type { Exercise, WorkoutSet } from '../../types'
 import ExerciseBlock from './ExerciseBlock'
 import ExercisePicker from './ExercisePicker'
-import { prefillFor } from './prefill'
+import { initialValues } from './prefill'
 import { recentExerciseIds } from './recent'
 
 export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
@@ -22,7 +22,7 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
 
   function addExercise(exercise: Exercise) {
     setPicking(false)
-    const values = prefillFor(getState(), workoutId, exercise.id) ?? { weight: 0, reps: 0 }
+    const values = initialValues(getState(), workoutId, exercise)
     setsRepo.add({ workoutId, exerciseId: exercise.id, ...values })
   }
 

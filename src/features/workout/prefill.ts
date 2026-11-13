@@ -1,8 +1,24 @@
-import type { AppData } from '../../types'
+import type { SetValues } from '../../storage/repo'
+import { isCardio, type AppData, type Exercise, type WorkoutSet } from '../../types'
 
-export interface SetValues {
-  weight: number
-  reps: number
+export type { SetValues }
+
+/** Copies only the value fields that are set, so strength sets stay free of cardio keys. */
+function valuesOf(s: WorkoutSet): SetValues {
+  const v: SetValues = { weight: s.weight, reps: s.reps }
+  if (s.durationMin !== undefined) v.durationMin = s.durationMin
+  if (s.distanceKm !== undefined) v.distanceKm = s.distanceKm
+  return v
+}
+
+export const CARDIO_DEFAULT_MIN = 20
+
+/** Prefill, or sensible defaults for a first entry of this exercise. */
+export function initialValues(data: AppData, workoutId: string, exercise: Exercise): SetValues {
+  return (
+    prefillFor(data, workoutId, exercise.id) ??
+    (isCardio(exercise) ? { weight: 0, reps: 0, durationMin: CARDIO_DEFAULT_MIN } : { weight: 0, reps: 0 })
+  )
 }
 
 /**
@@ -15,8 +31,7 @@ export function prefillFor(data: AppData, workoutId: string, exerciseId: string)
 
   const own = forExercise.filter((s) => s.workoutId === workoutId).sort(byOrder)
   if (own.length > 0) {
-    const last = own[own.length - 1]
-    return { weight: last.weight, reps: last.reps }
+    return valuesOf(own[own.length - 1])
   }
 
   const startedAt = new Map(data.workouts.map((w) => [w.id, w.startedAt]))
@@ -29,6 +44,5 @@ export function prefillFor(data: AppData, workoutId: string, exerciseId: string)
   if (bestWorkout === null) return null
 
   const prev = forExercise.filter((s) => s.workoutId === bestWorkout).sort(byOrder)
-  const last = prev[prev.length - 1]
-  return { weight: last.weight, reps: last.reps }
+  return valuesOf(prev[prev.length - 1])
 }

@@ -6,9 +6,15 @@ export const MUSCLE_GROUPS = [
   'Bizeps',
   'Trizeps',
   'Bauch',
+  'Cardio',
 ] as const
 
 export type MuscleGroup = (typeof MUSCLE_GROUPS)[number]
+
+/** Cardio exercises are logged as duration/distance instead of weight × reps. */
+export function isCardio(e: { muscleGroup: string }): boolean {
+  return e.muscleGroup === 'Cardio'
+}
 
 export const EQUIPMENT = ['Langhantel', 'Kurzhantel', 'Maschine', 'Kabelzug', 'Körpergewicht'] as const
 
@@ -39,8 +45,10 @@ export interface WorkoutSet {
   workoutId: string
   exerciseId: string
   order: number
-  weight: number // kg
-  reps: number
+  weight: number // kg; 0 for cardio
+  reps: number // 0 for cardio
+  durationMin?: number // cardio only, required there
+  distanceKm?: number // cardio only, optional
 }
 
 export interface BodyWeightEntry {

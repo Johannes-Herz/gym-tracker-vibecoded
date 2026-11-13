@@ -55,6 +55,17 @@ describe('parseImport', () => {
     expect(result.data.exercises.some((e) => e.id === 'old')).toBe(false)
   })
 
+  it('validates cardio entries against the exercise type', () => {
+    const cardioSet = { id: 'c1', workoutId: 'w1', exerciseId: 'builtin-treadmill', order: 1, weight: 0, reps: 0, durationMin: 25, distanceKm: 4 }
+    const withSet = (s: object) => mutate((b) => { (b.data.sets as object[]).push(s) })
+    expect(withSet(cardioSet).ok).toBe(true)
+    expect(withSet({ ...cardioSet, distanceKm: undefined }).ok).toBe(true)
+    expect(withSet({ ...cardioSet, durationMin: undefined }).ok).toBe(false)
+    expect(withSet({ ...cardioSet, durationMin: 0 }).ok).toBe(false)
+    expect(withSet({ ...cardioSet, distanceKm: -1 }).ok).toBe(false)
+    expect(withSet({ ...set, id: 's2', durationMin: 10 }).ok).toBe(false)
+  })
+
   it('rejects invalid new exercise fields', () => {
     expect(mutate((b) => { (b.data.exercises[0] as { source: unknown }).source = 'x' }).ok).toBe(false)
     expect(mutate((b) => { (b.data.exercises[0] as { equipment: unknown }).equipment = 'Hantel' }).ok).toBe(false)

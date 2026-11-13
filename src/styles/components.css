@@ -135,6 +135,7 @@
 .back-link { display: inline-flex; align-items: center; color: var(--text); text-decoration: none; }
 
 .set-row .stepper input { flex: 1; width: 100%; min-width: 0; }
+.set-row.cardio { grid-template-columns: 1.2rem minmax(0, 1fr) minmax(0, 1fr) 44px; }
 .set-legend { margin-bottom: 4px; }
 .set-legend span:nth-child(2), .set-legend span:nth-child(3) { text-align: center; }
 
@@ -199,7 +200,6 @@ html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
   vertical-align: middle;
 }
 .list-item.is-hidden { opacity: 0.55; }
-.day-add { display: flex; align-items: center; justify-content: center; margin-top: 8px; text-decoration: none; color: var(--text); }
 .fab-spacer { height: 72px; }
 .fab {
   position: fixed;

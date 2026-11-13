@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import BackToHistory, { useBackToHistory } from '../components/BackToHistory'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -7,6 +7,10 @@ import WorkoutEditor from '../features/workout/WorkoutEditor'
 import { workouts } from '../storage/repo'
 import { useStore } from '../storage/store'
 
+// Workout whose editor is currently open. Lets the leave-cleanup skip the
+// immediate remount React StrictMode does in development.
+let openEditorId: string | null = null
+
 export default function WorkoutDetailPage() {
   const { id = '' } = useParams()
   const back = useBackToHistory()
@@ -14,6 +18,17 @@ export default function WorkoutDetailPage() {
   const [confirming, setConfirming] = useState(false)
 
   const exists = all.some((w) => w.id === id)
+
+  // Leaving the editor with no sets left removes the workout: empty workouts are never kept.
+  useEffect(() => {
+    openEditorId = id
+    return () => {
+      if (openEditorId === id) openEditorId = null
+      setTimeout(() => {
+        if (openEditorId !== id) workouts.removeIfEmpty(id)
+      }, 0)
+    }
+  }, [id])
 
   function handleDelete() {
     workouts.remove(id)

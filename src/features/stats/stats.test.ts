@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { emptyData } from '../../storage/storage'
 import type { AppData } from '../../types'
-import { aggregateBy, estimate1RM, exerciseProgress } from './stats'
+import { cardioProgress, estimate1RM, exerciseProgress } from './stats'
 
 function sample(): AppData {
   const d = emptyData()
@@ -52,23 +52,37 @@ describe('exerciseProgress', () => {
   })
 })
 
-describe('aggregateBy', () => {
-  it('sums by muscle group, biggest volume first', () => {
-    const r = aggregateBy(sample(), 'muscleGroup')
-    expect(r.map((x) => x.key)).toEqual(['Brust', 'Beine'])
-    expect(r[0]).toMatchObject({ sets: 3, volume: 1325 })
-  })
-
-  it('labels empty categories and respects since', () => {
-    const r = aggregateBy(sample(), 'category', '2026-02-01T00:00:00')
-    expect(r.map((x) => x.key).sort()).toEqual(['Ohne Kategorie', 'Push'])
-    expect(r.find((x) => x.key === 'Push')).toMatchObject({ sets: 1, volume: 375 })
-  })
-
-  it('still counts hidden exercises', () => {
+describe('hidden exercises', () => {
+  it('still show their progress', () => {
     const d = sample()
     d.exercises = d.exercises.map((e) => ({ ...e, hidden: true }))
-    expect(aggregateBy(d, 'muscleGroup')).toEqual(aggregateBy(sample(), 'muscleGroup'))
     expect(exerciseProgress(d, 'bench')).toEqual(exerciseProgress(sample(), 'bench'))
+  })
+})
+
+describe('cardio stats', () => {
+  function withCardio(): AppData {
+    const d = sample()
+    d.exercises.push({ id: 'run', name: 'Laufband', muscleGroup: 'Cardio', category: 'Cardio', createdAt: '', source: 'custom' })
+    d.sets.push(
+      { id: 'c1', workoutId: 'w1', exerciseId: 'run', order: 9, weight: 0, reps: 0, durationMin: 20, distanceKm: 3.2 },
+      { id: 'c2', workoutId: 'w1', exerciseId: 'run', order: 10, weight: 0, reps: 0, durationMin: 5 },
+      { id: 'c3', workoutId: 'w2', exerciseId: 'run', order: 9, weight: 0, reps: 0, durationMin: 25, distanceKm: 4.1 },
+    )
+    return d
+  }
+
+  it('sums duration and distance per workout, oldest first', () => {
+    const points = cardioProgress(withCardio(), 'run')
+    expect(points.map((p) => [p.durationMin, p.distanceKm])).toEqual([
+      [25, 3.2],
+      [25, 4.1],
+    ])
+  })
+
+  it('keeps cardio out of strength metrics', () => {
+    expect(exerciseProgress(withCardio(), 'run')).toEqual([])
+    expect(exerciseProgress(withCardio(), 'bench')).toEqual(exerciseProgress(sample(), 'bench'))
+    expect(cardioProgress(sample(), 'bench')).toEqual([])
   })
 })

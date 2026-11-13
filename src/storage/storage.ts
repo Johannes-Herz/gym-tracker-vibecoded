@@ -3,7 +3,7 @@ import type { AppData, Exercise } from '../types'
 
 export const STORAGE_KEY = 'gymtracker:v1'
 export const BACKUP_KEY = 'gymtracker:backup'
-export const CURRENT_SCHEMA_VERSION = 2
+export const CURRENT_SCHEMA_VERSION = 3
 
 /** Fixed creation time for built-ins, so seeding is deterministic. */
 export const BUILTIN_CREATED_AT = '2026-01-01T00:00:00.000Z'
@@ -53,6 +53,13 @@ export function ensureBuiltins(
   return { ...data, exercises }
 }
 
+/** Removes workouts without any sets (a workout only exists once it has content). */
+export function pruneEmptyWorkouts(data: AppData): AppData {
+  const used = new Set(data.sets.map((s) => s?.workoutId))
+  const workouts = data.workouts.filter((w) => used.has(w?.id))
+  return workouts.length === data.workouts.length ? data : { ...data, workouts }
+}
+
 const normalize = (s: string) => s.trim().toLocaleLowerCase('de')
 
 /**
@@ -99,7 +106,8 @@ export function migrate(raw: unknown): AppData | null {
     bodyWeights: arr(obj.bodyWeights),
   }
   if (version < 2) data = migrateV1toV2(data)
-  return ensureBuiltins(data)
+  // v3: empty workouts are no longer allowed; pruned on every load as a safety net.
+  return ensureBuiltins(pruneEmptyWorkouts(data))
 }
 
 export function load(storage: Storage = localStorage): AppData {

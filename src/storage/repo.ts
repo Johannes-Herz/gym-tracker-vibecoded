@@ -2,6 +2,9 @@ import { newId } from '../lib/id'
 import type { Equipment, Exercise, MuscleGroup, Workout, WorkoutSet } from '../types'
 import { getState, update } from './store'
 
+/** Value fields of a set: weight × reps for strength, duration/distance for cardio. */
+export type SetValues = Pick<WorkoutSet, 'weight' | 'reps' | 'durationMin' | 'distanceKm'>
+
 export type ExerciseInput = {
   name: string
   muscleGroup: MuscleGroup
@@ -78,15 +81,17 @@ export const workouts = {
    * Creates a workout together with its first set in one update, so a new
    * workout is only ever saved once it has content.
    */
-  createWithFirstExercise(
-    startedAt: string,
-    exerciseId: string,
-    values: { weight: number; reps: number },
-  ): Workout {
+  createWithFirstExercise(startedAt: string, exerciseId: string, values: SetValues): Workout {
     const workout: Workout = { id: newId(), startedAt }
     const set: WorkoutSet = { id: newId(), workoutId: workout.id, exerciseId, order: 0, ...values }
     update((d) => ({ ...d, workouts: [...d.workouts, workout], sets: [...d.sets, set] }))
     return workout
+  },
+  /** Deletes the workout if it has no sets (called when leaving the editor). */
+  removeIfEmpty(id: string): void {
+    if (getState().sets.some((s) => s.workoutId === id)) return
+    if (!getState().workouts.some((w) => w.id === id)) return
+    update((d) => ({ ...d, workouts: d.workouts.filter((w) => w.id !== id) }))
   },
   /** Deletes the workout and all of its sets. */
   remove(id: string): void {
@@ -117,13 +122,13 @@ export const bodyWeights = {
 }
 
 export const sets = {
-  add(input: { workoutId: string; exerciseId: string; weight: number; reps: number }): WorkoutSet {
+  add(input: { workoutId: string; exerciseId: string } & SetValues): WorkoutSet {
     const order = getState().sets.filter((s) => s.workoutId === input.workoutId).length
     const set: WorkoutSet = { id: newId(), order, ...input }
     update((d) => ({ ...d, sets: [...d.sets, set] }))
     return set
   },
-  update(id: string, patch: Partial<Pick<WorkoutSet, 'weight' | 'reps'>>): void {
+  update(id: string, patch: Partial<SetValues>): void {
     update((d) => ({
       ...d,
       sets: d.sets.map((s) => (s.id === id ? { ...s, ...patch } : s)),

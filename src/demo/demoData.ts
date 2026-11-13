@@ -70,6 +70,7 @@ export function buildDemoData({ builtins, today = new Date(), seed = DEMO_SEED, 
   let pullDays = 0
   let saturday = false
   let weighDays = new Set<number>()
+  let cardioCount = 0
 
   for (let day = 0; day < DEMO_DAYS; day++) {
     const date = new Date(start)
@@ -108,6 +109,23 @@ export function buildDemoData({ builtins, today = new Date(), seed = DEMO_SEED, 
       for (const s of generateSets(rnd, ex, day / 7, badDay)) {
         sets.push({ id: newId(), workoutId: workout.id, exerciseId: ex.id, order: order++, ...s })
       }
+    }
+
+    // Cardio finisher: every Monday, plus Friday in every other week (1–2 per week).
+    if (weekday === 1 || (weekday === 5 && Math.floor(day / 7) % 2 === 0)) {
+      const treadmill = cardioCount++ % 2 === 0
+      const durationMin = rnd.int(20, 30)
+      const kmh = (treadmill ? 9 : 7.5) + (day / 7) * (treadmill ? 0.1 : 0.08) + (rnd.next() - 0.5) * 0.3
+      sets.push({
+        id: newId(),
+        workoutId: workout.id,
+        exerciseId: treadmill ? 'builtin-treadmill' : 'builtin-cross-trainer',
+        order: order++,
+        weight: 0,
+        reps: 0,
+        durationMin,
+        distanceKm: Math.round(((durationMin / 60) * kmh) * 10) / 10,
+      })
     }
   }
 

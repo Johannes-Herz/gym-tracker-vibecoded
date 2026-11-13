@@ -60,6 +60,7 @@ export default function ExercisesPage() {
           key={mode.kind === 'edit' ? mode.exercise.id : 'new'}
           initial={mode.kind === 'edit' ? mode.exercise : undefined}
           categories={categories}
+          lockKind={mode.kind === 'edit' && repo.isInUse(mode.exercise.id)}
           onSubmit={handleSubmit}
           onCancel={() => setMode({ kind: 'idle' })}
         />

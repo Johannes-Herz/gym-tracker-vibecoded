@@ -2,20 +2,28 @@ import { useState } from 'react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { formatNumber } from '../../lib/format'
 import { useStore } from '../../storage/store'
-import { exerciseProgress, type ExercisePoint } from './stats'
+import { isCardio } from '../../types'
+import { cardioProgress, exerciseProgress } from './stats'
 
-const METRICS = [
+const STRENGTH_METRICS = [
   { key: 'maxWeight', label: 'Max. Gewicht', unit: 'kg' },
   { key: 'est1RM', label: 'Geschätztes 1RM', unit: 'kg' },
   { key: 'volume', label: 'Volumen', unit: 'kg' },
 ] as const
+
+const CARDIO_METRICS = [
+  { key: 'durationMin', label: 'Dauer', unit: 'min' },
+  { key: 'distanceKm', label: 'Distanz', unit: 'km' },
+] as const
+
+type MetricKey = (typeof STRENGTH_METRICS)[number]['key'] | (typeof CARDIO_METRICS)[number]['key']
 
 const shortDate = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })
 
 export default function ExerciseProgressTab() {
   const data = useStore()
   const [selected, setSelected] = useState('')
-  const [metricKey, setMetricKey] = useState<(typeof METRICS)[number]['key']>('maxWeight')
+  const [metricKey, setMetricKey] = useState<MetricKey>('maxWeight')
 
   const used = new Set(data.sets.map((s) => s.exerciseId))
   const options = data.exercises
@@ -27,11 +35,15 @@ export default function ExerciseProgressTab() {
   }
 
   const exerciseId = options.some((e) => e.id === selected) ? selected : options[0].id
-  const metric = METRICS.find((m) => m.key === metricKey)!
-  const points = exerciseProgress(data, exerciseId)
-  const chartData = points.map((p: ExercisePoint) => ({
+  const cardio = isCardio(options.find((e) => e.id === exerciseId)!)
+  const metrics: readonly { key: MetricKey; label: string; unit: string }[] = cardio ? CARDIO_METRICS : STRENGTH_METRICS
+  const metric = metrics.find((m) => m.key === metricKey) ?? metrics[0]
+  const points: { startedAt: string; [key: string]: number | string }[] = cardio
+    ? cardioProgress(data, exerciseId).map((p) => ({ ...p }))
+    : exerciseProgress(data, exerciseId).map((p) => ({ ...p }))
+  const chartData = points.map((p) => ({
     label: shortDate.format(new Date(p.startedAt)),
-    value: p[metric.key],
+    value: p[metric.key] as number,
   }))
   const best = Math.max(...chartData.map((d) => d.value))
 
@@ -49,11 +61,11 @@ export default function ExerciseProgressTab() {
           </select>
         </label>
         <div className="segmented" role="group" aria-label="Kennzahl">
-          {METRICS.map((m) => (
+          {metrics.map((m) => (
             <button
               key={m.key}
               type="button"
-              className={m.key === metricKey ? 'btn active' : 'btn'}
+              className={m.key === metric.key ? 'btn active' : 'btn'}
               onClick={() => setMetricKey(m.key)}
             >
               {m.label}

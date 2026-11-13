@@ -46,6 +46,7 @@ describe('storage', () => {
   it('round-trips data', () => {
     const data = emptyData()
     data.workouts.push({ id: 'w1', startedAt: '2026-01-01T10:00:00.000Z' })
+    data.sets.push({ id: 's1', workoutId: 'w1', exerciseId: 'builtin-squat', order: 0, weight: 100, reps: 5 })
     save(data, storage)
     expect(load(storage)).toEqual(data)
   })
@@ -110,6 +111,23 @@ describe('migrate', () => {
     expect(data.sets.find((s) => s.id === 's1')!.exerciseId).toBe('builtin-bench-press')
     expect(data.sets.find((s) => s.id === 's2')!.exerciseId).toBe('builtin-lat-pulldown')
     expect(data.sets.find((s) => s.id === 's3')!.exerciseId).toBe('c3')
+  })
+
+  it('removes empty workouts and keeps everything else', () => {
+    const before = {
+      schemaVersion: 2,
+      exercises: [],
+      workouts: [
+        { id: 'empty', startedAt: '2026-11-01T10:00:00.000Z' },
+        { id: 'full', startedAt: '2026-11-02T10:00:00.000Z' },
+      ],
+      sets: [{ id: 's1', workoutId: 'full', exerciseId: 'builtin-squat', order: 0, weight: 100, reps: 5 }],
+      bodyWeights: [{ id: 'b1', date: '2026-11-01', weightKg: 80 }],
+    }
+    const data = migrate(before)!
+    expect(data.workouts.map((w) => w.id)).toEqual(['full'])
+    expect(data.sets).toEqual(before.sets)
+    expect(data.bodyWeights).toEqual(before.bodyWeights)
   })
 
   it('is idempotent', () => {

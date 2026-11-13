@@ -22,6 +22,6 @@ describe('built-in exercise catalog', () => {
     for (const g of MUSCLE_GROUPS) {
       expect(BUILTIN_EXERCISES.some((e) => e.muscleGroup === g)).toBe(true)
     }
-    expect(BUILTIN_EXERCISES).toHaveLength(56)
+    expect(BUILTIN_EXERCISES).toHaveLength(62)
   })
 })
