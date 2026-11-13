@@ -27,7 +27,7 @@
 - [x] Exercise list: search, muscle group + equipment filter, "Standard" badge, show hidden
 - [x] Exercise picker: search incl. alias, recently used on top, grouped by muscle group
 
-## Phase 5: Demo data — IN PROGRESS
-- [ ] Seeded, deterministic generator: ~10 weeks of push/pull/legs, 3–4 workouts per week, ending today
-- [ ] Built-in + custom exercises, progressive overload with fluctuations and bad days, body weight trend
-- [ ] "Demo-Daten laden" in Settings; confirm + replace if data exists (current data backed up), built-ins/hidden state kept
+## Phase 5: Demo data — DONE
+- [x] Seeded, deterministic generator: ~10 weeks of push/pull/legs, 3–4 workouts per week, ending today
+- [x] Built-in + custom exercises, progressive overload with fluctuations and bad days, body weight trend
+- [x] "Demo-Daten laden" in Settings; confirm + replace if data exists (current data backed up), built-ins/hidden state kept
