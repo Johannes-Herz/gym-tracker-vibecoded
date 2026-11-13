@@ -1,3 +1,4 @@
+import { realSets } from '../../lib/realSets'
 import type { SetValues } from '../../storage/repo'
 import { isCardio, type AppData, type Exercise, type WorkoutSet } from '../../types'
 
@@ -28,6 +29,7 @@ export function initialValues(data: AppData, workoutId: string, exercise: Exerci
 export function prefillFor(data: AppData, workoutId: string, exerciseId: string): SetValues | null {
   const byOrder = (a: { order: number }, b: { order: number }) => a.order - b.order
   const forExercise = data.sets.filter((s) => s.exerciseId === exerciseId)
+  const realForExercise = realSets(forExercise)
 
   const own = forExercise.filter((s) => s.workoutId === workoutId).sort(byOrder)
   if (own.length > 0) {
@@ -36,13 +38,13 @@ export function prefillFor(data: AppData, workoutId: string, exerciseId: string)
 
   const startedAt = new Map(data.workouts.map((w) => [w.id, w.startedAt]))
   let bestWorkout: string | null = null
-  for (const s of forExercise) {
+  for (const s of realForExercise) {
     const t = startedAt.get(s.workoutId)
     if (t === undefined) continue
     if (bestWorkout === null || t > (startedAt.get(bestWorkout) ?? '')) bestWorkout = s.workoutId
   }
   if (bestWorkout === null) return null
 
-  const prev = forExercise.filter((s) => s.workoutId === bestWorkout).sort(byOrder)
+  const prev = realForExercise.filter((s) => s.workoutId === bestWorkout).sort(byOrder)
   return valuesOf(prev[prev.length - 1])
 }

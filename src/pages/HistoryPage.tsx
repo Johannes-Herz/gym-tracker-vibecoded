@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { newWorkoutPath } from '../features/workout/newWorkout'
+import { realSets } from '../lib/realSets'
 import PageHeader from '../components/PageHeader'
 import WorkoutCalendar from '../features/history/WorkoutCalendar'
 import { formatDateTime } from '../lib/format'
+import { workouts as workoutsRepo } from '../storage/repo'
 import { loadHistoryView, saveHistoryView, type HistoryView } from '../storage/preferences'
 import { useStore } from '../storage/store'
 
@@ -17,6 +19,11 @@ const VIEWS: { key: HistoryView; label: string }[] = [
 export default function HistoryPage() {
   const [view, setView] = useState<HistoryView>(() => loadHistoryView())
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
+
+  // No editor is open here, so unconfirmed suggestions (and workouts left empty by that) can go.
+  useEffect(() => {
+    workoutsRepo.discardSuggestions()
+  }, [])
 
   function choose(next: HistoryView) {
     setView(next)
@@ -72,7 +79,7 @@ function WorkoutList() {
           <h2 className="group-title">{month}</h2>
           <ul className="list">
             {items.map((w) => {
-              const workoutSets = sets.filter((s) => s.workoutId === w.id)
+              const workoutSets = realSets(sets).filter((s) => s.workoutId === w.id)
               const names = [...new Set(workoutSets.map((s) => s.exerciseId))]
                 .map((id) => exercises.find((e) => e.id === id)?.name)
                 .filter(Boolean)

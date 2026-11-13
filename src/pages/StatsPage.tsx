@@ -1,3 +1,4 @@
+import { realSets } from '../lib/realSets'
 import { useState } from 'react'
 import PageHeader from '../components/PageHeader'
 import BodyWeightTab from '../features/stats/BodyWeightTab'
@@ -47,7 +48,7 @@ export default function StatsPage() {
 function TrainedExercises() {
   const data = useStore()
   const navigate = useNavigate()
-  const used = new Set(data.sets.map((s) => s.exerciseId))
+  const used = new Set(realSets(data.sets).map((s) => s.exerciseId))
   const trained = data.exercises.filter((e) => used.has(e.id))
 
   if (trained.length === 0) {

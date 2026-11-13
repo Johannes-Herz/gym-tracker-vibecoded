@@ -1,3 +1,4 @@
+import { isReal } from '../../lib/realSets'
 import type { RangeSelection } from '../../storage/preferences'
 import type { AppData, WorkoutSet } from '../../types'
 import { inRange } from './range'
@@ -22,7 +23,7 @@ export function sessionsFor(
       workoutId: w.id,
       startedAt: w.startedAt,
       sets: data.sets
-        .filter((s) => s.workoutId === w.id && s.exerciseId === exerciseId)
+        .filter((s) => s.workoutId === w.id && s.exerciseId === exerciseId && isReal(s))
         .sort((a, b) => a.order - b.order),
     }))
     .filter((s) => s.sets.length > 0)
