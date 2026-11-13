@@ -17,7 +17,12 @@ export interface RangeSelection {
 
 export const DEFAULT_RANGE: RangeSelection = { key: '1m' }
 
+export type Language = 'de' | 'en'
+export const LANGUAGES: readonly Language[] = ['de', 'en']
+export const DEFAULT_LANGUAGE: Language = 'de'
+
 interface Prefs {
+  language?: unknown
   historyView?: HistoryView
   statsRange?: unknown
   trendMetric?: unknown
@@ -78,6 +83,20 @@ export function saveTrendMetric(kind: string, metric: string, storage: Storage =
   try {
     const prefs = read(storage)
     storage.setItem(PREFS_KEY, JSON.stringify({ ...prefs, trendMetric: { ...trendMetrics(prefs), [kind]: metric } }))
+  } catch {
+    // Preferences are a convenience; ignore storage failures.
+  }
+}
+
+/** UI language of this device. German unless English was chosen explicitly. */
+export function loadLanguage(storage: Storage = localStorage): Language {
+  const stored = read(storage).language
+  return (LANGUAGES as readonly unknown[]).includes(stored) ? (stored as Language) : DEFAULT_LANGUAGE
+}
+
+export function saveLanguage(language: Language, storage: Storage = localStorage): void {
+  try {
+    storage.setItem(PREFS_KEY, JSON.stringify({ ...read(storage), language }))
   } catch {
     // Preferences are a convenience; ignore storage failures.
   }

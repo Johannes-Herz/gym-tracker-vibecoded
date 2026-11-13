@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PREFS_KEY, loadHistoryView, saveHistoryView } from './preferences'
+import { PREFS_KEY, loadHistoryView, loadLanguage, saveHistoryView, saveLanguage } from './preferences'
 
 function memoryStorage(): Storage {
   const map = new Map<string, string>()
@@ -48,5 +48,27 @@ describe('history view preference', () => {
   it('survives a storage that throws', () => {
     expect(loadHistoryView(throwing)).toBe('list')
     expect(() => saveHistoryView('calendar', throwing)).not.toThrow()
+  })
+})
+
+describe('language preference', () => {
+  it('defaults to German and ignores invalid values', () => {
+    const s = memoryStorage()
+    expect(loadLanguage(s)).toBe('de')
+    s.setItem(PREFS_KEY, JSON.stringify({ language: 'fr' }))
+    expect(loadLanguage(s)).toBe('de')
+  })
+
+  it('saves per device and keeps the other preferences', () => {
+    const s = memoryStorage()
+    saveHistoryView('calendar', s)
+    saveLanguage('en', s)
+    expect(loadLanguage(s)).toBe('en')
+    expect(loadHistoryView(s)).toBe('calendar')
+  })
+
+  it('survives blocked storage', () => {
+    expect(loadLanguage(throwing)).toBe('de')
+    expect(() => saveLanguage('en', throwing)).not.toThrow()
   })
 })
