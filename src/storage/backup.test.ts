@@ -96,7 +96,11 @@ describe('parseImport', () => {
 
   it('rejects invalid new exercise fields', () => {
     expect(mutate((b) => { (b.data.exercises[0] as { source: unknown }).source = 'x' }).ok).toBe(false)
-    expect(mutate((b) => { (b.data.exercises[0] as { equipment: unknown }).equipment = 'Hantel' }).ok).toBe(false)
+    expect(mutate((b) => { (b.data.exercises[0] as unknown as { equipment: unknown }).equipment = 'Hantel' }).ok).toBe(false)
+    expect(mutate((b) => { (b.data.exercises[0] as unknown as { equipment: unknown }).equipment = 'SZ-Stange' }).ok).toBe(true)
+    expect(mutate((b) => { (b.data.exercises[0] as unknown as { aliases: unknown }).aliases = ['a', 'b'] }).ok).toBe(true)
+    expect(mutate((b) => { (b.data.exercises[0] as unknown as { aliases: unknown }).aliases = 'a' }).ok).toBe(false)
+    expect(mutate((b) => { (b.data.exercises[0] as unknown as { aliases: unknown }).aliases = [1] }).ok).toBe(false)
   })
 
   it('accepts valid data', () => {

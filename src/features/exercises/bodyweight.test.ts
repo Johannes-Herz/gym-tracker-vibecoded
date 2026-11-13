@@ -6,10 +6,10 @@ describe('isBodyweight', () => {
   it('marks built-ins with equipment Körpergewicht, but not cardio', () => {
     const bw = BUILTIN_EXERCISES.filter(isBodyweight).map((e) => e.name)
     expect(bw).toEqual(
-      expect.arrayContaining(['Klimmzüge', 'Dips', 'Liegestütze', 'Rückenstrecker', 'Crunches', 'Ab Wheel']),
+      expect.arrayContaining(['Klimmzüge', 'Dips', 'Liegestütze', 'Rückenstrecker', 'Crunches', 'Ab-Wheel']),
     )
     expect(bw).not.toContain('Seilspringen')
-    expect(bw).not.toContain('Bankdrücken')
+    expect(bw).not.toContain('Langhantel-Bankdrücken')
   })
 
   it('works for custom exercises via equipment', () => {

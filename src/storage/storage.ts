@@ -3,7 +3,7 @@ import type { AppData, Exercise } from '../types'
 
 export const STORAGE_KEY = 'gymtracker:v1'
 export const BACKUP_KEY = 'gymtracker:backup'
-export const CURRENT_SCHEMA_VERSION = 4
+export const CURRENT_SCHEMA_VERSION = 5
 
 /** Fixed creation time for built-ins, so seeding is deterministic. */
 export const BUILTIN_CREATED_AT = '2026-01-01T00:00:00.000Z'
@@ -25,6 +25,7 @@ function fromCatalog(b: BuiltinExercise): Omit<Exercise, 'createdAt' | 'hidden'>
     id: b.id,
     name: b.name,
     aliasEn: b.aliasEn,
+    ...(b.aliases.length > 0 && { aliases: [...b.aliases] }),
     muscleGroup: b.muscleGroup,
     category: b.category,
     equipment: b.equipment,
@@ -73,6 +74,8 @@ function migrateV1toV2(data: AppData): AppData {
   for (const b of BUILTIN_EXERCISES) {
     builtinByName.set(normalize(b.name), b.id)
     builtinByName.set(normalize(b.aliasEn), b.id)
+    // Previous German names (e.g. "Bankdrücken") must still merge v1 exercises.
+    for (const a of b.aliases) builtinByName.set(normalize(a), b.id)
   }
   const repoint = new Map<string, string>()
   const exercises: Exercise[] = []
@@ -109,6 +112,9 @@ export function migrate(raw: unknown): AppData | null {
     templates: arr(obj.templates),
   }
   if (version < 2) data = migrateV1toV2(data)
+  // v5: SZ-Stange equipment, built-in `aliases`, renamed built-ins. All arrive via
+  // ensureBuiltins below (by stable id); custom exercises, hidden state and workout
+  // data are not touched. A custom exercise named like a new built-in is kept as is.
   // v3: empty workouts are no longer allowed; pruned on every load as a safety net.
   return ensureBuiltins(pruneEmptyWorkouts(data))
 }
