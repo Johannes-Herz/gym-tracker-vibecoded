@@ -92,6 +92,17 @@ describe('buildDemoData', () => {
     expect(avg(runs.slice(-3))).toBeGreaterThan(avg(runs.slice(0, 3)))
   })
 
+  it('includes bodyweight exercises with and without added weight, never assisted', () => {
+    const pullUps = data.sets.filter((s) => s.exerciseId === 'builtin-pull-up')
+    const dips = data.sets.filter((s) => s.exerciseId === 'builtin-dips')
+    expect(pullUps.length).toBeGreaterThan(0)
+    expect(pullUps.some((s) => s.weight === 0)).toBe(true)
+    expect(pullUps.some((s) => s.weight > 0)).toBe(true)
+    expect(dips.length).toBeGreaterThan(0)
+    expect(dips.every((s) => s.weight > 0)).toBe(true)
+    expect(data.sets.every((s) => s.weight >= 0)).toBe(true)
+  })
+
   it('keeps built-ins and their hidden state', () => {
     const builtins = emptyData().exercises.map((e) => (e.id === 'builtin-squat' ? { ...e, hidden: true } : e))
     const result = build({ builtins })

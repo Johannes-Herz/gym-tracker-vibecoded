@@ -1,3 +1,4 @@
+import { MIN_ASSISTED_KG, isBodyweight } from '../features/exercises/bodyweight'
 import { EQUIPMENT, MUSCLE_GROUPS, isCardio, type AppData } from '../types'
 import { BACKUP_KEY, CURRENT_SCHEMA_VERSION, emptyData, migrate } from './storage'
 import { getState, update } from './store'
@@ -98,7 +99,8 @@ export function parseImport(text: string): ImportResult {
       !isId(s.workoutId) ||
       !isId(s.exerciseId) ||
       !isNonNeg(s.order) ||
-      !isNonNeg(s.weight) ||
+      typeof s.weight !== 'number' ||
+      !Number.isFinite(s.weight) ||
       !isNonNeg(s.reps) ||
       (s.durationMin !== undefined && !(isNonNeg(s.durationMin) && s.durationMin > 0)) ||
       (s.distanceKm !== undefined && !isNonNeg(s.distanceKm))
@@ -129,9 +131,13 @@ export function parseImport(text: string): ImportResult {
   }
   for (const s of data.sets) {
     // Cardio entries need a duration; strength sets must not carry one.
-    if (isCardio(exerciseById.get(s.exerciseId)!) !== (s.durationMin !== undefined)) {
+    const exercise = exerciseById.get(s.exerciseId)!
+    if (isCardio(exercise) !== (s.durationMin !== undefined)) {
       return fail('Sätze passen nicht zum Übungstyp (Kraft/Cardio).')
     }
+    // Negative weight = assisted, only allowed for bodyweight exercises.
+    const minWeight = isBodyweight(exercise) ? MIN_ASSISTED_KG : 0
+    if (s.weight < minWeight) return fail('Sätze: ungültiges Gewicht.')
   }
 
   return { ok: true, data }

@@ -1,5 +1,6 @@
 import { initialValues } from './prefill'
 import SetRow from './SetRow'
+import { isBodyweight } from '../exercises/bodyweight'
 import { sets as setsRepo } from '../../storage/repo'
 import { getState } from '../../storage/store'
 import { isCardio, type Exercise, type WorkoutSet } from '../../types'
@@ -12,6 +13,7 @@ interface Props {
 
 export default function ExerciseBlock({ workoutId, exercise, sets }: Props) {
   const cardio = isCardio(exercise)
+  const bodyweight = isBodyweight(exercise)
 
   function addSet() {
     const values = initialValues(getState(), workoutId, exercise)
@@ -25,12 +27,12 @@ export default function ExerciseBlock({ workoutId, exercise, sets }: Props) {
       </h2>
       <div className={cardio ? 'muted small set-row cardio set-legend' : 'muted small set-row set-legend'} aria-hidden="true">
         <span />
-        <span>{cardio ? 'Dauer (min)' : 'Gewicht (kg)'}</span>
+        <span>{cardio ? 'Dauer (min)' : bodyweight ? 'Zusatz (kg)' : 'Gewicht (kg)'}</span>
         <span>{cardio ? 'Distanz (km)' : 'Wdh.'}</span>
         <span />
       </div>
       {sets.map((s, i) => (
-        <SetRow key={s.id} set={s} index={i} cardio={cardio} />
+        <SetRow key={s.id} set={s} index={i} cardio={cardio} bodyweight={bodyweight} />
       ))}
       <button type="button" className="btn add-set" onClick={addSet}>
         {cardio ? '+ Eintrag' : '+ Satz'}

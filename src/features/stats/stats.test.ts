@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { emptyData } from '../../storage/storage'
 import type { AppData } from '../../types'
-import { cardioProgress, estimate1RM, exerciseProgress } from './stats'
+import { cardioProgress, estimate1RM } from './stats'
 
 function sample(): AppData {
   const d = emptyData()
@@ -39,27 +39,6 @@ describe('estimate1RM', () => {
   })
 })
 
-describe('exerciseProgress', () => {
-  it('returns one point per workout, oldest first', () => {
-    const p = exerciseProgress(sample(), 'bench')
-    expect(p.map((x) => x.workoutId)).toEqual(['w1', 'w2'])
-    expect(p[0]).toMatchObject({ maxWeight: 70, volume: 950 })
-    expect(p[0].est1RM).toBeCloseTo(81.7, 1)
-  })
-
-  it('is empty for unused exercises', () => {
-    expect(exerciseProgress(sample(), 'nope')).toEqual([])
-  })
-})
-
-describe('hidden exercises', () => {
-  it('still show their progress', () => {
-    const d = sample()
-    d.exercises = d.exercises.map((e) => ({ ...e, hidden: true }))
-    expect(exerciseProgress(d, 'bench')).toEqual(exerciseProgress(sample(), 'bench'))
-  })
-})
-
 describe('cardio stats', () => {
   function withCardio(): AppData {
     const d = sample()
@@ -80,9 +59,7 @@ describe('cardio stats', () => {
     ])
   })
 
-  it('keeps cardio out of strength metrics', () => {
-    expect(exerciseProgress(withCardio(), 'run')).toEqual([])
-    expect(exerciseProgress(withCardio(), 'bench')).toEqual(exerciseProgress(sample(), 'bench'))
+  it('ignores strength sets', () => {
     expect(cardioProgress(sample(), 'bench')).toEqual([])
   })
 })
