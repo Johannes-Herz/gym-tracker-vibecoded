@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import { realSets } from '../lib/realSets'
 import { useState } from 'react'
 import PageHeader from '../components/PageHeader'
@@ -8,33 +9,33 @@ import { sessionState } from '../lib/tabMemory'
 import { useStore } from '../storage/store'
 
 const TABS = [
-  { key: 'exercise', label: 'Übung' },
-  { key: 'body', label: 'Körper' },
+  { key: 'exercise', label: 'stats.tabExercise' },
+  { key: 'body', label: 'stats.tabBody' },
 ] as const
 
 type TabKey = (typeof TABS)[number]['key']
 
 export default function StatsPage() {
   const [tab, setTabState] = useState<TabKey>(() => sessionState.statsTab)
-  const setTab = (t: TabKey) => {
-    setTabState(t)
-    sessionState.statsTab = t
+  const setTab = (next: TabKey) => {
+    setTabState(next)
+    sessionState.statsTab = next
   }
 
   return (
     <>
-      <PageHeader title="Statistik" />
+      <PageHeader title={t('nav.stats')} />
       <div className="segmented tabs" role="tablist">
-        {TABS.map((t) => (
+        {TABS.map((tabDef) => (
           <button
-            key={t.key}
+            key={tabDef.key}
             type="button"
             role="tab"
-            aria-selected={t.key === tab}
-            className={t.key === tab ? 'btn active' : 'btn'}
-            onClick={() => setTab(t.key)}
+            aria-selected={tabDef.key === tab}
+            className={tabDef.key === tab ? 'btn active' : 'btn'}
+            onClick={() => setTab(tabDef.key)}
           >
-            {t.label}
+            {t(tabDef.label)}
           </button>
         ))}
       </div>
@@ -52,7 +53,7 @@ function TrainedExercises() {
   const trained = data.exercises.filter((e) => used.has(e.id))
 
   if (trained.length === 0) {
-    return <p className="muted">Noch keine Daten. Trage zuerst ein Training ein.</p>
+    return <p className="muted">{t('stats.none')}</p>
   }
   return <ExerciseSearch exercises={trained} onPick={(e) => navigate(`/statistik/uebung/${e.id}`)} />
 }

@@ -1,3 +1,4 @@
+import { t } from '../../i18n'
 import type { RangeSelection } from '../../storage/preferences'
 import { RANGE_CHIPS } from './range'
 
@@ -9,7 +10,7 @@ interface Props {
 export default function RangeFilter({ value, onChange }: Props) {
   return (
     <div className="range-filter">
-      <div className="chips" role="group" aria-label="Zeitraum">
+      <div className="chips" role="group" aria-label={t('range.group')}>
         {RANGE_CHIPS.map((c) => (
           <button
             key={c.key}
@@ -18,14 +19,14 @@ export default function RangeFilter({ value, onChange }: Props) {
             aria-pressed={value.key === c.key}
             onClick={() => onChange(c.key === 'custom' ? { ...value, key: 'custom' } : { key: c.key })}
           >
-            {c.label}
+            {t(c.label)}
           </button>
         ))}
       </div>
       {value.key === 'custom' && (
         <div className="form range-dates">
           <label>
-            Von
+            {t('range.from')}
             <input
               type="date"
               value={value.from ?? ''}
@@ -33,7 +34,7 @@ export default function RangeFilter({ value, onChange }: Props) {
             />
           </label>
           <label>
-            Bis
+            {t('range.to')}
             <input
               type="date"
               value={value.to ?? ''}

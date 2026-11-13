@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { exerciseName } from '../features/exercises/exerciseName'
+import { t } from '../i18n'
 import { formatSet, isBodyweight } from '../features/exercises/bodyweight'
 import { bestSet, dayMonth, sessionsFor, type Session } from '../features/stats/exerciseStats'
 import LastComparison from '../features/stats/LastComparison'
@@ -28,12 +30,12 @@ export default function ExerciseStatsPage() {
 
   const header = (
     <header className="page-header stats-header">
-      <button type="button" className="btn back-link" aria-label="Zurück" onClick={goUp}>
+      <button type="button" className="btn back-link" aria-label={t('stats.back')} onClick={goUp}>
         ‹
       </button>
       <div className="stats-title">
-        <h1>{exercise?.name ?? 'Übung'}</h1>
-        {exercise && isBodyweight(exercise) && <div className="muted small">Körpergewicht-Übung</div>}
+        <h1>{exercise ? exerciseName(exercise) : t('stats.exerciseFallback')}</h1>
+        {exercise && isBodyweight(exercise) && <div className="muted small">{t('stats.bodyweightExercise')}</div>}
       </div>
     </header>
   )
@@ -42,7 +44,7 @@ export default function ExerciseStatsPage() {
     return (
       <>
         {header}
-        <p className="muted">Übung nicht gefunden.</p>
+        <p className="muted">{t('stats.exerciseNotFound')}</p>
       </>
     )
   }
@@ -59,18 +61,18 @@ export default function ExerciseStatsPage() {
       <RangeFilter value={range} onChange={changeRange} />
 
       {sessions.length === 0 ? (
-        <p className="muted">Keine Trainings in diesem Zeitraum.</p>
+        <p className="muted">{t('stats.noSessions')}</p>
       ) : (
         <>
           <div className="kpis">
-            <Kpi label="Trainings" value={String(sessions.length)} />
+            <Kpi label={t('stats.kpiWorkouts')} value={String(sessions.length)} />
             {cardio ? (
-              <Kpi label="Längste Einheit" value={`${formatNumber(longestMinutes(sessions))} min`} />
+              <Kpi label={t('stats.kpiLongest')} value={`${formatNumber(longestMinutes(sessions))} min`} />
             ) : (
-              <Kpi label="Bester Satz" value={best(sessions, bodyweight)} />
+              <Kpi label={t('stats.kpiBest')} value={best(sessions, bodyweight)} />
             )}
             <Kpi
-              label="Zeitraum"
+              label={t('stats.kpiPeriod')}
               value={first === last ? dayMonth(first.startedAt) : `${dayMonth(first.startedAt)} – ${dayMonth(last.startedAt)}`}
             />
           </div>

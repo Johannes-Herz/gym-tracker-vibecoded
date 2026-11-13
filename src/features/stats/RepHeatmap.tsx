@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react'
+import { t } from '../../i18n'
 import { usePrefersDark } from '../../lib/usePrefersDark'
 import { formatLoad, formatLoadLong } from '../exercises/bodyweight'
 import { axisLabels, cellKey, dayMonth, heatmapData, type Session } from './exerciseStats'
@@ -34,7 +35,7 @@ export default function RepHeatmap({ sessions, bodyweight }: Props) {
 
   return (
     <section className="card">
-      <h2 className="block-title">Wiederholungen je Gewicht</h2>
+      <h2 className="block-title">{t('heat.title')}</h2>
       <div className="heatmap-scroll" ref={scroller}>
         <table className="heatmap">
           <tbody>
@@ -55,7 +56,7 @@ export default function RepHeatmap({ sessions, bodyweight }: Props) {
                         type="button"
                         className={isSelected ? 'heat-cell selected' : 'heat-cell'}
                         style={{ background: color.bg, color: color.fg }}
-                        aria-label={`${dayMonth(s.startedAt)} ${formatLoad(w, bodyweight)}: ${cell.reps.join(', ')} Wiederholungen`}
+                        aria-label={t('heat.cellLabel', { date: dayMonth(s.startedAt), load: formatLoad(w, bodyweight), reps: cell.reps.join(', ') })}
                         aria-pressed={isSelected}
                         onClick={() => setSelected(isSelected ? null : { weight: w, workoutId: s.workoutId })}
                       >
@@ -91,17 +92,17 @@ export default function RepHeatmap({ sessions, bodyweight }: Props) {
           {selectedCell.reps.join(' · ')}
         </p>
       ) : (
-        <p className="heat-detail muted small">Tippe auf ein Feld für die Sätze.</p>
+        <p className="heat-detail muted small">{t('heat.hint')}</p>
       )}
 
-      <div className="heat-legend muted small" aria-label="Legende: helle Felder wenige, dunkle Felder viele Wiederholungen">
-        <span>Wdh.</span>
+      <div className="heat-legend muted small" aria-label={t('heat.legendLabel')}>
+        <span>{t('block.reps')}</span>
         <div className="heat-scale">
           <div className="heat-bar" style={{ background: heatGradientCss(dark) }} />
           <div className="heat-ticks">
-            {LEGEND_TICKS.map((t) => (
-              <span key={t.label} style={{ left: `${t.at}%` }}>
-                {t.label}
+            {LEGEND_TICKS.map((tick) => (
+              <span key={tick.label} style={{ left: `${tick.at}%` }}>
+                {tick.label}
               </span>
             ))}
           </div>

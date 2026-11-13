@@ -10,7 +10,7 @@ interface Props {
 
 const tick = { fill: 'var(--muted)', fontSize: 11 }
 
-/** Compact single-line trend chart; unit on the y-axis and in the tooltip, German number format. */
+/** Compact single-line trend chart; unit on the y-axis and in the tooltip, number format of the UI language. */
 export default function TrendChart({ points, label, unit }: Props) {
   const data = points.map((p) => ({ label: dayMonth(p.startedAt), value: p.value }))
   return (

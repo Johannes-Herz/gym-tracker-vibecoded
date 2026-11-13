@@ -40,12 +40,18 @@ export function formatDate(d: Date): string {
   }).format(d)
 }
 
-/** "12.11." / "Nov 12" (chart axes) */
+/** "9.11." / "Nov 9" (chart axes) */
 export function formatDayMonth(d: Date): string {
   return dateFormat('dayMonth', {
-    de: { day: '2-digit', month: '2-digit' },
+    de: { day: 'numeric', month: 'numeric' },
     en: { day: 'numeric', month: 'short' },
   }).format(d)
+}
+
+/** "Okt" / "Oct" (calendar-style month axis labels) */
+export function formatMonthShort(d: Date): string {
+  const o: Intl.DateTimeFormatOptions = { month: 'short' }
+  return dateFormat('monthShort', { de: o, en: o }).format(d).replace(/\.$/, '')
 }
 
 /** "Mi, 12.11." / "Wed, Nov 12" */

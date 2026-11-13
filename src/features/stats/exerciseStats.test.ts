@@ -203,7 +203,7 @@ describe('chartSeries', () => {
     const units = (['e1rm', 'maxWeight', 'volume', 'maxReps', 'totalReps', 'maxAdded', 'duration', 'distance', 'pace'] as const).map(
       (m) => chartSeries(s, m).unit,
     )
-    expect(units).toEqual(['kg', 'kg', 'kg', 'Wdh.', 'Wdh.', 'kg', 'min', 'km', 'km/h'])
+    expect(units).toEqual(['kg', 'kg', 'kg', 'reps', 'reps', 'kg', 'min', 'km', 'km/h'])
   })
 
   it('shows Volumen in t once the largest value reaches 10 000 kg', () => {
