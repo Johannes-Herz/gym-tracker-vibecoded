@@ -135,3 +135,9 @@
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 button, a, input, select { touch-action: manipulation; }
 html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+
+.segmented { display: flex; gap: 4px; margin-bottom: 12px; }
+.segmented .btn { flex: 1; padding: 0 6px; font-size: 0.85rem; }
+.segmented .btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.tabs { margin-bottom: 16px; }
+.chart { height: 240px; margin-top: 8px; }
