@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { loadTrendMetric, saveTrendMetric } from '../../storage/preferences'
-import { TREND_METRICS, trendSeries, type ExerciseKind, type Session, type TrendMetric } from './exerciseStats'
+import { TREND_METRICS, chartSeries, type ExerciseKind, type Session, type TrendMetric } from './exerciseStats'
 import TrendChart from './TrendChart'
 
 /** Trend chart with a metric switch; the choice is remembered per device and exercise kind. */
@@ -10,7 +10,7 @@ export default function TrendSection({ sessions, kind }: { sessions: Session[]; 
     loadTrendMetric(kind, metrics.map((m) => m.key)),
   )
   const metric = metrics.find((m) => m.key === chosen) ?? metrics[0]
-  const points = trendSeries(sessions, metric.key)
+  const { points, unit } = chartSeries(sessions, metric.key)
 
   function choose(key: TrendMetric) {
     setChosen(key)
@@ -36,7 +36,7 @@ export default function TrendSection({ sessions, kind }: { sessions: Session[]; 
       {points.length === 0 ? (
         <p className="muted">Keine Werte in diesem Zeitraum.</p>
       ) : (
-        <TrendChart points={points} label={metric.label} unit={metric.unit} />
+        <TrendChart points={points} label={metric.label} unit={unit} />
       )}
     </section>
   )

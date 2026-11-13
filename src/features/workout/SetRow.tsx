@@ -1,4 +1,5 @@
 import NumberStepper from '../../components/NumberStepper'
+import { BW_LABEL } from '../exercises/bodyweight'
 import { sets } from '../../storage/repo'
 import type { WorkoutSet } from '../../types'
 
@@ -36,12 +37,12 @@ export default function SetRow({ set, index, cardio, bodyweight }: Props) {
       ) : (
         <>
           {bodyweight ? (
-            // Added weight; empty/0 = bodyweight only ("KG"), negative = assisted.
+            // Added weight; empty/0 = bodyweight only ("BW"), negative = assisted.
             <NumberStepper
               label="Zusatzgewicht"
               step={1.25}
               min={-100}
-              placeholder="KG"
+              placeholder={BW_LABEL}
               value={set.weight === 0 ? undefined : set.weight}
               onChange={(weight) => sets.update(set.id, { weight })}
               onClear={() => sets.update(set.id, { weight: 0 })}

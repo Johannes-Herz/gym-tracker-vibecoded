@@ -3,6 +3,7 @@ import PageHeader from '../components/PageHeader'
 import BodyWeightTab from '../features/stats/BodyWeightTab'
 import { useNavigate } from 'react-router-dom'
 import ExerciseSearch from '../features/exercises/ExerciseSearch'
+import { sessionState } from '../lib/tabMemory'
 import { useStore } from '../storage/store'
 
 const TABS = [
@@ -13,7 +14,11 @@ const TABS = [
 type TabKey = (typeof TABS)[number]['key']
 
 export default function StatsPage() {
-  const [tab, setTab] = useState<TabKey>('exercise')
+  const [tab, setTabState] = useState<TabKey>(() => sessionState.statsTab)
+  const setTab = (t: TabKey) => {
+    setTabState(t)
+    sessionState.statsTab = t
+  }
 
   return (
     <>

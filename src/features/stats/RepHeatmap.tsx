@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { usePrefersDark } from '../../lib/usePrefersDark'
-import { formatLoad } from '../exercises/bodyweight'
+import { formatLoad, formatLoadLong } from '../exercises/bodyweight'
 import { axisLabels, cellKey, dayMonth, heatmapData, type Session } from './exerciseStats'
 import { heatColor, heatGradientCss } from './heatColor'
 
@@ -86,7 +86,8 @@ export default function RepHeatmap({ sessions, bodyweight }: Props) {
 
       {selectedCell && selectedSession && selected ? (
         <p className="heat-detail">
-          {dayMonth(selectedSession.startedAt)} · {formatLoad(selected.weight, bodyweight)}:{' '}
+          {dayMonth(selectedSession.startedAt)} ·{' '}
+          {bodyweight ? formatLoadLong(selected.weight) : formatLoad(selected.weight, false)}:{' '}
           {selectedCell.reps.join(' · ')}
         </p>
       ) : (
