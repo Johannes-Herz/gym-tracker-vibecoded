@@ -5,7 +5,6 @@ import ExercisesPage from './pages/ExercisesPage'
 import HistoryPage from './pages/HistoryPage'
 import NewWorkoutPage from './pages/NewWorkoutPage'
 import SettingsPage from './pages/SettingsPage'
-import TrainingPage from './pages/TrainingPage'
 import WorkoutDetailPage from './pages/WorkoutDetailPage'
 
 // Loaded on demand: pulls in the chart library.
@@ -17,7 +16,7 @@ export default function App() {
       <main className="page">
         <Suspense fallback={<p className="muted">Lädt…</p>}>
         <Routes>
-          <Route path="/" element={<TrainingPage />} />
+          <Route path="/" element={<Navigate to="/verlauf" replace />} />
           <Route path="/verlauf" element={<HistoryPage />} />
           <Route path="/verlauf/neu" element={<NewWorkoutPage />} />
           <Route path="/verlauf/:id" element={<WorkoutDetailPage />} />
