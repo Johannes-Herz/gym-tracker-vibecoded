@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import BackToHistory from '../components/BackToHistory'
 import PageHeader from '../components/PageHeader'
-import ExercisePicker from '../features/workout/ExercisePicker'
+import ExerciseSearchSheet from '../features/exercises/ExerciseSearchSheet'
 import { defaultStartFor } from '../features/workout/newWorkout'
 import { initialValues } from '../features/workout/prefill'
 import { recentExerciseIds } from '../features/workout/recent'
@@ -46,7 +46,7 @@ export default function NewWorkoutPage() {
       </button>
       <p className="muted small">Das Training wird gespeichert, sobald du die erste Übung hinzufügst.</p>
       {picking && (
-        <ExercisePicker
+        <ExerciseSearchSheet
           exercises={data.exercises}
           recentIds={recentExerciseIds(data)}
           onPick={addFirstExercise}

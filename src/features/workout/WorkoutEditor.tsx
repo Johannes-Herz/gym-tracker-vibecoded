@@ -4,7 +4,7 @@ import { sets as setsRepo, workouts } from '../../storage/repo'
 import { getState, useStore } from '../../storage/store'
 import type { Exercise, WorkoutSet } from '../../types'
 import ExerciseBlock from './ExerciseBlock'
-import ExercisePicker from './ExercisePicker'
+import ExerciseSearchSheet from '../exercises/ExerciseSearchSheet'
 import { initialValues } from './prefill'
 import { recentExerciseIds } from './recent'
 
@@ -64,7 +64,7 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
       </div>
 
       {picking && (
-        <ExercisePicker
+        <ExerciseSearchSheet
           exercises={data.exercises}
           recentIds={recentExerciseIds(data)}
           onPick={addExercise}
