@@ -16,7 +16,7 @@ export function isCardio(e: { muscleGroup: string }): boolean {
   return e.muscleGroup === 'Cardio'
 }
 
-export const EQUIPMENT = ['Langhantel', 'Kurzhantel', 'Maschine', 'Kabelzug', 'Körpergewicht'] as const
+export const EQUIPMENT = ['Langhantel', 'Kurzhantel', 'Maschine', 'Kabelzug', 'SZ-Stange', 'Körpergewicht'] as const
 
 export type Equipment = (typeof EQUIPMENT)[number]
 
@@ -30,6 +30,7 @@ export interface Exercise {
   createdAt: string // ISO
   source: ExerciseSource
   aliasEn?: string // built-ins only
+  aliases?: string[] // built-ins only: extra search terms (German variants, old names)
   equipment?: Equipment
   hidden?: boolean // only ever true for built-ins
 }

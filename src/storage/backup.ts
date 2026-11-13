@@ -85,6 +85,8 @@ export function parseImport(text: string): ImportResult {
       !isIso(e.createdAt) ||
       (e.source !== 'builtin' && e.source !== 'custom') ||
       (e.aliasEn !== undefined && typeof e.aliasEn !== 'string') ||
+      (e.aliases !== undefined &&
+        (!Array.isArray(e.aliases) || !e.aliases.every((a: unknown) => typeof a === 'string'))) ||
       (e.equipment !== undefined && !(EQUIPMENT as readonly unknown[]).includes(e.equipment)) ||
       (e.hidden !== undefined && typeof e.hidden !== 'boolean')
     ) {
