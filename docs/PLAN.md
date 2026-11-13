@@ -32,6 +32,6 @@
 - [x] Built-in + custom exercises, progressive overload with fluctuations and bad days, body weight trend
 - [x] "Demo-Daten laden" in Settings; confirm + replace if data exists (current data backed up), built-ins/hidden state kept
 
-## Phase 6: Calendar in Verlauf — IN PROGRESS
-- [ ] Move the calendar from Statistik into Verlauf; remove the Statistik calendar tab
-- [ ] Verlauf toggle "Liste" / "Kalender", last view remembered per device (via `src/storage/`)
+## Phase 6: Calendar in Verlauf — DONE
+- [x] Move the calendar from Statistik into Verlauf; remove the Statistik calendar tab
+- [x] Verlauf toggle "Liste" / "Kalender", last view remembered per device (via `src/storage/`)
