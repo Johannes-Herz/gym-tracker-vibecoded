@@ -94,3 +94,33 @@
 .dialog h2 { margin: 0 0 8px; font-size: 1.1rem; }
 .dialog-body { margin-bottom: 16px; color: var(--muted); }
 .dialog-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+.wide { width: 100%; margin-bottom: 16px; }
+.block-title { margin: 0 0 8px; font-size: 1.05rem; }
+.set-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.set-index { width: 1.2rem; text-align: center; }
+.stepper { display: flex; align-items: center; gap: 4px; }
+.stepper .btn { min-width: 40px; padding: 0; }
+.stepper input {
+  width: 3.4rem;
+  min-height: 44px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1rem;
+}
+.add-set { width: 100%; }
+.note { margin-top: 16px; }
+.form textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1rem;
+}
+.picker { max-height: 80vh; display: flex; flex-direction: column; }
+.picker-list { overflow-y: auto; margin: 8px 0 12px; }
+.picker-item { width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left; }
