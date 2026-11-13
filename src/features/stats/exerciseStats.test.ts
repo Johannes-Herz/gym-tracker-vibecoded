@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { emptyData } from '../../storage/storage'
+import { formatLoad } from '../exercises/bodyweight'
 import type { AppData } from '../../types'
 import {
   axisLabels,
   bestSet,
   cellKey,
-  compareLast,
+  compareWithPrevious,
   heatmapData,
-  repLevel,
   sessionsFor,
-  trend,
+  trendSeries,
   type Session,
 } from './exerciseStats'
 
@@ -54,8 +54,16 @@ describe('heatmapData', () => {
     expect(cells.has(cellKey(80, 'w1'))).toBe(false)
   })
 
-  it('maps reps to color levels', () => {
-    expect([3, 5, 6, 7, 8, 12].map(repLevel)).toEqual([0, 0, 1, 2, 3, 3])
+  it('puts bodyweight, added and assisted sets in one table, heaviest first', () => {
+    const s: Session[] = [{
+      workoutId: 'a',
+      startedAt: at(10, 1),
+      sets: [0, 5, -20, 5].map((weight, i) => ({ id: `${i}`, workoutId: 'a', exerciseId: 'builtin-pull-up', order: i, weight, reps: 6 + i })),
+    }]
+    const { weights, cells } = heatmapData(s)
+    expect(weights).toEqual([5, 0, -20])
+    expect(weights.map((w) => formatLoad(w, true))).toEqual(['+5', 'KG', '−20'])
+    expect(cells.get(cellKey(5, 'a'))).toEqual({ best: 9, reps: [7, 9] })
   })
 })
 
@@ -91,28 +99,87 @@ describe('bestSet', () => {
   })
 })
 
-describe('compareLast', () => {
-  it('compares the last two sessions set by set', () => {
-    const r = compareLast(sessionsFor(data(), 'builtin-bench-press', { key: 'all' }, now))!
-    expect(r.prev.workoutId).toBe('w2')
-    expect(r.last.workoutId).toBe('w3')
-    expect(r.rows.map((x) => x.improved)).toEqual([true, true, false]) // more weight, more reps at same weight, missing set
+describe('compareWithPrevious', () => {
+  const all = () => sessionsFor(data(), 'builtin-bench-press', { key: 'all' }, now)
+  const deltas = (r: ReturnType<typeof compareWithPrevious>) => r!.rows.map((x) => [x.weightDelta, x.repsDelta])
+
+  it('compares weight and reps per set with the previous session', () => {
+    // w2: 75×6, 75×7, 75×5  →  w3: 80×5, 75×8
+    const r = compareWithPrevious(all(), all())!
+    expect([r.last.workoutId, r.prev?.workoutId]).toEqual(['w3', 'w2'])
+    expect(deltas(r)).toEqual([
+      ['up', 'down'],
+      ['same', 'up'],
+    ])
   })
 
-  it('does not flag a decline or a single session', () => {
-    const s = sessionsFor(data(), 'builtin-bench-press', { key: 'all' }, now).slice(0, 2) // w1 → w2
-    const r = compareLast(s)!
-    expect(r.rows.map((x) => x.improved)).toEqual([true, true, false]) // 70→75 more weight, 75×6→75×7 more reps
-    const decline = compareLast([s[1], s[0]])!
-    expect(decline.rows.every((x) => !x.improved)).toBe(true)
-    expect(compareLast(s.slice(0, 1))).toBeNull()
+  it('detects lighter weight, equal values and sets without counterpart', () => {
+    // w1: 70×8, 75×6  →  w2: 75×6, 75×7, 75×5
+    const s = all()
+    expect(deltas(compareWithPrevious(s, s.slice(0, 2)))).toEqual([
+      ['up', 'down'],
+      ['same', 'up'],
+      ['new', 'new'],
+    ])
+    // reversed order: w2 → w1 means lighter first set
+    const reversed = [s[1], s[0]]
+    expect(deltas(compareWithPrevious(reversed, reversed))[0]).toEqual(['down', 'up'])
+  })
+
+  it('uses the previous session even if it is outside the range', () => {
+    const inRange = sessionsFor(data(), 'builtin-bench-press', { key: 'custom', from: '2026-11-10' }, now)
+    expect(inRange.map((x) => x.workoutId)).toEqual(['w3'])
+    expect(compareWithPrevious(all(), inRange)!.prev?.workoutId).toBe('w2')
+  })
+
+  it('compares added weight for bodyweight and handles a first session', () => {
+    const mk = (id: string, day: number, weights: number[]): Session => ({
+      workoutId: id,
+      startedAt: at(10, day),
+      sets: weights.map((weight, i) => ({ id: id + i, workoutId: id, exerciseId: 'p', order: i, weight, reps: 6 })),
+    })
+    const sessions = [mk('a', 1, [5, 0]), mk('b', 2, [10, 0, -20])]
+    expect(compareWithPrevious(sessions, sessions)!.rows.map((x) => x.weightDelta)).toEqual(['up', 'same', 'new'])
+    const first = compareWithPrevious(sessions.slice(0, 1), sessions.slice(0, 1))!
+    expect(first.prev).toBeNull()
+    expect(first.rows.every((x) => x.weightDelta === 'new' && x.repsDelta === 'new')).toBe(true)
+    expect(compareWithPrevious(sessions, [])).toBeNull()
   })
 })
 
-describe('trend', () => {
-  it('is total reps per session for bodyweight and best e1RM for strength', () => {
-    const s = sessionsFor(data(), 'builtin-bench-press', { key: 'all' }, now)
-    expect(trend(s, true).map((p) => p.value)).toEqual([14, 18, 13])
-    expect(trend(s, false)[0].value).toBe(90) // 75×6 beats 70×8 (88.7)
+describe('trendSeries', () => {
+  const strength = () => sessionsFor(data(), 'builtin-bench-press', { key: 'all' }, now)
+  const values = (sessions: Session[], m: Parameters<typeof trendSeries>[1]) => trendSeries(sessions, m).map((p) => p.value)
+
+  it('computes 1RM, max weight and volume per session for strength', () => {
+    expect(values(strength(), 'e1rm')).toEqual([90, 92.5, 95]) // 75×6, 75×7, 75×8
+    expect(values(strength(), 'maxWeight')).toEqual([75, 75, 80])
+    expect(values(strength(), 'volume')).toEqual([1010, 1350, 1000])
+  })
+
+  it('computes max reps, total reps and max added weight for bodyweight (incl. assisted)', () => {
+    const mk = (id: string, sets: [number, number][]): Session => ({
+      workoutId: id,
+      startedAt: at(10, 1),
+      sets: sets.map(([weight, reps], i) => ({ id: id + i, workoutId: id, exerciseId: 'p', order: i, weight, reps })),
+    })
+    const s = [mk('a', [[0, 10], [0, 8]]), mk('b', [[5, 6], [0, 9]]), mk('c', [[-20, 7]])]
+    expect(values(s, 'maxReps')).toEqual([10, 9, 7])
+    expect(values(s, 'totalReps')).toEqual([18, 15, 7])
+    expect(values(s, 'maxAdded')).toEqual([0, 5, -20])
+  })
+
+  it('computes duration, distance and pace for cardio, skipping sessions without distance', () => {
+    const mk = (id: string, entries: [number, number | undefined][]): Session => ({
+      workoutId: id,
+      startedAt: at(10, 1),
+      sets: entries.map(([durationMin, distanceKm], i) => ({
+        id: id + i, workoutId: id, exerciseId: 'builtin-treadmill', order: i, weight: 0, reps: 0, durationMin, distanceKm,
+      })),
+    })
+    const s = [mk('a', [[20, 3], [10, 1.5]]), mk('b', [[15, undefined]])]
+    expect(values(s, 'duration')).toEqual([30, 15])
+    expect(values(s, 'distance')).toEqual([4.5])
+    expect(values(s, 'pace')).toEqual([9])
   })
 })

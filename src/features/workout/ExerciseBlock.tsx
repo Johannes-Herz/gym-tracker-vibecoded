@@ -21,7 +21,7 @@ export default function ExerciseBlock({ workoutId, exercise, sets }: Props) {
   }
 
   return (
-    <section className="card">
+    <section className="card exercise-block">
       <h2 className="block-title">
         {exercise.name} <span className="muted small">{exercise.muscleGroup}</span>
       </h2>

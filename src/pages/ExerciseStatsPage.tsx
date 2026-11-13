@@ -1,17 +1,15 @@
 import { useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { formatSet, isBodyweight } from '../features/exercises/bodyweight'
-import { bestSet, dayMonth, sessionsFor, trend, type Session } from '../features/stats/exerciseStats'
+import { bestSet, dayMonth, sessionsFor, type Session } from '../features/stats/exerciseStats'
 import LastComparison from '../features/stats/LastComparison'
 import RangeFilter from '../features/stats/RangeFilter'
-import { inRange } from '../features/stats/range'
 import RepHeatmap from '../features/stats/RepHeatmap'
-import { cardioProgress } from '../features/stats/stats'
-import TrendChart from '../features/stats/TrendChart'
+import TrendSection from '../features/stats/TrendSection'
 import { formatNumber } from '../lib/format'
 import { loadStatsRange, saveStatsRange, type RangeSelection } from '../storage/preferences'
 import { useStore } from '../storage/store'
-import { isCardio, type AppData } from '../types'
+import { isCardio } from '../types'
 
 export default function ExerciseStatsPage() {
   const { id = '' } = useParams()
@@ -78,22 +76,17 @@ export default function ExerciseStatsPage() {
             />
           </div>
 
-          {cardio ? (
-            <CardioTrend data={data} exerciseId={id} range={range} />
-          ) : (
+          {!cardio && (
             <>
               <RepHeatmap sessions={sessions} bodyweight={bodyweight} />
-              <LastComparison sessions={sessions} bodyweight={bodyweight} />
-              <section className="card">
-                <h2 className="block-title">{bodyweight ? 'Wiederholungen gesamt' : 'Geschätztes 1RM'}</h2>
-                <TrendChart
-                  points={trend(sessions, bodyweight)}
-                  label={bodyweight ? 'Wiederholungen' : '1RM'}
-                  unit={bodyweight ? 'Wdh.' : 'kg'}
-                />
-              </section>
+              <LastComparison
+                allSessions={sessionsFor(data, id, { key: 'all' })}
+                rangeSessions={sessions}
+                bodyweight={bodyweight}
+              />
             </>
           )}
+          <TrendSection sessions={sessions} kind={cardio ? 'cardio' : bodyweight ? 'bodyweight' : 'strength'} />
         </>
       )}
     </>
@@ -116,38 +109,4 @@ function best(sessions: Session[], bodyweight: boolean): string {
 
 function longestMinutes(sessions: Session[]): number {
   return Math.max(...sessions.flatMap((s) => s.sets.map((x) => x.durationMin ?? 0)))
-}
-
-function CardioTrend({ data, exerciseId, range }: { data: AppData; exerciseId: string; range: RangeSelection }) {
-  const [metric, setMetric] = useState<'durationMin' | 'distanceKm'>('durationMin')
-  const points = cardioProgress(data, exerciseId)
-    .filter((p) => inRange(p.startedAt, range))
-    .map((p) => ({ startedAt: p.startedAt, value: p[metric] }))
-
-  return (
-    <section className="card">
-      <div className="segmented" role="group" aria-label="Kennzahl">
-        {(
-          [
-            ['durationMin', 'Dauer'],
-            ['distanceKm', 'Distanz'],
-          ] as const
-        ).map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            className={metric === key ? 'btn active' : 'btn'}
-            onClick={() => setMetric(key)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-      <TrendChart
-        points={points}
-        label={metric === 'durationMin' ? 'Dauer' : 'Distanz'}
-        unit={metric === 'durationMin' ? 'min' : 'km'}
-      />
-    </section>
-  )
 }

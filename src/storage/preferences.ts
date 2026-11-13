@@ -20,6 +20,7 @@ export const DEFAULT_RANGE: RangeSelection = { key: '1m' }
 interface Prefs {
   historyView?: HistoryView
   statsRange?: unknown
+  trendMetric?: unknown
 }
 
 function read(storage: Storage): Prefs {
@@ -57,6 +58,26 @@ export function loadStatsRange(storage: Storage = localStorage): RangeSelection 
 export function saveStatsRange(range: RangeSelection, storage: Storage = localStorage): void {
   try {
     storage.setItem(PREFS_KEY, JSON.stringify({ ...read(storage), statsRange: range }))
+  } catch {
+    // Preferences are a convenience; ignore storage failures.
+  }
+}
+
+function trendMetrics(prefs: Prefs): Record<string, unknown> {
+  const t = prefs.trendMetric
+  return typeof t === 'object' && t !== null ? (t as Record<string, unknown>) : {}
+}
+
+/** Last chosen trend metric for an exercise kind; falls back to the first allowed one. */
+export function loadTrendMetric<T extends string>(kind: string, allowed: readonly T[], storage: Storage = localStorage): T {
+  const stored = trendMetrics(read(storage))[kind]
+  return (allowed as readonly unknown[]).includes(stored) ? (stored as T) : allowed[0]
+}
+
+export function saveTrendMetric(kind: string, metric: string, storage: Storage = localStorage): void {
+  try {
+    const prefs = read(storage)
+    storage.setItem(PREFS_KEY, JSON.stringify({ ...prefs, trendMetric: { ...trendMetrics(prefs), [kind]: metric } }))
   } catch {
     // Preferences are a convenience; ignore storage failures.
   }

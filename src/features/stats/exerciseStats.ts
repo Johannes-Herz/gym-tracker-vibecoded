@@ -53,14 +53,6 @@ export function heatmapData(sessions: Session[]): { weights: number[]; cells: Ma
   return { weights: [...weights].sort((a, b) => b - a), cells }
 }
 
-/** Color level for a cell: ≤5 → 0, 6 → 1, 7 → 2, 8+ → 3. */
-export function repLevel(reps: number): 0 | 1 | 2 | 3 {
-  if (reps >= 8) return 3
-  if (reps === 7) return 2
-  if (reps === 6) return 1
-  return 0
-}
-
 const MONTHS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez']
 
 /** "9.11." */
@@ -101,39 +93,101 @@ export function bestSet(sessions: Session[], bodyweight: boolean): WorkoutSet | 
   return best
 }
 
+export type Delta = 'up' | 'down' | 'same' | 'new'
+
 export interface ComparisonRow {
   index: number
-  prev?: Pick<WorkoutSet, 'weight' | 'reps'>
-  last?: Pick<WorkoutSet, 'weight' | 'reps'>
-  improved: boolean
+  weight: number
+  reps: number
+  weightDelta: Delta
+  repsDelta: Delta
 }
 
-/** Set-by-set comparison of the last two sessions; null with fewer than two. */
-export function compareLast(sessions: Session[]): { prev: Session; last: Session; rows: ComparisonRow[] } | null {
-  if (sessions.length < 2) return null
-  const prev = sessions[sessions.length - 2]
-  const last = sessions[sessions.length - 1]
-  const rows: ComparisonRow[] = []
-  for (let i = 0; i < Math.max(prev.sets.length, last.sets.length); i++) {
-    const p = prev.sets[i]
-    const l = last.sets[i]
-    const improved = !!p && !!l && (l.weight > p.weight || (l.weight === p.weight && l.reps > p.reps))
-    rows.push({
-      index: i,
-      prev: p && { weight: p.weight, reps: p.reps },
-      last: l && { weight: l.weight, reps: l.reps },
-      improved,
-    })
+const delta = (now: number, before: number | undefined): Delta =>
+  before === undefined ? 'new' : now > before ? 'up' : now < before ? 'down' : 'same'
+
+/**
+ * The newest session in the range, set by set against the session directly
+ * before it (regardless of the range). For bodyweight the added weight is compared.
+ */
+export function compareWithPrevious(
+  allSessions: Session[],
+  rangeSessions: Session[],
+): { last: Session; prev: Session | null; rows: ComparisonRow[] } | null {
+  const last = rangeSessions[rangeSessions.length - 1]
+  if (!last) return null
+  const at = allSessions.findIndex((s) => s.workoutId === last.workoutId)
+  const prev = at > 0 ? allSessions[at - 1] : null
+  const rows = last.sets.map((s, index) => {
+    const p = prev?.sets[index]
+    return {
+      index,
+      weight: s.weight,
+      reps: s.reps,
+      weightDelta: delta(s.weight, p?.weight),
+      repsDelta: delta(s.reps, p?.reps),
+    }
+  })
+  return { last, prev, rows }
+}
+
+export type ExerciseKind = 'strength' | 'bodyweight' | 'cardio'
+
+export const TREND_METRICS = {
+  strength: [
+    { key: 'e1rm', label: '1RM', unit: 'kg' },
+    { key: 'maxWeight', label: 'Max. Gewicht', unit: 'kg' },
+    { key: 'volume', label: 'Volumen', unit: 'kg' },
+  ],
+  bodyweight: [
+    { key: 'maxReps', label: 'Max. Wdh.', unit: 'Wdh.' },
+    { key: 'totalReps', label: 'Wdh. gesamt', unit: 'Wdh.' },
+    { key: 'maxAdded', label: 'Max. Zusatz', unit: 'kg' },
+  ],
+  cardio: [
+    { key: 'duration', label: 'Dauer', unit: 'min' },
+    { key: 'distance', label: 'Distanz', unit: 'km' },
+    { key: 'pace', label: 'Tempo', unit: 'km/h' },
+  ],
+} as const
+
+export type TrendMetric = (typeof TREND_METRICS)[ExerciseKind][number]['key']
+
+const round1 = (n: number) => Math.round(n * 10) / 10
+const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0)
+
+function metricValue(sets: WorkoutSet[], metric: TrendMetric): number | null {
+  const withDistance = sets.filter((s) => s.distanceKm !== undefined)
+  switch (metric) {
+    case 'e1rm':
+      return Math.max(...sets.map((s) => estimate1RM(s.weight, s.reps)))
+    case 'maxWeight':
+    case 'maxAdded':
+      return Math.max(...sets.map((s) => s.weight))
+    case 'volume':
+      return sum(sets.map((s) => s.weight * s.reps))
+    case 'maxReps':
+      return Math.max(...sets.map((s) => s.reps))
+    case 'totalReps':
+      return sum(sets.map((s) => s.reps))
+    case 'duration':
+      return sum(sets.map((s) => s.durationMin ?? 0))
+    case 'distance':
+      return withDistance.length ? sum(withDistance.map((s) => s.distanceKm ?? 0)) : null
+    case 'pace': {
+      const minutes = sum(withDistance.map((s) => s.durationMin ?? 0))
+      if (!withDistance.length || minutes <= 0) return null
+      return sum(withDistance.map((s) => s.distanceKm ?? 0)) / (minutes / 60)
+    }
   }
-  return { prev, last, rows }
 }
 
-/** Trend per session: best estimated 1RM for strength, total reps for bodyweight. */
-export function trend(sessions: Session[], bodyweight: boolean): { startedAt: string; value: number }[] {
-  return sessions.map((s) => ({
-    startedAt: s.startedAt,
-    value: bodyweight
-      ? s.sets.reduce((sum, x) => sum + x.reps, 0)
-      : Math.round(Math.max(...s.sets.map((x) => estimate1RM(x.weight, x.reps))) * 10) / 10,
-  }))
+/** One point per session for the chosen metric; sessions without a value (e.g. no distance) are skipped. */
+export function trendSeries(sessions: Session[], metric: TrendMetric): { startedAt: string; value: number }[] {
+  const points: { startedAt: string; value: number }[] = []
+  for (const s of sessions) {
+    const value = metricValue(s.sets, metric)
+    if (value !== null && Number.isFinite(value)) points.push({ startedAt: s.startedAt, value: round1(value) })
+  }
+  return points
 }

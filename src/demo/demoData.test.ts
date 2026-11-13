@@ -49,13 +49,13 @@ describe('buildDemoData', () => {
     for (const n of perWeek) expect([3, 4]).toContain(n)
   })
 
-  it('has 4–5 strength exercises with 3–4 sets each per workout', () => {
+  it('has 4–5 strength exercises with 3–5 sets each per workout', () => {
     for (const w of data.workouts) {
       const sets = data.sets.filter((s) => s.workoutId === w.id && s.durationMin === undefined)
       const byExercise = new Map<string, number>()
       for (const s of sets) byExercise.set(s.exerciseId, (byExercise.get(s.exerciseId) ?? 0) + 1)
       expect([4, 5]).toContain(byExercise.size)
-      for (const n of byExercise.values()) expect([3, 4]).toContain(n)
+      for (const n of byExercise.values()) expect([3, 4, 5]).toContain(n)
     }
   })
 
@@ -92,14 +92,32 @@ describe('buildDemoData', () => {
     expect(avg(runs.slice(-3))).toBeGreaterThan(avg(runs.slice(0, 3)))
   })
 
-  it('includes bodyweight exercises with and without added weight, never assisted', () => {
-    const pullUps = data.sets.filter((s) => s.exerciseId === 'builtin-pull-up')
-    const dips = data.sets.filter((s) => s.exerciseId === 'builtin-dips')
-    expect(pullUps.length).toBeGreaterThan(0)
-    expect(pullUps.some((s) => s.weight === 0)).toBe(true)
-    expect(pullUps.some((s) => s.weight > 0)).toBe(true)
-    expect(dips.length).toBeGreaterThan(0)
-    expect(dips.every((s) => s.weight > 0)).toBe(true)
+  it('varies weights within strength sessions (pyramids, back-off, warm-up)', () => {
+    const custom = new Set(data.exercises.filter((e) => e.source === 'custom').map((e) => e.id))
+    const groups = new Map<string, number[][]>()
+    for (const s of data.sets) {
+      if (s.durationMin !== undefined || custom.has(s.exerciseId) || ['builtin-pull-up', 'builtin-dips'].includes(s.exerciseId)) continue
+      const key = `${s.workoutId}|${s.exerciseId}`
+      groups.set(key, [...(groups.get(key) ?? []), [s.weight, s.reps]])
+    }
+    const sessions = [...groups.values()]
+    const mixed = sessions.filter((sets) => new Set(sets.map(([w]) => w)).size >= 2)
+    expect(mixed.length / sessions.length).toBeGreaterThanOrEqual(0.3)
+    const sameWeightDifferentReps = sessions.some((sets) =>
+      sets.some(([w, r], i) => sets.some(([w2, r2], j) => i !== j && w === w2 && r !== r2)),
+    )
+    expect(sameWeightDifferentReps).toBe(true)
+  })
+
+  it('mixes pure bodyweight and added-weight sets, never assisted', () => {
+    for (const id of ['builtin-pull-up', 'builtin-dips']) {
+      const byWorkout = new Map<string, number[]>()
+      for (const s of data.sets.filter((x) => x.exerciseId === id)) {
+        byWorkout.set(s.workoutId, [...(byWorkout.get(s.workoutId) ?? []), s.weight])
+      }
+      const mixed = [...byWorkout.values()].filter((ws) => ws.includes(0) && ws.some((w) => w > 0))
+      expect(mixed.length).toBeGreaterThan(0)
+    }
     expect(data.sets.every((s) => s.weight >= 0)).toBe(true)
   })
 

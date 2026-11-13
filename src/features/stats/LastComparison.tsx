@@ -1,37 +1,55 @@
-import { formatSet } from '../exercises/bodyweight'
-import { compareLast, dayMonth, type Session } from './exerciseStats'
+import { formatNumber } from '../../lib/format'
+import { formatLoad } from '../exercises/bodyweight'
+import { compareWithPrevious, dayMonth, type Delta, type Session } from './exerciseStats'
 
-export default function LastComparison({ sessions, bodyweight }: { sessions: Session[]; bodyweight: boolean }) {
-  const result = compareLast(sessions)
+interface Props {
+  allSessions: Session[]
+  rangeSessions: Session[]
+  bodyweight: boolean
+}
+
+const ARROW: Record<Delta, string> = { up: '↑', down: '↓', same: '', new: '' }
+
+function Value({ text, delta, what }: { text: string; delta: Delta; what: 'Gewicht' | 'Wiederholungen' }) {
+  const meaning =
+    delta === 'up'
+      ? `mehr ${what} als zuvor`
+      : delta === 'down'
+        ? `weniger ${what} als zuvor`
+        : delta === 'same'
+          ? 'gleich wie zuvor'
+          : 'neu'
+  return (
+    <span className={`delta delta-${delta}`} aria-label={`${text}, ${meaning}`}>
+      {text}
+      {ARROW[delta] && <span aria-hidden="true"> {ARROW[delta]}</span>}
+    </span>
+  )
+}
+
+export default function LastComparison({ allSessions, rangeSessions, bodyweight }: Props) {
+  const result = compareWithPrevious(allSessions, rangeSessions)
+  if (!result) return null
 
   return (
     <section className="card">
-      <h2 className="block-title">Letztes Training vs. davor</h2>
-      {!result ? (
-        <p className="muted">Kein vorheriges Training im Zeitraum.</p>
-      ) : (
-        <table className="compare">
-          <thead>
-            <tr className="muted small">
-              <th>Satz</th>
-              <th>{dayMonth(result.prev.startedAt)}</th>
-              <th>{dayMonth(result.last.startedAt)}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {result.rows.map((r) => (
-              <tr key={r.index} className={r.improved ? 'improved' : undefined}>
-                <td className="muted">{r.index + 1}</td>
-                <td>{r.prev ? formatSet(r.prev.weight, r.prev.reps, bodyweight) : '–'}</td>
-                <td>
-                  {r.last ? formatSet(r.last.weight, r.last.reps, bodyweight) : '–'}
-                  {r.improved && <span className="improved-mark" aria-label="Verbesserung"> ▲</span>}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <h2 className="block-title">Letztes Training ({dayMonth(result.last.startedAt)})</h2>
+      <p className="muted small compare-sub">
+        {result.prev ? `verglichen mit ${dayMonth(result.prev.startedAt)}` : 'Erstes Training'}
+      </p>
+      <ul className="compare-list">
+        {result.rows.map((r) => (
+          <li key={r.index}>
+            <span className="muted">Satz {r.index + 1}</span>
+            <Value text={formatLoad(r.weight, bodyweight)} delta={r.weightDelta} what="Gewicht" />
+            <span className="muted" aria-hidden="true">
+              ×
+            </span>
+            <Value text={`${formatNumber(r.reps)} Wdh.`} delta={r.repsDelta} what="Wiederholungen" />
+            {r.weightDelta === 'new' && result.prev && <span className="tag">neu</span>}
+          </li>
+        ))}
+      </ul>
     </section>
   )
 }
