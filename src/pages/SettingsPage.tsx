@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import ConfirmDialog from '../components/ConfirmDialog'
+import { buildDemoData, hasUserData } from '../demo/demoData'
 import PageHeader from '../components/PageHeader'
 import { backupFileName, deleteAllData, parseImport, replaceAllData, serializeBackup } from '../storage/backup'
 import type { AppData } from '../types'
@@ -21,6 +22,7 @@ export default function SettingsPage() {
   const fileInput = useRef<HTMLInputElement>(null)
   const [pending, setPending] = useState<AppData | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [confirmDemo, setConfirmDemo] = useState(false)
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null)
 
   async function handleFile(file: File | undefined) {
@@ -38,6 +40,19 @@ export default function SettingsPage() {
     setMessage({ kind: 'ok', text: 'Alle Daten wurden gelöscht.' })
   }
 
+  function loadDemo() {
+    const demo = buildDemoData({ builtins: data.exercises.filter((e) => e.source === 'builtin') })
+    replaceAllData(demo)
+    setConfirmDemo(false)
+    setMessage({ kind: 'ok', text: `Demo-Daten geladen: ${demo.workouts.length} Trainings.` })
+  }
+
+  function handleDemo() {
+    setMessage(null)
+    if (hasUserData(data)) setConfirmDemo(true)
+    else loadDemo()
+  }
+
   function confirmImport() {
     if (!pending) return
     replaceAllData(pending)
@@ -52,6 +67,12 @@ export default function SettingsPage() {
   return (
     <>
       <PageHeader title="Einstellungen" />
+
+      {message && (
+        <p className={message.kind === 'error' ? 'card form-error' : 'card'} role="status">
+          {message.text}
+        </p>
+      )}
 
       <section className="card settings-section">
         <h2>Daten sichern</h2>
@@ -74,11 +95,17 @@ export default function SettingsPage() {
         <button type="button" className="btn" onClick={() => fileInput.current?.click()}>
           Datei auswählen
         </button>
-        {message && (
-          <p className={message.kind === 'error' ? 'form-error' : 'muted'} role="status">
-            {message.text}
-          </p>
-        )}
+      </section>
+
+      <section className="card settings-section">
+        <h2>Demo-Daten</h2>
+        <p className="muted">
+          Füllt die App mit ca. 10 Wochen Beispieltrainings und Körpergewicht – zum Ausprobieren von
+          Verlauf und Statistik.
+        </p>
+        <button type="button" className="btn" onClick={handleDemo}>
+          Demo-Daten laden
+        </button>
       </section>
 
       <section className="card settings-section">
@@ -99,6 +126,19 @@ export default function SettingsPage() {
         >
           Alle Übungen, Trainings und Körpergewichte werden dauerhaft gelöscht. Exportiere vorher ein
           Backup, wenn du die Daten behalten möchtest.
+        </ConfirmDialog>
+      )}
+
+      {confirmDemo && (
+        <ConfirmDialog
+          title="Daten ersetzen?"
+          confirmLabel="Ersetzen"
+          danger
+          onConfirm={loadDemo}
+          onCancel={() => setConfirmDemo(false)}
+        >
+          Alle aktuellen Daten werden durch Demo-Daten ersetzt. Exportiere vorher ein Backup, wenn du
+          sie behalten möchtest.
         </ConfirmDialog>
       )}
 
