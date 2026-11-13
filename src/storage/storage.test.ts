@@ -139,11 +139,43 @@ describe('migrate', () => {
       bodyWeights: [{ id: 'b1', date: '2026-11-01', weightKg: 80 }],
     }
     const data = migrate(before)!
-    expect(data.schemaVersion).toBe(4)
+    expect(data.schemaVersion).toBe(CURRENT_SCHEMA_VERSION)
     expect(data.templates).toEqual([])
     expect(data.workouts).toEqual(before.workouts)
     expect(data.sets).toEqual(before.sets)
     expect(data.bodyWeights).toEqual(before.bodyWeights)
+  })
+
+  it('v4 -> v5 adds SZ-Stange built-ins and renames by id without touching user data', () => {
+    const before = {
+      schemaVersion: 4,
+      exercises: [
+        // old catalog state: old name, no aliases, hidden by the user
+        { id: 'builtin-bench-press', name: 'Bankdrücken', aliasEn: 'Bench Press', muscleGroup: 'Brust', category: 'Push', equipment: 'Langhantel', source: 'builtin', createdAt: '2026-01-01T00:00:00.000Z', hidden: true },
+        { id: 'builtin-skull-crusher', name: 'French Press', aliasEn: 'Skull Crusher', muscleGroup: 'Trizeps', category: 'Push', equipment: 'Langhantel', source: 'builtin', createdAt: '2026-01-01T00:00:00.000Z' },
+        { id: 'c1', name: 'SZ-Curls', muscleGroup: 'Bizeps', category: 'Pull', source: 'custom', createdAt: '2026-02-01T00:00:00.000Z' },
+      ],
+      workouts: [{ id: 'w1', startedAt: '2026-11-02T10:00:00.000Z', templateId: 't1', templateName: 'Push' }],
+      sets: [{ id: 's1', workoutId: 'w1', exerciseId: 'builtin-bench-press', order: 0, weight: 100, reps: 5 }],
+      bodyWeights: [{ id: 'b1', date: '2026-11-01', weightKg: 80 }],
+      templates: [{ id: 't1', name: 'Push', exerciseIds: ['builtin-bench-press'], createdAt: '2026-03-01T00:00:00.000Z' }],
+    }
+    const data = migrate(structuredClone(before))!
+    expect(data.schemaVersion).toBe(5)
+    const bench = data.exercises.find((e) => e.id === 'builtin-bench-press')!
+    expect(bench.name).toBe('Langhantel-Bankdrücken')
+    expect(bench.aliases).toContain('Bankdrücken')
+    expect(bench.hidden).toBe(true)
+    const fp = data.exercises.find((e) => e.id === 'builtin-skull-crusher')!
+    expect(fp).toMatchObject({ name: 'French Press', equipment: 'SZ-Stange' })
+    expect(fp.aliases).toContain('Stirndrücken')
+    expect(data.exercises.find((e) => e.id === 'builtin-ez-curl')).toMatchObject({ name: 'SZ-Curls', source: 'builtin' })
+    // custom exercise with the same name is kept next to the built-in, unchanged
+    expect(data.exercises.find((e) => e.id === 'c1')).toEqual(before.exercises[2])
+    expect(data.workouts).toEqual(before.workouts)
+    expect(data.sets).toEqual(before.sets)
+    expect(data.bodyWeights).toEqual(before.bodyWeights)
+    expect(data.templates).toEqual(before.templates)
   })
 
   it('is idempotent', () => {
@@ -156,7 +188,7 @@ describe('migrate', () => {
     data.exercises = data.exercises.map((e) =>
       e.id === 'builtin-squat' ? { ...e, hidden: true, name: 'Alter Name' } : e,
     )
-    const extra = { id: 'builtin-new', name: 'Neu', aliasEn: 'New', muscleGroup: 'Beine', category: 'Legs', equipment: 'Maschine' } as const
+    const extra = { id: 'builtin-new', name: 'Neu', aliasEn: 'New', aliases: [], muscleGroup: 'Beine', category: 'Legs', equipment: 'Maschine' } as const
     const result = ensureBuiltins(data, [...BUILTIN_EXERCISES, extra])
     const squat = result.exercises.find((e) => e.id === 'builtin-squat')!
     expect(squat.hidden).toBe(true)
