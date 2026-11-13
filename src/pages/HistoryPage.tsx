@@ -4,17 +4,18 @@ import { newWorkoutPath } from '../features/workout/newWorkout'
 import { realSets } from '../lib/realSets'
 import PageHeader from '../components/PageHeader'
 import WorkoutCalendar from '../features/history/WorkoutCalendar'
-import { formatDateTime } from '../lib/format'
+import { formatDateTime, formatMonthYear } from '../lib/format'
 import { workouts as workoutsRepo } from '../storage/repo'
 import { loadHistoryView, saveHistoryView, type HistoryView } from '../storage/preferences'
 import StartWorkoutSheet from '../features/workout/StartWorkoutSheet'
 import { useStore } from '../storage/store'
+import { t, tp, type MessageKey } from '../i18n'
+import { exerciseName } from '../features/exercises/exerciseName'
 
-const monthFormat = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' })
 
-const VIEWS: { key: HistoryView; label: string }[] = [
-  { key: 'list', label: 'Liste' },
-  { key: 'calendar', label: 'Kalender' },
+const VIEWS: { key: HistoryView; label: MessageKey }[] = [
+  { key: 'list', label: 'history.list' },
+  { key: 'calendar', label: 'history.calendar' },
 ]
 
 export default function HistoryPage() {
@@ -37,7 +38,7 @@ export default function HistoryPage() {
 
   return (
     <>
-      <PageHeader title="Verlauf" />
+      <PageHeader title={t('nav.history')} />
       <div className="segmented tabs" role="tablist">
         {VIEWS.map((v) => (
           <button
@@ -48,18 +49,18 @@ export default function HistoryPage() {
             className={v.key === view ? 'btn active' : 'btn'}
             onClick={() => choose(v.key)}
           >
-            {v.label}
+            {t(v.label)}
           </button>
         ))}
       </div>
       {view === 'list' ? <WorkoutList /> : <WorkoutCalendar onSelectDay={setSelectedDay} />}
       <div className="fab-spacer" />
       {templates.length === 0 ? (
-        <Link to={newWorkoutPath(dateKey)} className="fab" aria-label="Neues Training">
+        <Link to={newWorkoutPath(dateKey)} className="fab" aria-label={t('new.title')}>
           +
         </Link>
       ) : (
-        <button type="button" className="fab" aria-label="Neues Training" onClick={() => setStarting(true)}>
+        <button type="button" className="fab" aria-label={t('new.title')} onClick={() => setStarting(true)}>
           +
         </button>
       )}
@@ -74,13 +75,13 @@ function WorkoutList() {
   const sorted = [...workouts].sort((a, b) => b.startedAt.localeCompare(a.startedAt))
   const months = new Map<string, typeof sorted>()
   for (const w of sorted) {
-    const key = monthFormat.format(new Date(w.startedAt))
+    const key = formatMonthYear(new Date(w.startedAt))
     months.set(key, [...(months.get(key) ?? []), w])
   }
 
   return (
     <>
-      {sorted.length === 0 && <p className="muted">Noch keine Trainings.</p>}
+      {sorted.length === 0 && <p className="muted">{t('history.none')}</p>}
       {[...months.entries()].map(([month, items]) => (
         <section key={month}>
           <h2 className="group-title">{month}</h2>
@@ -88,8 +89,9 @@ function WorkoutList() {
             {items.map((w) => {
               const workoutSets = realSets(sets).filter((s) => s.workoutId === w.id)
               const names = [...new Set(workoutSets.map((s) => s.exerciseId))]
-                .map((id) => exercises.find((e) => e.id === id)?.name)
-                .filter(Boolean)
+                .map((id) => exercises.find((e) => e.id === id))
+                .filter((e) => e !== undefined)
+                .map((e) => exerciseName(e))
               return (
                 <li key={w.id}>
                   <Link to={`/verlauf/${w.id}`} className="list-item history-item">
@@ -100,8 +102,8 @@ function WorkoutList() {
                       </div>
                       <div className="muted small">
                         {workoutSets.length === 0
-                          ? 'Leer'
-                          : `${workoutSets.length} Sätze · ${names.join(', ')}`}
+                          ? t('history.empty')
+                          : t('history.summary', { sets: tp('count.sets', workoutSets.length), names: names.join(', ') })}
                       </div>
                     </div>
                     <span aria-hidden="true" className="muted">›</span>

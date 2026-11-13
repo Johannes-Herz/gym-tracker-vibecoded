@@ -1,3 +1,4 @@
+import { formatDayMonth, formatMonthShort } from '../../lib/format'
 import { isReal } from '../../lib/realSets'
 import type { RangeSelection } from '../../storage/preferences'
 import type { AppData, WorkoutSet } from '../../types'
@@ -54,12 +55,9 @@ export function heatmapData(sessions: Session[]): { weights: number[]; cells: Ma
   return { weights: [...weights].sort((a, b) => b - a), cells }
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez']
-
-/** "9.11." */
+/** "9.11." / "Nov 9" */
 export function dayMonth(iso: string): string {
-  const d = new Date(iso)
-  return `${d.getDate()}.${d.getMonth() + 1}.`
+  return formatDayMonth(new Date(iso))
 }
 
 /** Column labels: dates for up to 8 sessions, otherwise the month on its first session. */
@@ -71,7 +69,7 @@ export function axisLabels(sessions: Session[]): string[] {
     const month = d.getFullYear() * 12 + d.getMonth()
     if (month === lastMonth) return ''
     lastMonth = month
-    return MONTHS[d.getMonth()]
+    return formatMonthShort(d)
   })
 }
 
@@ -162,19 +160,19 @@ export type ExerciseKind = 'strength' | 'bodyweight' | 'cardio'
 
 export const TREND_METRICS = {
   strength: [
-    { key: 'e1rm', label: '1RM', unit: 'kg' },
-    { key: 'maxWeight', label: 'Max. Gewicht', unit: 'kg' },
-    { key: 'volume', label: 'Volumen', unit: 'kg' },
+    { key: 'e1rm', unit: 'kg' },
+    { key: 'maxWeight', unit: 'kg' },
+    { key: 'volume', unit: 'kg' },
   ],
   bodyweight: [
-    { key: 'maxReps', label: 'Max. Wdh.', unit: 'Wdh.' },
-    { key: 'totalReps', label: 'Wdh. gesamt', unit: 'Wdh.' },
-    { key: 'maxAdded', label: 'Max. Zusatz', unit: 'kg' },
+    { key: 'maxReps', unit: 'reps' },
+    { key: 'totalReps', unit: 'reps' },
+    { key: 'maxAdded', unit: 'kg' },
   ],
   cardio: [
-    { key: 'duration', label: 'Dauer', unit: 'min' },
-    { key: 'distance', label: 'Distanz', unit: 'km' },
-    { key: 'pace', label: 'Tempo', unit: 'km/h' },
+    { key: 'duration', unit: 'min' },
+    { key: 'distance', unit: 'km' },
+    { key: 'pace', unit: 'km/h' },
   ],
 } as const
 

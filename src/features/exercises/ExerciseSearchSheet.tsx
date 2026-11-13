@@ -1,3 +1,4 @@
+import { t } from '../../i18n'
 import type { Exercise } from '../../types'
 import ExerciseSearch from './ExerciseSearch'
 
@@ -11,11 +12,11 @@ interface Props {
 /** Full-screen exercise search for adding an exercise to a workout. Hidden exercises are left out. */
 export default function ExerciseSearchSheet({ exercises, recentIds, onPick, onClose }: Props) {
   return (
-    <div className="sheet" role="dialog" aria-modal="true" aria-label="Übung hinzufügen">
+    <div className="sheet" role="dialog" aria-modal="true" aria-label={t('ex.addTitle')}>
       <div className="sheet-head">
-        <h2>Übung hinzufügen</h2>
+        <h2>{t('ex.addTitle')}</h2>
         <button type="button" className="btn" onClick={onClose}>
-          Schließen
+          {t('timer.close')}
         </button>
       </div>
       <div className="sheet-body">

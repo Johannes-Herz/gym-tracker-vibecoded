@@ -2,6 +2,8 @@ import { useRef, useState } from 'react'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { buildDemoData, hasUserData } from '../demo/demoData'
 import PageHeader from '../components/PageHeader'
+import { LANGUAGE_NAMES, getLang, setLang, t } from '../i18n'
+import { LANGUAGES } from '../storage/preferences'
 import { backupFileName, deleteAllData, parseImport, replaceAllData, serializeBackup } from '../storage/backup'
 import type { AppData } from '../types'
 import { useStore } from '../storage/store'
@@ -37,14 +39,14 @@ export default function SettingsPage() {
   function handleDeleteAll() {
     deleteAllData()
     setConfirmDelete(false)
-    setMessage({ kind: 'ok', text: 'Alle Daten wurden gelöscht.' })
+    setMessage({ kind: 'ok', text: t('settings.deleted') })
   }
 
   function loadDemo() {
     const demo = buildDemoData({ builtins: data.exercises.filter((e) => e.source === 'builtin') })
     replaceAllData(demo)
     setConfirmDemo(false)
-    setMessage({ kind: 'ok', text: `Demo-Daten geladen: ${demo.workouts.length} Trainings.` })
+    setMessage({ kind: 'ok', text: t('settings.demoLoaded', { n: demo.workouts.length }) })
   }
 
   function handleDemo() {
@@ -57,16 +59,37 @@ export default function SettingsPage() {
     if (!pending) return
     replaceAllData(pending)
     setPending(null)
-    setMessage({ kind: 'ok', text: 'Daten wurden importiert.' })
+    setMessage({ kind: 'ok', text: t('settings.imported') })
   }
 
   function handleExport() {
     downloadJson(serializeBackup(data), backupFileName())
   }
 
+  const lang = getLang()
+
   return (
     <>
-      <PageHeader title="Einstellungen" />
+      <PageHeader title={t('settings.title')} />
+
+      <section className="card settings-section">
+        <h2>{t('settings.language')}</h2>
+        <div className="segmented" role="radiogroup" aria-label={t('settings.language')}>
+          {LANGUAGES.map((l) => (
+            <button
+              key={l}
+              type="button"
+              role="radio"
+              aria-checked={l === lang}
+              lang={l}
+              className={l === lang ? 'btn active' : 'btn'}
+              onClick={() => l !== lang && setLang(l)}
+            >
+              {LANGUAGE_NAMES[l]}
+            </button>
+          ))}
+        </div>
+      </section>
 
       {message && (
         <p className={message.kind === 'error' ? 'card form-error' : 'card'} role="status">
@@ -75,16 +98,16 @@ export default function SettingsPage() {
       )}
 
       <section className="card settings-section">
-        <h2>Daten sichern</h2>
-        <p className="muted">Exportiere alle Daten als JSON-Datei.</p>
+        <h2>{t('settings.backup.title')}</h2>
+        <p className="muted">{t('settings.backup.text')}</p>
         <button type="button" className="btn btn-primary" onClick={handleExport}>
-          Daten exportieren
+          {t('settings.backup.button')}
         </button>
       </section>
 
       <section className="card settings-section">
-        <h2>Daten wiederherstellen</h2>
-        <p className="muted">Importiere eine zuvor exportierte JSON-Datei. Die aktuellen Daten werden dabei ersetzt.</p>
+        <h2>{t('settings.restore.title')}</h2>
+        <p className="muted">{t('settings.restore.text')}</p>
         <input
           ref={fileInput}
           type="file"
@@ -93,66 +116,64 @@ export default function SettingsPage() {
           onChange={(e) => handleFile(e.target.files?.[0])}
         />
         <button type="button" className="btn" onClick={() => fileInput.current?.click()}>
-          Datei auswählen
+          {t('settings.restore.button')}
         </button>
       </section>
 
       <section className="card settings-section">
-        <h2>Demo-Daten</h2>
-        <p className="muted">
-          Füllt die App mit ca. 10 Wochen Beispieltrainings und Körpergewicht – zum Ausprobieren von
-          Verlauf und Statistik.
-        </p>
+        <h2>{t('settings.demo.title')}</h2>
+        <p className="muted">{t('settings.demo.text')}</p>
         <button type="button" className="btn" onClick={handleDemo}>
-          Demo-Daten laden
+          {t('settings.demo.button')}
         </button>
       </section>
 
       <section className="card settings-section">
-        <h2>Gefahrenzone</h2>
-        <p className="muted">Alle Daten dauerhaft löschen. Das kann nicht rückgängig gemacht werden.</p>
+        <h2>{t('settings.danger.title')}</h2>
+        <p className="muted">{t('settings.danger.text')}</p>
         <button type="button" className="btn btn-danger" onClick={() => setConfirmDelete(true)}>
-          Alle Daten löschen
+          {t('settings.danger.button')}
         </button>
       </section>
 
       {confirmDelete && (
         <ConfirmDialog
-          title="Alle Daten löschen?"
-          confirmLabel="Endgültig löschen"
+          title={t('settings.deleteDialog.title')}
+          confirmLabel={t('settings.deleteDialog.confirm')}
           danger
           onConfirm={handleDeleteAll}
           onCancel={() => setConfirmDelete(false)}
         >
-          Alle Übungen, Trainings und Körpergewichte werden dauerhaft gelöscht. Exportiere vorher ein
-          Backup, wenn du die Daten behalten möchtest.
+          {t('settings.deleteDialog.text')}
         </ConfirmDialog>
       )}
 
       {confirmDemo && (
         <ConfirmDialog
-          title="Daten ersetzen?"
-          confirmLabel="Ersetzen"
+          title={t('settings.replaceDialog.title')}
+          confirmLabel={t('settings.replaceDialog.confirm')}
           danger
           onConfirm={loadDemo}
           onCancel={() => setConfirmDemo(false)}
         >
-          Alle aktuellen Daten werden durch Demo-Daten ersetzt. Exportiere vorher ein Backup, wenn du
-          sie behalten möchtest.
+          {t('settings.demoDialog.text')}
         </ConfirmDialog>
       )}
 
       {pending && (
         <ConfirmDialog
-          title="Daten ersetzen?"
-          confirmLabel="Importieren"
+          title={t('settings.replaceDialog.title')}
+          confirmLabel={t('settings.importDialog.confirm')}
           danger
           onConfirm={confirmImport}
           onCancel={() => setPending(null)}
         >
-          Das Backup enthält {pending.exercises.length} Übungen, {pending.workouts.length} Trainings,{' '}
-          {pending.sets.length} Sätze und {pending.bodyWeights.length} Gewichtseinträge. Alle aktuellen
-          Daten werden ersetzt.
+          {t('settings.importDialog.text', {
+            exercises: pending.exercises.length,
+            workouts: pending.workouts.length,
+            sets: pending.sets.length,
+            weights: pending.bodyWeights.length,
+          })}
         </ConfirmDialog>
       )}
     </>

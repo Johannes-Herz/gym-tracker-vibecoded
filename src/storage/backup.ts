@@ -1,4 +1,5 @@
 import { MIN_ASSISTED_KG, isBodyweight } from '../features/exercises/bodyweight'
+import { translate } from '../i18n'
 import { EQUIPMENT, MUSCLE_GROUPS, isCardio, type AppData } from '../types'
 import { BACKUP_KEY, CURRENT_SCHEMA_VERSION, emptyData, migrate } from './storage'
 import { getState, update } from './store'
@@ -37,10 +38,14 @@ const isDay = (v: unknown): v is string =>
 const isNonNeg = (v: unknown): v is number =>
   typeof v === 'number' && Number.isFinite(v) && v >= 0
 
-function checkUniqueIds(name: string, items: { id: string }[]): string | null {
+type Section = 'exercises' | 'workouts' | 'sets' | 'bodyWeights' | 'templates'
+const sectionName = (section: Section) => translate(`backup.section.${section}`)
+const invalidEntry = (section: Section) => fail(translate('backup.entryInvalid', { section: sectionName(section) }))
+
+function checkUniqueIds(section: Section, items: { id: string }[]): string | null {
   const seen = new Set<string>()
   for (const item of items) {
-    if (seen.has(item.id)) return `${name}: doppelte ID.`
+    if (seen.has(item.id)) return translate('backup.duplicateId', { section: sectionName(section) })
     seen.add(item.id)
   }
   return null
@@ -52,27 +57,27 @@ export function parseImport(text: string): ImportResult {
   try {
     json = JSON.parse(text)
   } catch {
-    return fail('Die Datei ist keine gültige JSON-Datei.')
+    return fail(translate('backup.notJson'))
   }
   if (!isObj(json) || json.app !== BACKUP_APP_ID) {
-    return fail('Die Datei ist kein Gym-Tracker-Backup.')
+    return fail(translate('backup.notBackup'))
   }
   const raw = json.data
-  if (!isObj(raw)) return fail('Das Backup enthält keine Daten.')
-  if (typeof raw.schemaVersion !== 'number') return fail('Schema-Version fehlt.')
+  if (!isObj(raw)) return fail(translate('backup.noData'))
+  if (typeof raw.schemaVersion !== 'number') return fail(translate('backup.noSchema'))
   if (raw.schemaVersion > CURRENT_SCHEMA_VERSION) {
-    return fail('Das Backup stammt aus einer neueren App-Version.')
+    return fail(translate('backup.tooNew'))
   }
   for (const key of ['exercises', 'workouts', 'sets', 'bodyWeights']) {
-    if (!Array.isArray(raw[key])) return fail(`Feld „${key}“ fehlt oder ist ungültig.`)
+    if (!Array.isArray(raw[key])) return fail(translate('backup.fieldInvalid', { key }))
   }
   // Templates exist from schema v4 on; older backups simply have none.
   if (raw.schemaVersion >= 4 && !Array.isArray(raw.templates)) {
-    return fail('Feld „templates“ fehlt oder ist ungültig.')
+    return fail(translate('backup.fieldInvalid', { key: 'templates' }))
   }
 
   const data = migrate(raw)
-  if (!data) return fail('Die Daten konnten nicht migriert werden.')
+  if (!data) return fail(translate('backup.migrateFailed'))
 
   for (const e of data.exercises) {
     if (
@@ -90,7 +95,7 @@ export function parseImport(text: string): ImportResult {
       (e.equipment !== undefined && !(EQUIPMENT as readonly unknown[]).includes(e.equipment)) ||
       (e.hidden !== undefined && typeof e.hidden !== 'boolean')
     ) {
-      return fail('Übungen: ungültiger Eintrag.')
+      return invalidEntry('exercises')
     }
   }
   for (const w of data.workouts) {
@@ -102,7 +107,7 @@ export function parseImport(text: string): ImportResult {
       (w.templateId !== undefined && !isId(w.templateId)) ||
       (w.templateName !== undefined && typeof w.templateName !== 'string')
     ) {
-      return fail('Trainings: ungültiger Eintrag.')
+      return invalidEntry('workouts')
     }
   }
   for (const s of data.sets) {
@@ -119,12 +124,12 @@ export function parseImport(text: string): ImportResult {
       (s.distanceKm !== undefined && !isNonNeg(s.distanceKm)) ||
       (s.suggested !== undefined && s.suggested !== true)
     ) {
-      return fail('Sätze: ungültiger Eintrag.')
+      return invalidEntry('sets')
     }
   }
   for (const b of data.bodyWeights) {
     if (!isObj(b) || !isId(b.id) || !isDay(b.date) || !isNonNeg(b.weightKg)) {
-      return fail('Körpergewicht: ungültiger Eintrag.')
+      return invalidEntry('bodyWeights')
     }
   }
 
@@ -139,16 +144,16 @@ export function parseImport(text: string): ImportResult {
       !isIso(t.createdAt) ||
       !isIso(t.updatedAt)
     ) {
-      return fail('Vorlagen: ungültiger Eintrag.')
+      return invalidEntry('templates')
     }
   }
 
   const dup =
-    checkUniqueIds('Übungen', data.exercises) ??
-    checkUniqueIds('Trainings', data.workouts) ??
-    checkUniqueIds('Sätze', data.sets) ??
-    checkUniqueIds('Körpergewicht', data.bodyWeights) ??
-    checkUniqueIds('Vorlagen', data.templates)
+    checkUniqueIds('exercises', data.exercises) ??
+    checkUniqueIds('workouts', data.workouts) ??
+    checkUniqueIds('sets', data.sets) ??
+    checkUniqueIds('bodyWeights', data.bodyWeights) ??
+    checkUniqueIds('templates', data.templates)
   if (dup) return fail(dup)
 
   const exerciseById = new Map(data.exercises.map((e) => [e.id, e]))
@@ -161,18 +166,18 @@ export function parseImport(text: string): ImportResult {
   const workoutIds = new Set(data.workouts.map((w) => w.id))
   for (const s of data.sets) {
     if (!workoutIds.has(s.workoutId) || !exerciseIds.has(s.exerciseId)) {
-      return fail('Sätze verweisen auf fehlende Trainings oder Übungen.')
+      return fail(translate('backup.setsMissingRefs'))
     }
   }
   for (const s of data.sets) {
     // Cardio entries need a duration; strength sets must not carry one.
     const exercise = exerciseById.get(s.exerciseId)!
     if (isCardio(exercise) !== (s.durationMin !== undefined)) {
-      return fail('Sätze passen nicht zum Übungstyp (Kraft/Cardio).')
+      return fail(translate('backup.setsWrongType'))
     }
     // Negative weight = assisted, only allowed for bodyweight exercises.
     const minWeight = isBodyweight(exercise) ? MIN_ASSISTED_KG : 0
-    if (s.weight < minWeight) return fail('Sätze: ungültiges Gewicht.')
+    if (s.weight < minWeight) return fail(translate('backup.setsBadWeight'))
   }
 
   return { ok: true, data }

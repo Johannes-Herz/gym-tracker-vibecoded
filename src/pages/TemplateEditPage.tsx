@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom'
 import PageHeader from '../components/PageHeader'
+import { t } from '../i18n'
 import TemplateForm from '../features/templates/TemplateForm'
 import { useGoUp } from '../lib/useNavSteps'
 import { useStore } from '../storage/store'
@@ -9,20 +10,20 @@ export default function TemplateEditPage() {
   const { id = '' } = useParams()
   const up = useGoUp()
   const { templates } = useStore()
-  const template = id === 'neu' ? undefined : templates.find((t) => t.id === id)
+  const template = id === 'neu' ? undefined : templates.find((tpl) => tpl.id === id)
 
   return (
     <>
       <PageHeader
-        title={template ? 'Vorlage' : 'Neue Vorlage'}
+        title={template ? t('tpl.title') : t('tpl.newTitle')}
         action={
           <button type="button" className="btn back-link" onClick={up}>
-            ‹ Vorlagen
+            {t('tpl.back')}
           </button>
         }
       />
       {id !== 'neu' && !template ? (
-        <p className="muted">Vorlage nicht gefunden.</p>
+        <p className="muted">{t('tpl.notFound')}</p>
       ) : (
         <TemplateForm key={id} template={template} onDone={up} />
       )}

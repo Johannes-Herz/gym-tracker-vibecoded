@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { t } from '../i18n'
 
 interface Props {
   title: string
@@ -13,8 +14,8 @@ interface Props {
 export default function ConfirmDialog({
   title,
   children,
-  confirmLabel = 'OK',
-  cancelLabel = 'Abbrechen',
+  confirmLabel = t('common.ok'),
+  cancelLabel = t('common.cancel'),
   danger = false,
   onConfirm,
   onCancel,

@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { formatDateTime, localDateKey } from '../../lib/format'
+import { t, tp } from '../../i18n'
+import { formatDateTime, formatMonthYear, localDateKey, weekdayNamesMonday } from '../../lib/format'
 import { sessionState } from '../../lib/tabMemory'
 import { useStore } from '../../storage/store'
 import { monthGrid, trainingDays } from './calendar'
 
-const WEEKDAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
-const monthName = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' })
 
 export default function WorkoutCalendar({ onSelectDay }: { onSelectDay?: (dateKey: string | null) => void }) {
   const data = useStore()
@@ -55,16 +54,16 @@ export default function WorkoutCalendar({ onSelectDay }: { onSelectDay?: (dateKe
     <>
       <div className="card">
         <div className="calendar-head">
-          <button type="button" className="btn" aria-label="Vorheriger Monat" onClick={() => shift(-1)}>
+          <button type="button" className="btn" aria-label={t('calendar.prev')} onClick={() => shift(-1)}>
             ‹
           </button>
-          <strong>{monthName.format(new Date(view.year, view.month, 1))}</strong>
-          <button type="button" className="btn" aria-label="Nächster Monat" onClick={() => shift(1)}>
+          <strong>{formatMonthYear(new Date(view.year, view.month, 1))}</strong>
+          <button type="button" className="btn" aria-label={t('calendar.next')} onClick={() => shift(1)}>
             ›
           </button>
         </div>
         <div className="calendar-grid">
-          {WEEKDAYS.map((w) => (
+          {weekdayNamesMonday().map((w) => (
             <div key={w} className="calendar-weekday muted small">
               {w}
             </div>
@@ -82,7 +81,7 @@ export default function WorkoutCalendar({ onSelectDay }: { onSelectDay?: (dateKe
                 key={i}
                 type="button"
                 className={classes.join(' ')}
-                aria-label={trained ? `${d}. – Training` : `${d}.`}
+                aria-label={trained ? t('calendar.dayTrained', { d }) : t('calendar.day', { d })}
                 aria-pressed={key === selected}
                 onClick={() => setSelected(key === selected ? null : key)}
               >
@@ -92,13 +91,13 @@ export default function WorkoutCalendar({ onSelectDay }: { onSelectDay?: (dateKe
           })}
         </div>
         <div className="muted small calendar-summary">
-          {trainedThisMonth} {trainedThisMonth === 1 ? 'Trainingstag' : 'Trainingstage'} in diesem Monat
+          {tp('calendar.summary', trainedThisMonth)}
         </div>
       </div>
 
       {selected && (
         <ul className="list">
-          {selectedWorkouts.length === 0 && <li className="muted">Kein Training an diesem Tag.</li>}
+          {selectedWorkouts.length === 0 && <li className="muted">{t('calendar.none')}</li>}
           {selectedWorkouts.map((w) => (
             <li key={w.id}>
               <Link to={`/verlauf/${w.id}`} className="list-item history-item">

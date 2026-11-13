@@ -258,7 +258,7 @@ html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
 
 .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
 .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 8px; text-align: center; min-width: 0; }
-.kpi-value { font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi-value { font-weight: 600; font-size: 0.9rem; overflow-wrap: anywhere; }
 .kpi-label { margin-top: 2px; }
 
 .heatmap-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }

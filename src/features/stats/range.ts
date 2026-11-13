@@ -1,13 +1,14 @@
+import type { MessageKey } from '../../i18n'
 import { localDateKey } from '../../lib/format'
 import type { RangeKey, RangeSelection } from '../../storage/preferences'
 
-export const RANGE_CHIPS: { key: RangeKey; label: string }[] = [
-  { key: '2w', label: '2 W' },
-  { key: '1m', label: '1 M' },
-  { key: '3m', label: '3 M' },
-  { key: '1y', label: '1 J' },
-  { key: 'all', label: 'Alle' },
-  { key: 'custom', label: 'Zeitraum' },
+export const RANGE_CHIPS: { key: RangeKey; label: MessageKey }[] = [
+  { key: '2w', label: 'range.2w' },
+  { key: '1m', label: 'range.1m' },
+  { key: '3m', label: 'range.3m' },
+  { key: '1y', label: 'range.1y' },
+  { key: 'all', label: 'range.all' },
+  { key: 'custom', label: 'range.custom' },
 ]
 
 /** First and last local day (YYYY-MM-DD, inclusive) of a selection; null = open end. */

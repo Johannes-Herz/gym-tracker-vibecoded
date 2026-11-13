@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { t } from '../i18n'
 import { formatNumber } from '../lib/format'
 import { parseDecimal, stepValue } from '../lib/number'
 
@@ -47,7 +48,7 @@ export default function NumberStepper({
   return (
     <div className="stepper">
       {buttons && (
-        <button type="button" className="btn" aria-label={`${label} verringern`} onClick={() => bump(-step)}>
+        <button type="button" className="btn" aria-label={t('number.decrease', { label })} onClick={() => bump(-step)}>
           −
         </button>
       )}
@@ -61,7 +62,7 @@ export default function NumberStepper({
         onBlur={() => setDraft(null)}
       />
       {buttons && (
-        <button type="button" className="btn" aria-label={`${label} erhöhen`} onClick={() => bump(step)}>
+        <button type="button" className="btn" aria-label={t('number.increase', { label })} onClick={() => bump(step)}>
           +
         </button>
       )}

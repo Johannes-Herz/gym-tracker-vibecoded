@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import { t } from '../../i18n'
+import { muscleLabel } from '../../i18n/labels'
 import { moveItem } from '../../lib/exerciseOrder'
+import { exerciseName } from '../exercises/exerciseName'
 import { templates as repo } from '../../storage/repo'
 import { useStore } from '../../storage/store'
 import type { Template } from '../../types'
@@ -48,10 +51,10 @@ export default function TemplateForm({ template, onDone }: Props) {
     <>
       <div className="card form">
         <label>
-          Name
+          {t('tpl.name')}
           <input
             value={name}
-            placeholder="z. B. Push Tag"
+            placeholder={t('workout.templateNamePlaceholder')}
             maxLength={60}
             onChange={(e) => setName(e.target.value)}
           />
@@ -64,16 +67,16 @@ export default function TemplateForm({ template, onDone }: Props) {
           return (
             <li key={id} className="list-item">
               <div className="grow">
-                <div>{e.name}</div>
+                <div>{exerciseName(e)}</div>
                 <div className="muted small">
-                  {e.muscleGroup}
-                  {e.hidden ? ' · ausgeblendet' : ''}
+                  {muscleLabel(e.muscleGroup)}
+                  {e.hidden ? t('tpl.hiddenSuffix') : ''}
                 </div>
               </div>
               <button
                 type="button"
                 className="btn"
-                aria-label={`${e.name} nach oben`}
+                aria-label={t('block.moveUp', { name: exerciseName(e) })}
                 disabled={i === 0}
                 onClick={() => setIds(moveItem(shownIds, i, -1))}
               >
@@ -82,7 +85,7 @@ export default function TemplateForm({ template, onDone }: Props) {
               <button
                 type="button"
                 className="btn"
-                aria-label={`${e.name} nach unten`}
+                aria-label={t('block.moveDown', { name: exerciseName(e) })}
                 disabled={i === shownIds.length - 1}
                 onClick={() => setIds(moveItem(shownIds, i, 1))}
               >
@@ -91,7 +94,7 @@ export default function TemplateForm({ template, onDone }: Props) {
               <button
                 type="button"
                 className="btn btn-danger-text"
-                aria-label={`${e.name} entfernen`}
+                aria-label={t('block.remove', { name: exerciseName(e) })}
                 onClick={() => setIds(shownIds.filter((x) => x !== id))}
               >
                 ✕
@@ -100,17 +103,17 @@ export default function TemplateForm({ template, onDone }: Props) {
           )
         })}
       </ul>
-      {shownIds.length === 0 && <p className="muted">Noch keine Übungen.</p>}
+      {shownIds.length === 0 && <p className="muted">{t('tpl.empty')}</p>}
 
       <button type="button" className="btn wide" onClick={() => setPicking(true)}>
-        + Übung hinzufügen
+        {t('workout.addExercise')}
       </button>
       <button type="button" className="btn btn-primary wide" disabled={!canSave} onClick={save}>
-        Speichern
+        {t('common.save')}
       </button>
       {template && (
         <button type="button" className="btn btn-danger wide" onClick={() => setDeleting(true)}>
-          Vorlage löschen
+          {t('tpl.delete')}
         </button>
       )}
 
@@ -127,24 +130,24 @@ export default function TemplateForm({ template, onDone }: Props) {
       )}
       {overwriting && (
         <ConfirmDialog
-          title="Vorlage überschreiben?"
-          confirmLabel="Überschreiben"
+          title={t('workout.overwriteTitle')}
+          confirmLabel={t('workout.overwriteConfirm')}
           danger
           onConfirm={write}
           onCancel={() => setOverwriting(false)}
         >
-          Die Vorlage „{name.trim()}“ existiert bereits und wird überschrieben.
+          {t('tpl.overwriteText', { name: name.trim() })}
         </ConfirmDialog>
       )}
       {deleting && (
         <ConfirmDialog
-          title="Vorlage löschen?"
-          confirmLabel="Löschen"
+          title={t('tpl.deleteTitle')}
+          confirmLabel={t('common.delete')}
           danger
           onConfirm={remove}
           onCancel={() => setDeleting(false)}
         >
-          „{template?.name}“ wird gelöscht. Bereits gespeicherte Trainings bleiben unverändert.
+          {t('tpl.deleteText', { name: template?.name ?? '' })}
         </ConfirmDialog>
       )}
     </>

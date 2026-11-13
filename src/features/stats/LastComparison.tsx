@@ -1,4 +1,5 @@
-import { formatNumber } from '../../lib/format'
+import { t } from '../../i18n'
+import { formatNumber, formatWeekdayDayMonth } from '../../lib/format'
 import { formatLoad } from '../exercises/bodyweight'
 import { comparisonColumns, type ComparisonCell, type ComparisonColumn, type Delta, type Session } from './exerciseStats'
 
@@ -8,18 +9,16 @@ interface Props {
   bodyweight: boolean
 }
 
-const WEEKDAYS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa']
 
 /** "Mi, 12.11." */
 function sessionDate(iso: string): string {
-  const d = new Date(iso)
-  return `${WEEKDAYS[d.getDay()]}, ${d.getDate()}.${d.getMonth() + 1}.`
+  return formatWeekdayDayMonth(new Date(iso))
 }
 
 const ARROW: Partial<Record<Delta, string>> = { up: '↑', down: '↓' }
 
 function Value({ text, delta, what }: { text: string; delta: Delta; what: string }) {
-  const meaning = delta === 'up' ? `mehr ${what}` : delta === 'down' ? `weniger ${what}` : ''
+  const meaning = delta === 'up' ? t('cmp.more', { what }) : delta === 'down' ? t('cmp.less', { what }) : ''
   return (
     <span className={`delta delta-${delta}`} aria-label={meaning ? `${text}, ${meaning}` : text}>
       {text}
@@ -32,10 +31,10 @@ function Cell({ cell, bodyweight }: { cell: ComparisonCell | undefined; bodyweig
   if (!cell) return <td className="muted">–</td>
   return (
     <td>
-      <Value text={formatLoad(cell.weight, bodyweight)} delta={cell.weightDelta} what="Gewicht" />
+      <Value text={formatLoad(cell.weight, bodyweight)} delta={cell.weightDelta} what={t('cmp.weight')} />
       <span className="muted"> × </span>
-      <Value text={formatNumber(cell.reps)} delta={cell.repsDelta} what="Wiederholungen" />
-      {cell.weightDelta === 'new' && <span className="tag">neu</span>}
+      <Value text={formatNumber(cell.reps)} delta={cell.repsDelta} what={t('cmp.reps')} />
+      {cell.weightDelta === 'new' && <span className="tag">{t('cmp.new')}</span>}
     </td>
   )
 }
@@ -43,16 +42,16 @@ function Cell({ cell, bodyweight }: { cell: ComparisonCell | undefined; bodyweig
 export default function LastComparison({ allSessions, rangeSessions, bodyweight }: Props) {
   const result = comparisonColumns(allSessions, rangeSessions)
   if (!result) return null
-  const columns: [string, ComparisonColumn][] = [['Letztes Training', result.last]]
-  if (result.prev) columns.push(['Davor', result.prev])
+  const columns: [string, ComparisonColumn][] = [[t('cmp.last'), result.last]]
+  if (result.prev) columns.push([t('cmp.prev'), result.prev])
 
   return (
     <section className="card">
-      <h2 className="block-title">Letztes Training vs. davor</h2>
+      <h2 className="block-title">{t('cmp.title')}</h2>
       <table className="compare">
         <thead>
           <tr>
-            <th className="muted small">Satz</th>
+            <th className="muted small">{t('cmp.set')}</th>
             {columns.map(([title, col]) => (
               <th key={title}>
                 <div className="small">{title}</div>

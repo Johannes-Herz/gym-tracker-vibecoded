@@ -1,3 +1,4 @@
+import { equipmentLabel } from '../../i18n/labels'
 import { formatNumber } from '../../lib/format'
 import { isCardio, type Exercise } from '../../types'
 
@@ -22,8 +23,8 @@ export function formatLoad(weight: number, bodyweight: boolean): string {
 
 /** Spelled out where there is room: "Körpergewicht", "Körpergewicht + 5 kg", "Körpergewicht − 20 kg". */
 export function formatLoadLong(weight: number): string {
-  if (weight === 0) return 'Körpergewicht'
-  return `Körpergewicht ${weight > 0 ? '+' : '−'} ${formatNumber(Math.abs(weight))} kg`
+  if (weight === 0) return equipmentLabel('Körpergewicht')
+  return `${equipmentLabel('Körpergewicht')} ${weight > 0 ? '+' : '−'} ${formatNumber(Math.abs(weight))} kg`
 }
 
 /** One set: "82,5 kg × 5", "BW × 12", "+5 kg × 8", "−20 kg × 6". */

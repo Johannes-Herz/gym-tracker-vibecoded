@@ -1,4 +1,5 @@
-import { lazy, Suspense } from 'react'
+import { Fragment, lazy, Suspense, useEffect } from 'react'
+import { t, useLang } from './i18n'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import BottomNav from './components/BottomNav'
 import { useTabMemory } from './lib/useTabMemory'
@@ -18,11 +19,17 @@ const ExerciseStatsPage = lazy(() => import('./pages/ExerciseStatsPage'))
 export default function App() {
   useTabMemory()
   usePendingSteps()
+  // Strings are looked up at render time; remounting on a language change makes
+  // every screen pick up the new language immediately (no reload).
+  const lang = useLang()
+  useEffect(() => {
+    document.documentElement.lang = lang
+  }, [lang])
 
   return (
-    <>
+    <Fragment key={lang}>
       <main className="page">
-        <Suspense fallback={<p className="muted">Lädt…</p>}>
+        <Suspense fallback={<p className="muted">{t('common.loading')}</p>}>
         <Routes>
           <Route path="/" element={<Navigate to="/verlauf" replace />} />
           <Route path="/verlauf" element={<HistoryPage />} />
@@ -39,6 +46,6 @@ export default function App() {
         </Suspense>
       </main>
       <BottomNav />
-    </>
+    </Fragment>
   )
 }

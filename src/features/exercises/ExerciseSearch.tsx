@@ -1,14 +1,17 @@
 import { useState } from 'react'
+import { t } from '../../i18n'
+import { muscleLabel } from '../../i18n/labels'
 import { exercises as repo, type ExerciseInput } from '../../storage/repo'
 import { MUSCLE_GROUPS, type Exercise, type MuscleGroup } from '../../types'
 import ExerciseForm from './ExerciseForm'
+import { exerciseName, otherName } from './exerciseName'
 import { searchSections } from './search'
 
 interface Props {
   exercises: Exercise[]
   recentIds?: string[]
   onPick: (exercise: Exercise) => void
-  /** Offer "Übung „…“ erstellen" when nothing matches. */
+  /** Offer to create a custom exercise (named like the query) when nothing matches. */
   allowCreate?: boolean
   autoFocus?: boolean
 }
@@ -42,15 +45,15 @@ export default function ExerciseSearch({ exercises, recentIds, onPick, allowCrea
       <div className="form">
         <input
           type="search"
-          placeholder="Übung suchen (auch englisch)…"
-          aria-label="Übung suchen"
+          placeholder={t('ex.searchPlaceholder')}
+          aria-label={t('ex.search')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           autoFocus={autoFocus}
           enterKeyHint="search"
         />
       </div>
-      <div className="chips" role="group" aria-label="Muskelgruppe">
+      <div className="chips" role="group" aria-label={t('ex.muscleGroup')}>
         {([null, ...MUSCLE_GROUPS] as const).map((g) => (
           <button
             key={g ?? 'all'}
@@ -59,7 +62,7 @@ export default function ExerciseSearch({ exercises, recentIds, onPick, allowCrea
             aria-pressed={group === g}
             onClick={() => setGroup(g)}
           >
-            {g ?? 'Alle'}
+            {g ? muscleLabel(g) : t('ex.all')}
           </button>
         ))}
       </div>
@@ -72,10 +75,10 @@ export default function ExerciseSearch({ exercises, recentIds, onPick, allowCrea
               <li key={e.id}>
                 <button type="button" className="btn picker-item" onClick={() => onPick(e)}>
                   <span>
-                    {e.name}
-                    {e.aliasEn && e.aliasEn !== e.name && <span className="muted small"> · {e.aliasEn}</span>}
+                    {exerciseName(e)}
+                    {otherName(e) && <span className="muted small"> · {otherName(e)}</span>}
                   </span>
-                  <span className="muted small">{e.muscleGroup}</span>
+                  <span className="muted small">{muscleLabel(e.muscleGroup)}</span>
                 </button>
               </li>
             ))}
@@ -85,10 +88,10 @@ export default function ExerciseSearch({ exercises, recentIds, onPick, allowCrea
 
       {sections.length === 0 && (
         <div className="search-empty">
-          <p className="muted">Nichts gefunden.</p>
+          <p className="muted">{t('ex.notFound')}</p>
           {allowCreate && term && (
             <button type="button" className="btn btn-primary wide" onClick={() => setCreating(true)}>
-              Übung „{term}“ erstellen
+              {t('ex.create', { term })}
             </button>
           )}
         </div>
