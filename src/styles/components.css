@@ -135,3 +135,27 @@
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 button, a, input, select { touch-action: manipulation; }
 html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+
+.segmented { display: flex; gap: 4px; margin-bottom: 12px; }
+.segmented .btn { flex: 1; padding: 0 6px; font-size: 0.85rem; }
+.segmented .btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.tabs { margin-bottom: 16px; }
+.chart { height: 240px; margin-top: 8px; }
+
+.calendar-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.calendar-head .btn { min-width: 44px; padding: 0; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.calendar-weekday { text-align: center; padding: 4px 0; }
+.calendar-day {
+  aspect-ratio: 1;
+  min-height: 40px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+}
+.calendar-day.trained { background: var(--primary); color: #fff; font-weight: 600; }
+.calendar-day.today { border-color: var(--text); }
+.calendar-day.selected { outline: 2px solid var(--primary); outline-offset: 1px; }
+.calendar-summary { margin-top: 8px; text-align: center; }
