@@ -48,9 +48,9 @@
 - [x] Cardio: muscle group "Cardio", entries with duration (min) + optional distance (km), 6 built-ins
 - [x] Cardio in editor, exercise list/picker, per-exercise stats and demo data
 
-## Phase 9: Exercise stats page, bodyweight, exercise search — IN PROGRESS
-- [ ] Bodyweight exercises (equipment "Körpergewicht"): added/assisted weight, shown as KG / KG ± x kg
-- [ ] Full-screen exercise search with chips, recently used and create-from-search
-- [ ] Time range filter (2 W / 1 M / 3 M / 1 J / Alle / Zeitraum), remembered per device
-- [ ] Per-exercise stats page: KPIs, rep heatmap, last vs. previous, compact trend; cardio variant
-- [ ] Demo data with bodyweight exercises
+## Phase 9: Exercise stats page, bodyweight, exercise search — DONE
+- [x] Bodyweight exercises (equipment "Körpergewicht"): added/assisted weight, shown as KG / KG ± x kg
+- [x] Full-screen exercise search with chips, recently used and create-from-search
+- [x] Time range filter (2 W / 1 M / 3 M / 1 J / Alle / Zeitraum), remembered per device
+- [x] Per-exercise stats page: KPIs, rep heatmap, last vs. previous, compact trend; cardio variant
+- [x] Demo data with bodyweight exercises
