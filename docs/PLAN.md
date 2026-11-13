@@ -130,3 +130,28 @@ A quick rest timer: not saved, not part of the workout data or the export, not l
 - [x] 2. Store, generated beep, vibration, wake lock + tests
 - [x] 3. Docked bar and bottom sheet, CSS, mounted in `WorkoutEditor`
 - [x] 4. Phone-width check (360 px, light and dark, headless Chrome); device checks still to do by hand: iOS silent switch, Android vibration, wake lock in the installed iOS PWA
+
+## Phase 15: Language setting (Deutsch / English) — DONE
+Settings → Sprache / Language switches the whole UI between German and English, applied immediately (no reload) and remembered per device.
+
+### Decisions
+- No i18n library: `src/i18n/de.ts` (source of truth for keys) and `en.ts` typed as `Record<MessageKey, string>`, so a missing translation is a type error. `t(key, params)` with `{name}` placeholders, `tp(key, n)` for `_one` / `_other` plurals. Parity test: same keys, same placeholders, no empty values.
+- German is the default; no browser-language detection. The choice lives in the device-local prefs (`gymtracker:prefs`, key `language`), not in app data, the export or the schema. "Delete all data" keeps it.
+- `App` remounts its tree when the language changes (`key={lang}`), so every screen re-reads its strings. Components call `t()` directly. `<html lang>` follows the language.
+- Stored values stay German (`muscleGroup` "Brust", `equipment` "Langhantel", free-text categories); only their display is translated (`muscleLabel`, `equipmentLabel`). `<option value>` keeps the stored value.
+- Built-in exercises: German `name` and English name (`aliasEn`, refined for ~20 entries, e.g. "Barbell Bench Press") are looked up by the stored fields, so IDs, stored names and history are untouched. List/search show the name of the other language as a hint. Search matches German name, English name, aliases, and muscle group / equipment in both languages, whatever the UI language.
+- Not translated: custom exercise names, template names, notes, custom categories. Demo data is created in the current language and then belongs to the user.
+- Formatting (`lib/format.ts`): decimal comma / point via `Intl.NumberFormat`, dates per language (de-DE, en-US: "Mi, 12.11." vs "Wed, Nov 12"), weekday header generated from Intl, Monday first in both. "Wdh." ↔ "reps"; "kg" and "BW" unchanged.
+- Guard test (`i18n/noHardcodedText.test.ts`) fails on umlaut words, single-line JSX text and label-like attributes outside `src/i18n/`. Heuristic only.
+- Not changed: `manifest.webmanifest` and `<title>` (static); `<input type="datetime-local">` follows the browser locale.
+
+### Steps
+- [x] 1. i18n core, language store, preference + tests
+- [x] 2. Format layer (numbers, dates, weekdays) + tests
+- [x] 3. Exercise names, muscle/equipment labels, search across both languages + tests
+- [x] 4. Shell: navigation, common components, Settings with the language switch, timer
+- [x] 5. Workout editor, history, calendar, templates
+- [x] 6. Exercise list, form and search
+- [x] 7. Statistics, charts, heatmap, comparison, metric labels
+- [x] 8. Import messages, demo data names, guard test
+- [x] 9. 360 px check in both languages (runtime switch verified), PLAN.md
