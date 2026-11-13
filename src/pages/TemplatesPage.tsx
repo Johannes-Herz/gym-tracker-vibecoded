@@ -1,10 +1,11 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import PageHeader from '../components/PageHeader'
 import ExerciseViewToggle from '../features/templates/ExerciseViewToggle'
 import { useStore } from '../storage/store'
 
 export default function TemplatesPage() {
   const { templates, exercises } = useStore()
+  const navigate = useNavigate()
   const sorted = [...templates].sort((a, b) => a.name.localeCompare(b.name, 'de'))
 
   return (
@@ -12,9 +13,9 @@ export default function TemplatesPage() {
       <PageHeader
         title="Übungen"
         action={
-          <Link to="/uebungen/vorlagen/neu" className="btn btn-primary">
+          <button type="button" className="btn btn-primary" onClick={() => navigate('/uebungen/vorlagen/neu')}>
             + Neu
-          </Link>
+          </button>
         }
       />
       <ExerciseViewToggle view="templates" />
