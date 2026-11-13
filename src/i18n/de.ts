@@ -248,4 +248,28 @@ export const de = {
   'heat.cellLabel': '{date} {load}: {reps} Wiederholungen',
   'heat.hint': 'Tippe auf ein Feld für die Sätze.',
   'heat.legendLabel': 'Legende: helle Felder wenige, dunkle Felder viele Wiederholungen',
+
+  // import validation messages (shown in Settings)
+  'backup.notJson': 'Die Datei ist keine gültige JSON-Datei.',
+  'backup.notBackup': 'Die Datei ist kein Gym-Tracker-Backup.',
+  'backup.noData': 'Das Backup enthält keine Daten.',
+  'backup.noSchema': 'Schema-Version fehlt.',
+  'backup.tooNew': 'Das Backup stammt aus einer neueren App-Version.',
+  'backup.fieldInvalid': 'Feld „{key}“ fehlt oder ist ungültig.',
+  'backup.migrateFailed': 'Die Daten konnten nicht migriert werden.',
+  'backup.entryInvalid': '{section}: ungültiger Eintrag.',
+  'backup.duplicateId': '{section}: doppelte ID.',
+  'backup.section.exercises': 'Übungen',
+  'backup.section.workouts': 'Trainings',
+  'backup.section.sets': 'Sätze',
+  'backup.section.bodyWeights': 'Körpergewicht',
+  'backup.section.templates': 'Vorlagen',
+  'backup.setsMissingRefs': 'Sätze verweisen auf fehlende Trainings oder Übungen.',
+  'backup.setsWrongType': 'Sätze passen nicht zum Übungstyp (Kraft/Cardio).',
+  'backup.setsBadWeight': 'Sätze: ungültiges Gewicht.',
+
+  // demo data created in the current language (then it is user content)
+  'demo.pushDay': 'Push Tag',
+  'demo.pullDay': 'Pull Tag',
+  'demo.legDay': 'Beine',
 } as const

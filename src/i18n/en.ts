@@ -244,4 +244,28 @@ export const en: Record<MessageKey, string> = {
   'heat.cellLabel': '{date} {load}: {reps} reps',
   'heat.hint': 'Tap a cell to see the sets.',
   'heat.legendLabel': 'Legend: light cells few, dark cells many repetitions',
+
+  // import validation messages (shown in Settings)
+  'backup.notJson': 'The file is not valid JSON.',
+  'backup.notBackup': 'The file is not a Gym Tracker backup.',
+  'backup.noData': 'The backup contains no data.',
+  'backup.noSchema': 'Schema version is missing.',
+  'backup.tooNew': 'The backup comes from a newer app version.',
+  'backup.fieldInvalid': 'Field “{key}” is missing or invalid.',
+  'backup.migrateFailed': 'The data could not be migrated.',
+  'backup.entryInvalid': '{section}: invalid entry.',
+  'backup.duplicateId': '{section}: duplicate ID.',
+  'backup.section.exercises': 'Exercises',
+  'backup.section.workouts': 'Workouts',
+  'backup.section.sets': 'Sets',
+  'backup.section.bodyWeights': 'Body weight',
+  'backup.section.templates': 'Templates',
+  'backup.setsMissingRefs': 'Sets refer to missing workouts or exercises.',
+  'backup.setsWrongType': 'Sets do not match the exercise type (strength/cardio).',
+  'backup.setsBadWeight': 'Sets: invalid weight.',
+
+  // demo data created in the current language (then it is user content)
+  'demo.pushDay': 'Push Day',
+  'demo.pullDay': 'Pull Day',
+  'demo.legDay': 'Legs',
 }

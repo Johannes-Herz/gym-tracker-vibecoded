@@ -1,4 +1,5 @@
 import { newId as defaultNewId } from '../lib/id'
+import { translate } from '../i18n'
 import { CURRENT_SCHEMA_VERSION, ensureBuiltins } from '../storage/storage'
 import type { AppData, BodyWeightEntry, Exercise, Template as WorkoutTemplate, Workout, WorkoutSet } from '../types'
 import { createRandom, type Random } from './random'
@@ -84,15 +85,15 @@ export function buildDemoData({ builtins, today = new Date(), seed = DEMO_SEED, 
   // One template per split day, in the order a session usually runs.
   const templateDefs: { name: string; exerciseIds: string[] }[] = [
     {
-      name: 'Push Tag',
+      name: translate('demo.pushDay'),
       exerciseIds: ['builtin-bench-press', 'builtin-overhead-press', 'builtin-incline-dumbbell-press', 'builtin-lateral-raise', 'builtin-triceps-pushdown'],
     },
     {
-      name: 'Pull Tag',
+      name: translate('demo.pullDay'),
       exerciseIds: ['builtin-lat-pulldown', 'builtin-barbell-row', 'builtin-face-pull', 'builtin-ez-curl'],
     },
     {
-      name: 'Beine',
+      name: translate('demo.legDay'),
       exerciseIds: ['builtin-squat', 'builtin-romanian-deadlift', 'builtin-leg-press', 'builtin-leg-curl', 'builtin-standing-calf-raise'],
     },
   ]

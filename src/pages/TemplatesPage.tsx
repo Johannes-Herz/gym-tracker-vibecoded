@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { exerciseName } from '../features/exercises/exerciseName'
-import { t, tp } from '../i18n'
+import { LOCALES, getLang, t, tp } from '../i18n'
 import PageHeader from '../components/PageHeader'
 import ExerciseViewToggle from '../features/templates/ExerciseViewToggle'
 import { useStore } from '../storage/store'
@@ -8,7 +8,7 @@ import { useStore } from '../storage/store'
 export default function TemplatesPage() {
   const { templates, exercises } = useStore()
   const navigate = useNavigate()
-  const sorted = [...templates].sort((a, b) => a.name.localeCompare(b.name, 'de'))
+  const sorted = [...templates].sort((a, b) => a.name.localeCompare(b.name, LOCALES[getLang()]))
 
   return (
     <>
