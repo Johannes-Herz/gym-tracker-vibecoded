@@ -31,3 +31,7 @@
 - [x] Seeded, deterministic generator: ~10 weeks of push/pull/legs, 3–4 workouts per week, ending today
 - [x] Built-in + custom exercises, progressive overload with fluctuations and bad days, body weight trend
 - [x] "Demo-Daten laden" in Settings; confirm + replace if data exists (current data backed up), built-ins/hidden state kept
+
+## Phase 6: Calendar in Verlauf — DONE
+- [x] Move the calendar from Statistik into Verlauf; remove the Statistik calendar tab
+- [x] Verlauf toggle "Liste" / "Kalender", last view remembered per device (via `src/storage/`)

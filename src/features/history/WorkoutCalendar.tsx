@@ -2,13 +2,12 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatDateTime, localDateKey } from '../../lib/format'
 import { useStore } from '../../storage/store'
-import { monthGrid } from './calendar'
-import { trainingDays } from './stats'
+import { monthGrid, trainingDays } from './calendar'
 
 const WEEKDAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 const monthName = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' })
 
-export default function CalendarTab() {
+export default function WorkoutCalendar() {
   const data = useStore()
   const now = new Date()
   const [view, setView] = useState({ year: now.getFullYear(), month: now.getMonth() })

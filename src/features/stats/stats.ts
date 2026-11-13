@@ -1,4 +1,3 @@
-import { localDateKey } from '../../lib/format'
 import type { AppData } from '../../types'
 
 /** Epley estimate; a single rep counts as the weight itself. */
@@ -67,9 +66,4 @@ export function aggregateBy(
   return [...totals.values()]
     .map((t) => ({ ...t, volume: round1(t.volume) }))
     .sort((a, b) => b.volume - a.volume)
-}
-
-/** Local days (YYYY-MM-DD) with at least one workout. */
-export function trainingDays(data: AppData): Set<string> {
-  return new Set(data.workouts.map((w) => localDateKey(new Date(w.startedAt))))
 }

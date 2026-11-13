@@ -1,11 +1,49 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import PageHeader from '../components/PageHeader'
+import WorkoutCalendar from '../features/history/WorkoutCalendar'
 import { formatDateTime } from '../lib/format'
+import { loadHistoryView, saveHistoryView, type HistoryView } from '../storage/preferences'
 import { useStore } from '../storage/store'
 
 const monthFormat = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' })
 
+const VIEWS: { key: HistoryView; label: string }[] = [
+  { key: 'list', label: 'Liste' },
+  { key: 'calendar', label: 'Kalender' },
+]
+
 export default function HistoryPage() {
+  const [view, setView] = useState<HistoryView>(() => loadHistoryView())
+
+  function choose(next: HistoryView) {
+    setView(next)
+    saveHistoryView(next)
+  }
+
+  return (
+    <>
+      <PageHeader title="Verlauf" />
+      <div className="segmented tabs" role="tablist">
+        {VIEWS.map((v) => (
+          <button
+            key={v.key}
+            type="button"
+            role="tab"
+            aria-selected={v.key === view}
+            className={v.key === view ? 'btn active' : 'btn'}
+            onClick={() => choose(v.key)}
+          >
+            {v.label}
+          </button>
+        ))}
+      </div>
+      {view === 'list' ? <WorkoutList /> : <WorkoutCalendar />}
+    </>
+  )
+}
+
+function WorkoutList() {
   const { workouts, sets, exercises } = useStore()
 
   const sorted = [...workouts].sort((a, b) => b.startedAt.localeCompare(a.startedAt))
@@ -17,7 +55,6 @@ export default function HistoryPage() {
 
   return (
     <>
-      <PageHeader title="Verlauf" />
       {sorted.length === 0 && <p className="muted">Noch keine Trainings.</p>}
       {[...months.entries()].map(([month, items]) => (
         <section key={month}>

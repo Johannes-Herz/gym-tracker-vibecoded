@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { monthGrid } from './calendar'
+import { monthGrid, trainingDays } from './calendar'
 
 describe('monthGrid', () => {
   it('starts on Monday and pads to full weeks', () => {
@@ -14,5 +14,17 @@ describe('monthGrid', () => {
   it('needs no leading blanks when the month starts on Monday', () => {
     // June 2026 starts on a Monday.
     expect(monthGrid(2026, 5)[0]).toBe(1)
+  })
+})
+
+describe('trainingDays', () => {
+  it('collects local day keys, one per day', () => {
+    const at = (y: number, m: number, d: number, h: number) => new Date(y, m, d, h).toISOString()
+    const workouts = [
+      { id: 'a', startedAt: at(2026, 0, 10, 8) },
+      { id: 'b', startedAt: at(2026, 0, 10, 19) },
+      { id: 'c', startedAt: at(2026, 1, 10, 23) },
+    ]
+    expect([...trainingDays({ workouts })].sort()).toEqual(['2026-01-10', '2026-02-10'])
   })
 })
