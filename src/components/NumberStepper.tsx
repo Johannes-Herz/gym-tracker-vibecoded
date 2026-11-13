@@ -3,7 +3,8 @@ import { formatNumber } from '../lib/format'
 import { parseDecimal, stepValue } from '../lib/number'
 
 interface Props {
-  value: number
+  /** undefined shows an empty input (only useful together with onClear). */
+  value: number | undefined
   step: number
   label: string
   unit?: string
@@ -12,6 +13,8 @@ interface Props {
   buttons?: boolean
   inputMode?: 'decimal' | 'numeric'
   onChange: (value: number) => void
+  /** If set, clearing the input is allowed and reported here. */
+  onClear?: () => void
 }
 
 export default function NumberStepper({
@@ -23,6 +26,7 @@ export default function NumberStepper({
   buttons = true,
   inputMode = 'decimal',
   onChange,
+  onClear,
 }: Props) {
   const [draft, setDraft] = useState<string | null>(null)
 
@@ -30,11 +34,12 @@ export default function NumberStepper({
     setDraft(text)
     const n = parseDecimal(text)
     if (n !== null && n >= min) onChange(n)
+    else if (onClear && text.trim() === '') onClear()
   }
 
   function bump(delta: number) {
     setDraft(null)
-    onChange(stepValue(value, delta, min))
+    onChange(stepValue(value ?? 0, delta, min))
   }
 
   return (
@@ -47,7 +52,7 @@ export default function NumberStepper({
       <input
         aria-label={label}
         inputMode={inputMode}
-        value={draft ?? formatNumber(value)}
+        value={draft ?? (value === undefined ? '' : formatNumber(value))}
         onChange={(e) => handleInput(e.target.value)}
         onFocus={(e) => e.target.select()}
         onBlur={() => setDraft(null)}

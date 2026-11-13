@@ -1,15 +1,17 @@
 import { useState, type FormEvent } from 'react'
 import type { ExerciseInput } from '../../storage/repo'
-import { EQUIPMENT, MUSCLE_GROUPS, type Equipment, type MuscleGroup } from '../../types'
+import { EQUIPMENT, MUSCLE_GROUPS, isCardio, type Equipment, type MuscleGroup } from '../../types'
 
 interface Props {
   initial?: ExerciseInput
   categories: string[]
+  /** The exercise already has sets: it can't switch between strength and cardio. */
+  lockKind?: boolean
   onSubmit: (input: ExerciseInput) => void
   onCancel: () => void
 }
 
-export default function ExerciseForm({ initial, categories, onSubmit, onCancel }: Props) {
+export default function ExerciseForm({ initial, categories, lockKind = false, onSubmit, onCancel }: Props) {
   const [name, setName] = useState(initial?.name ?? '')
   const [muscleGroup, setMuscleGroup] = useState<MuscleGroup>(initial?.muscleGroup ?? MUSCLE_GROUPS[0])
   const [category, setCategory] = useState(initial?.category ?? '')
@@ -30,10 +32,15 @@ export default function ExerciseForm({ initial, categories, onSubmit, onCancel }
       <label>
         Muskelgruppe
         <select value={muscleGroup} onChange={(e) => setMuscleGroup(e.target.value as MuscleGroup)}>
-          {MUSCLE_GROUPS.map((g) => (
+          {MUSCLE_GROUPS.filter(
+            (g) => !lockKind || !initial || isCardio({ muscleGroup: g }) === isCardio(initial),
+          ).map((g) => (
             <option key={g}>{g}</option>
           ))}
         </select>
+        {lockKind && (
+          <span className="small">Bereits trainiert: Wechsel zwischen Kraft und Cardio nicht möglich.</span>
+        )}
       </label>
       <label>
         Gerät
