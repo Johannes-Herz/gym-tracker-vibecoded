@@ -33,9 +33,15 @@ export const en: Record<MessageKey, string> = {
 
   // Einstellungen page
   'settings.title': 'Settings',
+  'settings.group.general': 'General',
+  'settings.group.general.text': 'Settings for this device.',
+  'settings.group.data': 'Data',
+  'settings.group.data.text': 'Back up your data or restore it from a file.',
+  'settings.group.advanced': 'Advanced',
+  'settings.group.advanced.text': 'Demo data and deleting',
   'settings.backup.title': 'Back up data',
   'settings.backup.text': 'Export all data as a JSON file.',
-  'settings.backup.button': 'Export data',
+  'settings.backup.button': 'Export',
   'settings.restore.title': 'Restore data',
   'settings.restore.text': 'Import a previously exported JSON file. Your current data will be replaced.',
   'settings.restore.button': 'Choose file',

@@ -37,9 +37,15 @@ export const de = {
 
   // Einstellungen page
   'settings.title': 'Einstellungen',
+  'settings.group.general': 'Allgemein',
+  'settings.group.general.text': 'Einstellungen für dieses Gerät.',
+  'settings.group.data': 'Daten',
+  'settings.group.data.text': 'Sichere deine Daten oder stelle sie aus einer Datei wieder her.',
+  'settings.group.advanced': 'Erweitert',
+  'settings.group.advanced.text': 'Demo-Daten und Löschen',
   'settings.backup.title': 'Daten sichern',
   'settings.backup.text': 'Exportiere alle Daten als JSON-Datei.',
-  'settings.backup.button': 'Daten exportieren',
+  'settings.backup.button': 'Exportieren',
   'settings.restore.title': 'Daten wiederherstellen',
   'settings.restore.text': 'Importiere eine zuvor exportierte JSON-Datei. Die aktuellen Daten werden dabei ersetzt.',
   'settings.restore.button': 'Datei auswählen',
