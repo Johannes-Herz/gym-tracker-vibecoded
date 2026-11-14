@@ -4,7 +4,7 @@ import { buildDemoData, hasUserData } from '../demo/demoData'
 import PageHeader from '../components/PageHeader'
 import { LANGUAGE_NAMES, getLang, setLang, t } from '../i18n'
 import { LANGUAGES } from '../storage/preferences'
-import { buildBackupFile, canShareBackupFile, deleteAllData, parseImport, replaceAllData, shareBackup } from '../storage/backup'
+import { buildBackupFile, canShareBackupFile, deleteAllData, parseImport, replaceAllData, shareBackup, shareErrorReason } from '../storage/backup'
 import type { AppData } from '../types'
 import { useStore } from '../storage/store'
 
@@ -70,8 +70,9 @@ export default function SettingsPage() {
     setMessage(null)
     try {
       await shareBackup(data) // dismissing the share sheet resolves quietly
-    } catch {
-      setMessage({ kind: 'error', text: t('settings.share.failed') })
+    } catch (e) {
+      console.error('Share failed', e)
+      setMessage({ kind: 'error', text: t('settings.share.failed', { reason: shareErrorReason(e) }) })
     }
   }
 
@@ -133,7 +134,7 @@ export default function SettingsPage() {
           <input
             ref={fileInput}
             type="file"
-            accept="application/json,.json"
+            accept="application/json,.json,text/plain,.txt"
             hidden
             onChange={(e) => handleFile(e.target.files?.[0])}
           />

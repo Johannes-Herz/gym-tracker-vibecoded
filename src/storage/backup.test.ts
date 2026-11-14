@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { AppData } from '../types'
-import { backupFileName, buildBackupFile, canShareBackupFile, deleteAllData, parseImport, serializeBackup, shareBackup } from './backup'
+import { backupFileName, buildBackupFile, canShareBackupFile, deleteAllData, parseImport, serializeBackup, shareBackup, shareErrorReason } from './backup'
 import { _resetCache, getState, update } from './store'
 import { CURRENT_SCHEMA_VERSION, emptyData } from './storage'
 
@@ -67,9 +67,41 @@ describe('backup sharing', () => {
     await expect(shareBackup(emptyData())).resolves.toBe('cancelled')
   })
 
-  it('passes other share failures on', async () => {
-    vi.stubGlobal('navigator', { share: vi.fn().mockRejectedValue(new DOMException('no', 'NotAllowedError')), canShare: () => true })
-    await expect(shareBackup(emptyData())).rejects.toThrow()
+  const notAllowed = () => new DOMException('Permission denied', 'NotAllowedError')
+
+  it('retries as a .json.txt text file when the browser rejects the JSON file (Chromium safelist)', async () => {
+    const share = vi.fn().mockRejectedValueOnce(notAllowed()).mockResolvedValueOnce(undefined)
+    vi.stubGlobal('navigator', { share, canShare: () => true })
+    const data = emptyData()
+    const now = new Date(2026, 10, 14, 9, 30)
+    expect(await shareBackup(data, now)).toBe('shared')
+    expect(share).toHaveBeenCalledTimes(2)
+    const retry = (share.mock.calls[1][0].files as File[])[0]
+    expect(retry.name).toBe('gym-tracker-backup-2026-11-14.json.txt')
+    expect(retry.type).toBe('text/plain')
+    expect(await retry.text()).toBe(await buildBackupFile(data, now).text())
+  })
+
+  it('throws when both attempts fail', async () => {
+    vi.stubGlobal('navigator', { share: vi.fn().mockRejectedValue(notAllowed()), canShare: () => true })
+    await expect(shareBackup(emptyData())).rejects.toMatchObject({ name: 'NotAllowedError' })
+  })
+
+  it('does not retry after the user dismissed the sheet; dismissing the retry is cancelled too', async () => {
+    const first = vi.fn().mockRejectedValue(abort())
+    vi.stubGlobal('navigator', { share: first, canShare: () => true })
+    expect(await shareBackup(emptyData())).toBe('cancelled')
+    expect(first).toHaveBeenCalledTimes(1)
+    const second = vi.fn().mockRejectedValueOnce(notAllowed()).mockRejectedValueOnce(abort())
+    vi.stubGlobal('navigator', { share: second, canShare: () => true })
+    expect(await shareBackup(emptyData())).toBe('cancelled')
+    expect(second).toHaveBeenCalledTimes(2)
+  })
+
+  it('names the error in the failure reason', () => {
+    expect(shareErrorReason(notAllowed())).toBe('NotAllowedError')
+    expect(shareErrorReason('weird')).toBe('Error')
+    expect(shareErrorReason(null)).toBe('Error')
   })
 })
 

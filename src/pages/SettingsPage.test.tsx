@@ -50,6 +50,16 @@ describe('share button', () => {
   })
 })
 
+describe('failure message and import', () => {
+  it('names the reason in the share failure message', () => {
+    expect(t('settings.share.failed', { reason: 'NotAllowedError' })).toBe('Teilen fehlgeschlagen. (NotAllowedError)')
+  })
+
+  it('the import picker also accepts the .json.txt copy made by the share fallback', () => {
+    expect(render()).toMatch(/<input[^>]*accept="[^"]*\.txt/)
+  })
+})
+
 describe('settings page', () => {
   it('renders the three groups in order', () => {
     const html = render()
