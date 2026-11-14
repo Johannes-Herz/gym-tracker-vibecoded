@@ -164,6 +164,7 @@ The bottom-nav tab and the page are both called "Einstellungen" / "Settings", th
 - Page groups: **Allgemein** (language), **Daten** (export, import), **Erweitert** (a native `<details>`, collapsed by default: demo data and the red danger zone with the existing confirmation). The status message stays at the top.
 - Not built because the features do not exist: a timer-sound setting (the beep is always on), "Letztes Backup" info and user-visible snapshots (only a silent `gymtracker:backup` copy is written when data is replaced). Sharing therefore has no "last backup" bookkeeping to update.
 - Share and export use one code path (`buildBackupFile` → same `File`: same content and same name). The file name is now `gym-tracker-backup-YYYY-MM-DD.json` for both (was `gymtracker-…`); import accepts any name.
+- Chromium (Android Chrome) only lets pages share files whose type and extension are on a safelist, and JSON is not on it. `canShare` does not check this, so the button shows but `share()` is rejected. `shareBackup` therefore retries once as `text/plain` named `gym-tracker-backup-YYYY-MM-DD.json.txt`; the import picker also accepts `.txt`/`text/plain` (content is validated, the name is ignored). The failure message names the error (e.g. `NotAllowedError`) and logs it to the console.
 - Share button: shown only if `navigator.canShare({ files })` is supported; the user dismissing the share sheet (`AbortError`) is silent, other errors show a message.
 
 ### Steps

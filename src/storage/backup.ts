@@ -44,15 +44,40 @@ export function canShareBackupFile(): boolean {
   }
 }
 
-/** Shares the backup file. Dismissing the share sheet is not an error ('cancelled'); other failures throw. */
+/**
+ * Same content as `buildBackupFile`, but as plain text named `….json.txt`. Chromium only lets
+ * pages share files whose type and extension are on a safelist (text is, JSON is not).
+ */
+function buildBackupTextFile(data: AppData, now: Date): File {
+  return new File([serializeBackup(data, now)], `${backupFileName(now)}.txt`, { type: 'text/plain' })
+}
+
+const isAbort = (e: unknown) => (e as { name?: string } | null)?.name === 'AbortError'
+
+/**
+ * Shares the backup file: as JSON first, and, if the browser rejects that type, once more as a
+ * `.json.txt` text file. Dismissing the share sheet is not an error ('cancelled'); other failures throw.
+ */
 export async function shareBackup(data: AppData, now: Date = new Date()): Promise<'shared' | 'cancelled'> {
   try {
     await navigator.share({ files: [buildBackupFile(data, now)] })
     return 'shared'
-  } catch (e) {
-    if ((e as { name?: string } | null)?.name === 'AbortError') return 'cancelled'
-    throw e
+  } catch (first) {
+    if (isAbort(first)) return 'cancelled'
+    try {
+      await navigator.share({ files: [buildBackupTextFile(data, now)] })
+      return 'shared'
+    } catch (second) {
+      if (isAbort(second)) return 'cancelled'
+      throw second
+    }
   }
+}
+
+/** Short name of a share error for the message, e.g. "NotAllowedError". */
+export function shareErrorReason(e: unknown): string {
+  const name = (e as { name?: unknown } | null)?.name
+  return typeof name === 'string' && name ? name : 'Error'
 }
 
 export type ImportResult = { ok: true; data: AppData } | { ok: false; error: string }
