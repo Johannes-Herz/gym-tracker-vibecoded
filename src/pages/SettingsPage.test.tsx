@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { t } from '../i18n'
 import { _resetCache } from '../storage/store'
 import SettingsPage from './SettingsPage'
@@ -15,6 +15,7 @@ beforeEach(() => {
   _resetCache()
 })
 afterEach(() => {
+  vi.unstubAllGlobals()
   delete (globalThis as { localStorage?: unknown }).localStorage
   _resetCache()
 })
@@ -28,6 +29,26 @@ const render = () =>
 
 /** The markup inside the (single) <details> element. */
 const advancedPart = (html: string) => html.slice(html.indexOf('<details'), html.indexOf('</details>'))
+
+describe('share button', () => {
+  it('is hidden when the browser cannot share files, export stays', () => {
+    vi.stubGlobal('navigator', {})
+    const html = render()
+    expect(html).not.toContain(t('settings.share.button'))
+    expect(html).toContain(t('settings.backup.button'))
+  })
+
+  it('sits next to the export button when file sharing is supported', () => {
+    vi.stubGlobal('navigator', { share: () => Promise.resolve(), canShare: () => true })
+    const html = render()
+    expect(t('settings.share.button')).toBe('Teilen')
+    const exportAt = html.indexOf(`>${t('settings.backup.button')}<`)
+    const shareAt = html.indexOf(`>${t('settings.share.button')}<`)
+    expect(exportAt).toBeGreaterThan(-1)
+    expect(shareAt).toBeGreaterThan(exportAt)
+    expect(advancedPart(html)).not.toContain(t('settings.share.button'))
+  })
+})
 
 describe('settings page', () => {
   it('renders the three groups in order', () => {

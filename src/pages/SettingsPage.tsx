@@ -4,15 +4,15 @@ import { buildDemoData, hasUserData } from '../demo/demoData'
 import PageHeader from '../components/PageHeader'
 import { LANGUAGE_NAMES, getLang, setLang, t } from '../i18n'
 import { LANGUAGES } from '../storage/preferences'
-import { backupFileName, deleteAllData, parseImport, replaceAllData, serializeBackup } from '../storage/backup'
+import { buildBackupFile, canShareBackupFile, deleteAllData, parseImport, replaceAllData, shareBackup } from '../storage/backup'
 import type { AppData } from '../types'
 import { useStore } from '../storage/store'
 
-function downloadJson(text: string, fileName: string) {
-  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
+function downloadFile(file: File) {
+  const url = URL.createObjectURL(file)
   const a = document.createElement('a')
   a.href = url
-  a.download = fileName
+  a.download = file.name
   document.body.appendChild(a)
   a.click()
   a.remove()
@@ -63,7 +63,16 @@ export default function SettingsPage() {
   }
 
   function handleExport() {
-    downloadJson(serializeBackup(data), backupFileName())
+    downloadFile(buildBackupFile(data))
+  }
+
+  async function handleShare() {
+    setMessage(null)
+    try {
+      await shareBackup(data) // dismissing the share sheet resolves quietly
+    } catch {
+      setMessage({ kind: 'error', text: t('settings.share.failed') })
+    }
   }
 
   const lang = getLang()
@@ -107,9 +116,16 @@ export default function SettingsPage() {
         <div className="card settings-section">
           <h3>{t('settings.backup.title')}</h3>
           <p className="muted">{t('settings.backup.text')}</p>
-          <button type="button" className="btn btn-primary" onClick={handleExport}>
-            {t('settings.backup.button')}
-          </button>
+          <div className="button-row">
+            <button type="button" className="btn btn-primary" onClick={handleExport}>
+              {t('settings.backup.button')}
+            </button>
+            {canShareBackupFile() && (
+              <button type="button" className="btn" onClick={handleShare}>
+                {t('settings.share.button')}
+              </button>
+            )}
+          </div>
         </div>
         <div className="card settings-section">
           <h3>{t('settings.restore.title')}</h3>

@@ -42,6 +42,8 @@ export const en: Record<MessageKey, string> = {
   'settings.backup.title': 'Back up data',
   'settings.backup.text': 'Export all data as a JSON file.',
   'settings.backup.button': 'Export',
+  'settings.share.button': 'Share',
+  'settings.share.failed': 'Sharing failed.',
   'settings.restore.title': 'Restore data',
   'settings.restore.text': 'Import a previously exported JSON file. Your current data will be replaced.',
   'settings.restore.button': 'Choose file',

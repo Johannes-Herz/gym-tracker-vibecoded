@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { AppData } from '../types'
-import { backupFileName, deleteAllData, parseImport, serializeBackup } from './backup'
+import { backupFileName, buildBackupFile, canShareBackupFile, deleteAllData, parseImport, serializeBackup, shareBackup } from './backup'
 import { _resetCache, getState, update } from './store'
 import { CURRENT_SCHEMA_VERSION, emptyData } from './storage'
 
@@ -15,7 +15,61 @@ describe('backup export', () => {
   })
 
   it('builds a dated file name', () => {
-    expect(backupFileName(new Date(2026, 0, 5))).toBe('gymtracker-2026-01-05.json')
+    expect(backupFileName(new Date(2026, 0, 5))).toBe('gym-tracker-backup-2026-01-05.json')
+  })
+
+  it('export file has the serialized backup as content and the dated name', async () => {
+    const data = emptyData()
+    const now = new Date(2026, 10, 14, 9, 30)
+    const file = buildBackupFile(data, now)
+    expect(file.name).toBe('gym-tracker-backup-2026-11-14.json')
+    expect(file.type).toBe('application/json')
+    expect(await file.text()).toBe(serializeBackup(data, now))
+  })
+})
+
+describe('backup sharing', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  const abort = () => new DOMException('The user aborted a request.', 'AbortError')
+
+  it('shares the same file name and content as the export', async () => {
+    const share = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', { share, canShare: () => true })
+    const data = emptyData()
+    const now = new Date(2026, 10, 14, 9, 30)
+    expect(await shareBackup(data, now)).toBe('shared')
+    const shared = share.mock.calls[0][0].files as File[]
+    expect(shared).toHaveLength(1)
+    const exported = buildBackupFile(data, now)
+    expect(shared[0].name).toBe(exported.name)
+    expect(shared[0].type).toBe(exported.type)
+    expect(await shared[0].text()).toBe(await exported.text())
+  })
+
+  it('is only offered when the browser can share files', () => {
+    vi.stubGlobal('navigator', {})
+    expect(canShareBackupFile()).toBe(false)
+    vi.stubGlobal('navigator', { share: () => Promise.resolve() }) // no canShare (e.g. older browsers)
+    expect(canShareBackupFile()).toBe(false)
+    vi.stubGlobal('navigator', { share: () => Promise.resolve(), canShare: () => false }) // e.g. desktop Firefox
+    expect(canShareBackupFile()).toBe(false)
+    vi.stubGlobal('navigator', { share: () => Promise.resolve(), canShare: () => { throw new Error('boom') } })
+    expect(canShareBackupFile()).toBe(false)
+    const canShare = vi.fn().mockReturnValue(true)
+    vi.stubGlobal('navigator', { share: () => Promise.resolve(), canShare })
+    expect(canShareBackupFile()).toBe(true)
+    expect(canShare.mock.calls[0][0].files[0].type).toBe('application/json')
+  })
+
+  it('treats dismissing the share sheet as cancelled, without an error', async () => {
+    vi.stubGlobal('navigator', { share: vi.fn().mockRejectedValue(abort()), canShare: () => true })
+    await expect(shareBackup(emptyData())).resolves.toBe('cancelled')
+  })
+
+  it('passes other share failures on', async () => {
+    vi.stubGlobal('navigator', { share: vi.fn().mockRejectedValue(new DOMException('no', 'NotAllowedError')), canShare: () => true })
+    await expect(shareBackup(emptyData())).rejects.toThrow()
   })
 })
 

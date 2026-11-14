@@ -156,7 +156,7 @@ Settings → Sprache / Language switches the whole UI between German and English
 - [x] 8. Import messages, demo data names, guard test
 - [x] 9. 360 px check in both languages (runtime switch verified), PLAN.md
 
-## Phase 16: Settings page cleanup + share export — IN PROGRESS
+## Phase 16: Settings page cleanup + share export — DONE (pending real share sheet check on a device)
 The bottom-nav tab and the page are both called "Einstellungen" / "Settings", the page is grouped, and the backup can be handed to the OS share sheet.
 
 ### Decisions
@@ -169,4 +169,4 @@ The bottom-nav tab and the page are both called "Einstellungen" / "Settings", th
 ### Steps
 - [x] 1. Rename "Mehr" to "Einstellungen" / "Settings"
 - [x] 2. Grouped page (Allgemein / Daten / Erweitert) + render test; 360 px check in light/dark, de/en
-- [ ] 3. Share button + tests
+- [x] 3. Share button + tests (Web Share API mocked; the real iOS/Android share sheet still to be checked by hand)

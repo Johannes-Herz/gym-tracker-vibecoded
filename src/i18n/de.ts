@@ -46,6 +46,8 @@ export const de = {
   'settings.backup.title': 'Daten sichern',
   'settings.backup.text': 'Exportiere alle Daten als JSON-Datei.',
   'settings.backup.button': 'Exportieren',
+  'settings.share.button': 'Teilen',
+  'settings.share.failed': 'Teilen fehlgeschlagen.',
   'settings.restore.title': 'Daten wiederherstellen',
   'settings.restore.text': 'Importiere eine zuvor exportierte JSON-Datei. Die aktuellen Daten werden dabei ersetzt.',
   'settings.restore.button': 'Datei auswählen',
