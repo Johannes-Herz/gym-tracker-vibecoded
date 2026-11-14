@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom'
 import { t, tp } from '../../i18n'
-import { workouts } from '../../storage/repo'
 import { getState } from '../../storage/store'
 import type { Template } from '../../types'
 import { defaultStartFor, newWorkoutPath } from './newWorkout'
 import { templateEntries } from './fromTemplate'
+import { ACTIVE_ID, startTraining } from './training'
 
 interface Props {
   templates: Template[]
@@ -19,9 +19,8 @@ export default function StartWorkoutSheet({ templates, dateKey, onClose }: Props
 
   function start(template: Template) {
     const entries = templateEntries(getState(), template)
-    const workout = workouts.createFromTemplate(defaultStartFor(dateKey), template, entries)
-    if (!workout) return
-    navigate(`/verlauf/${workout.id}`)
+    if (!startTraining({ startedAt: defaultStartFor(dateKey), template, entries })) return
+    navigate(`/verlauf/${ACTIVE_ID}`)
   }
 
   return (

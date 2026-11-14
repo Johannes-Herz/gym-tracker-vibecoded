@@ -161,7 +161,7 @@ describe('migrate', () => {
       templates: [{ id: 't1', name: 'Push', exerciseIds: ['builtin-bench-press'], createdAt: '2026-03-01T00:00:00.000Z' }],
     }
     const data = migrate(structuredClone(before))!
-    expect(data.schemaVersion).toBe(5)
+    expect(data.schemaVersion).toBe(CURRENT_SCHEMA_VERSION)
     const bench = data.exercises.find((e) => e.id === 'builtin-bench-press')!
     expect(bench.name).toBe('Langhantel-Bankdrücken')
     expect(bench.aliases).toContain('Bankdrücken')
@@ -176,6 +176,28 @@ describe('migrate', () => {
     expect(data.sets).toEqual(before.sets)
     expect(data.bodyWeights).toEqual(before.bodyWeights)
     expect(data.templates).toEqual(before.templates)
+  })
+
+  it('v5 -> v6 drops legacy suggested sets and the workouts that only held suggestions', () => {
+    const before = {
+      schemaVersion: 5,
+      exercises: [],
+      workouts: [
+        { id: 'only-suggestions', startedAt: '2026-11-01T10:00:00.000Z', templateName: 'Push' },
+        { id: 'mixed', startedAt: '2026-11-02T10:00:00.000Z' },
+      ],
+      sets: [
+        { id: 's1', workoutId: 'only-suggestions', exerciseId: 'builtin-squat', order: 0, weight: 100, reps: 5, suggested: true },
+        { id: 's2', workoutId: 'mixed', exerciseId: 'builtin-squat', order: 0, weight: 100, reps: 5 },
+        { id: 's3', workoutId: 'mixed', exerciseId: 'builtin-squat', order: 1, weight: 100, reps: 5, suggested: true },
+      ],
+      bodyWeights: [],
+      templates: [],
+    }
+    const data = migrate(structuredClone(before))!
+    expect(data.schemaVersion).toBe(CURRENT_SCHEMA_VERSION)
+    expect(data.sets.map((s) => s.id)).toEqual(['s2'])
+    expect(data.workouts.map((w) => w.id)).toEqual(['mixed'])
   })
 
   it('is idempotent', () => {

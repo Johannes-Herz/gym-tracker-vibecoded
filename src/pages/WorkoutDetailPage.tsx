@@ -7,7 +7,9 @@ import { t } from '../i18n'
 import PageHeader from '../components/PageHeader'
 import WorkoutEditor from '../features/workout/WorkoutEditor'
 import { workouts } from '../storage/repo'
+import { useSession } from '../storage/session'
 import { useStore } from '../storage/store'
+import { ACTIVE_ID, discardTraining, dropDraft, endTraining, endTrainingIfEmpty } from '../features/workout/training'
 
 // Workout whose editor is currently open. Lets the leave-cleanup skip the
 // immediate remount React StrictMode does in development.
@@ -19,21 +21,35 @@ export default function WorkoutDetailPage() {
   const { workouts: all } = useStore()
   const [confirming, setConfirming] = useState(false)
 
-  const exists = all.some((w) => w.id === id)
+  const session = useSession()
 
-  // Leaving the editor with no sets left removes the workout: empty workouts are never kept.
+  // The running workout (by route or by id) is edited through the training session;
+  // any other workout is a past one and does not touch the session.
+  const inSession = id === ACTIVE_ID || (session?.workoutId !== undefined && id === session.workoutId)
+  const exists = inSession ? session !== null : all.some((w) => w.id === id)
+
+  // Leaving the editor: empty workouts/sessions are never kept, suggestions of a past workout are dropped.
   useEffect(() => {
     openEditorId = id
     return () => {
       if (openEditorId === id) openEditorId = null
       setTimeout(() => {
-        if (openEditorId !== id) workouts.removeIfEmpty(id)
+        if (openEditorId === id) return
+        workouts.removeIfEmpty(id)
+        dropDraft(id)
+        endTrainingIfEmpty()
       }, 0)
     }
   }, [id])
 
   function handleDelete() {
-    workouts.remove(id)
+    if (inSession) discardTraining()
+    else workouts.remove(id)
+    back()
+  }
+
+  function handleFinish() {
+    endTraining()
     back()
   }
 
@@ -45,7 +61,12 @@ export default function WorkoutDetailPage() {
       />
       {exists ? (
         <>
-          <WorkoutEditor workoutId={id} />
+          <WorkoutEditor scope={inSession ? null : id} />
+          {inSession && (
+            <button type="button" className="btn btn-primary wide" onClick={handleFinish}>
+              {t('workout.finish')}
+            </button>
+          )}
           <button type="button" className="btn btn-danger wide" onClick={() => setConfirming(true)}>
             {t('detail.delete')}
           </button>

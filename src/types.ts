@@ -61,7 +61,6 @@ export interface WorkoutSet {
   reps: number // 0 for cardio
   durationMin?: number // cardio only, required there
   distanceKm?: number // cardio only, optional
-  suggested?: true // prefilled by the app, not yet confirmed by the user; not real data
 }
 
 export interface BodyWeightEntry {

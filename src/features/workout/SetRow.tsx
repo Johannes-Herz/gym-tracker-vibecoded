@@ -1,17 +1,17 @@
 import NumberStepper from '../../components/NumberStepper'
 import { t } from '../../i18n'
 import { BW_LABEL } from '../exercises/bodyweight'
-import { sets } from '../../storage/repo'
-import type { WorkoutSet } from '../../types'
+import { confirmSet, removeSet, updateSet, type EditorSet, type Scope } from './training'
 
 interface Props {
-  set: WorkoutSet
+  scope: Scope
+  set: EditorSet
   index: number
   cardio: boolean
   bodyweight: boolean
 }
 
-export default function SetRow({ set, index, cardio, bodyweight }: Props) {
+export default function SetRow({ scope, set, index, cardio, bodyweight }: Props) {
   return (
     <div className={`set-row${cardio ? ' cardio' : ''}${set.suggested ? ' suggested' : ''}`}>
       {set.suggested ? (
@@ -19,7 +19,7 @@ export default function SetRow({ set, index, cardio, bodyweight }: Props) {
           type="button"
           className="btn confirm-set"
           aria-label={t(cardio ? 'set.confirmEntry' : 'set.confirmSet', { n: index + 1 })}
-          onClick={() => sets.confirm(set.id)}
+          onClick={() => confirmSet(scope, set.id)}
         >
           ✓
         </button>
@@ -35,15 +35,15 @@ export default function SetRow({ set, index, cardio, bodyweight }: Props) {
             buttons={false}
             inputMode="numeric"
             value={set.durationMin}
-            onChange={(durationMin) => sets.update(set.id, { durationMin })}
+            onChange={(durationMin) => updateSet(scope, set.id, { durationMin })}
           />
           <NumberStepper
             label={t('set.distance')}
             step={0.1}
             buttons={false}
             value={set.distanceKm}
-            onChange={(distanceKm) => sets.update(set.id, { distanceKm })}
-            onClear={() => sets.update(set.id, { distanceKm: undefined })}
+            onChange={(distanceKm) => updateSet(scope, set.id, { distanceKm })}
+            onClear={() => updateSet(scope, set.id, { distanceKm: undefined })}
           />
         </>
       ) : (
@@ -56,15 +56,15 @@ export default function SetRow({ set, index, cardio, bodyweight }: Props) {
               min={-100}
               placeholder={BW_LABEL}
               value={set.weight === 0 ? undefined : set.weight}
-              onChange={(weight) => sets.update(set.id, { weight })}
-              onClear={() => sets.update(set.id, { weight: 0 })}
+              onChange={(weight) => updateSet(scope, set.id, { weight })}
+              onClear={() => updateSet(scope, set.id, { weight: 0 })}
             />
           ) : (
             <NumberStepper
               label={t('set.weight')}
               step={1.25}
               value={set.weight}
-              onChange={(weight) => sets.update(set.id, { weight })}
+              onChange={(weight) => updateSet(scope, set.id, { weight })}
             />
           )}
           <NumberStepper
@@ -73,7 +73,7 @@ export default function SetRow({ set, index, cardio, bodyweight }: Props) {
             min={0}
             inputMode="numeric"
             value={set.reps}
-            onChange={(reps) => sets.update(set.id, { reps })}
+            onChange={(reps) => updateSet(scope, set.id, { reps })}
           />
         </>
       )}
@@ -81,7 +81,7 @@ export default function SetRow({ set, index, cardio, bodyweight }: Props) {
         type="button"
         className="btn btn-danger-text"
         aria-label={t(cardio ? 'set.deleteEntry' : 'set.deleteSet', { n: index + 1 })}
-        onClick={() => sets.remove(set.id)}
+        onClick={() => removeSet(scope, set.id)}
       >
         ✕
       </button>

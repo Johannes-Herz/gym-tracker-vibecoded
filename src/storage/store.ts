@@ -29,5 +29,5 @@ function subscribe(listener: () => void): () => void {
 }
 
 export function useStore(): AppData {
-  return useSyncExternalStore(subscribe, getState)
+  return useSyncExternalStore(subscribe, getState, getState)
 }

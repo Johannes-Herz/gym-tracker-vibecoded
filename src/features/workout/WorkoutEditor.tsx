@@ -3,28 +3,28 @@ import ConfirmDialog from '../../components/ConfirmDialog'
 import { t } from '../../i18n'
 import { exerciseOrder } from '../../lib/exerciseOrder'
 import { fromLocalInput, toLocalInput } from '../../lib/format'
-import { sets as setsRepo, templates, workouts } from '../../storage/repo'
-import { getState, useStore } from '../../storage/store'
-import type { Exercise, WorkoutSet } from '../../types'
+import { templates } from '../../storage/repo'
+import { useStore } from '../../storage/store'
+import type { Exercise } from '../../types'
 import ExerciseBlock from './ExerciseBlock'
 import ExerciseSearchSheet from '../exercises/ExerciseSearchSheet'
 import RestTimer from '../timer/RestTimer'
-import { initialValues } from './prefill'
 import { recentExerciseIds } from './recent'
+import { addExercise as addExerciseTo, setNote, setStartedAt, useTraining, type EditorSet, type Scope } from './training'
 
-export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
+/** Editor for the active training session (`scope` null) or a past workout (`scope` = its id). */
+export default function WorkoutEditor({ scope }: { scope: Scope }) {
   const data = useStore()
+  const { sets: workoutSets, meta } = useTraining(scope)
   const [picking, setPicking] = useState(false)
   const [namingTemplate, setNamingTemplate] = useState<string | null>(null)
   const [savedAs, setSavedAs] = useState<string | null>(null)
   const [overwriting, setOverwriting] = useState<string | null>(null)
 
-  const workout = data.workouts.find((w) => w.id === workoutId)
-  if (!workout) return <p className="muted">{t('workout.notFound')}</p>
+  if (!meta) return <p className="muted">{t('workout.notFound')}</p>
 
-  // Exercises in order of first appearance within this workout.
-  const workoutSets = data.sets.filter((s) => s.workoutId === workoutId).sort((a, b) => a.order - b.order)
-  const groups = new Map<string, WorkoutSet[]>()
+  // Exercises in order of first appearance within this workout (confirmed sets and suggestions together).
+  const groups = new Map<string, EditorSet[]>()
   for (const s of workoutSets) groups.set(s.exerciseId, [...(groups.get(s.exerciseId) ?? []), s])
   const orderIds = [...groups.keys()]
 
@@ -45,8 +45,7 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
 
   function addExercise(exercise: Exercise) {
     setPicking(false)
-    const values = initialValues(getState(), workoutId, exercise)
-    setsRepo.add({ workoutId, exerciseId: exercise.id, ...values, suggested: true })
+    addExerciseTo(scope, exercise)
   }
 
   return (
@@ -57,14 +56,14 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
           {t('workout.date')}
           <input
             type="datetime-local"
-            value={toLocalInput(workout.startedAt)}
+            value={toLocalInput(meta.startedAt)}
             onChange={(e) => {
               const iso = fromLocalInput(e.target.value)
-              if (iso) workouts.update(workoutId, { startedAt: iso })
+              if (iso) setStartedAt(scope, iso)
             }}
           />
         </label>
-        {workout.templateName && <p className="muted small">{t('workout.template', { name: workout.templateName })}</p>}
+        {meta.templateName && <p className="muted small">{t('workout.template', { name: meta.templateName })}</p>}
       </div>
 
       {[...groups.entries()].map(([exerciseId, sets], i) => {
@@ -73,7 +72,7 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
         return (
           <ExerciseBlock
             key={exerciseId}
-            workoutId={workoutId}
+            scope={scope}
             exercise={exercise}
             sets={sets}
             canMoveUp={i > 0}
@@ -90,7 +89,7 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
         type="button"
         className="btn wide"
         disabled={groups.size === 0}
-        onClick={() => setNamingTemplate(workout.templateName ?? '')}
+        onClick={() => setNamingTemplate(meta.templateName ?? '')}
       >
         {t('workout.saveAsTemplate')}
       </button>
@@ -101,8 +100,8 @@ export default function WorkoutEditor({ workoutId }: { workoutId: string }) {
           {t('workout.note')}
           <textarea
             rows={2}
-            value={workout.note ?? ''}
-            onChange={(e) => workouts.update(workoutId, { note: e.target.value })}
+            value={meta.note ?? ''}
+            onChange={(e) => setNote(scope, e.target.value)}
           />
         </label>
       </div>
