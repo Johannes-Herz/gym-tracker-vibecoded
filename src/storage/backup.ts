@@ -23,7 +23,36 @@ export function serializeBackup(data: AppData, now: Date = new Date()): string {
 
 export function backupFileName(now: Date = new Date()): string {
   const p = (n: number) => String(n).padStart(2, '0')
-  return `gymtracker-${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}.json`
+  return `gym-tracker-backup-${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}.json`
+}
+
+const BACKUP_MIME = 'application/json'
+
+/** The backup as a file: the single source for both the download and the share sheet. */
+export function buildBackupFile(data: AppData, now: Date = new Date()): File {
+  return new File([serializeBackup(data, now)], backupFileName(now), { type: BACKUP_MIME })
+}
+
+/** True if the browser can hand a JSON file to the OS share sheet (Web Share API level 2). */
+export function canShareBackupFile(): boolean {
+  try {
+    if (typeof navigator === 'undefined') return false
+    if (typeof navigator.share !== 'function' || typeof navigator.canShare !== 'function') return false
+    return navigator.canShare({ files: [new File(['{}'], backupFileName(), { type: BACKUP_MIME })] })
+  } catch {
+    return false
+  }
+}
+
+/** Shares the backup file. Dismissing the share sheet is not an error ('cancelled'); other failures throw. */
+export async function shareBackup(data: AppData, now: Date = new Date()): Promise<'shared' | 'cancelled'> {
+  try {
+    await navigator.share({ files: [buildBackupFile(data, now)] })
+    return 'shared'
+  } catch (e) {
+    if ((e as { name?: string } | null)?.name === 'AbortError') return 'cancelled'
+    throw e
+  }
 }
 
 export type ImportResult = { ok: true; data: AppData } | { ok: false; error: string }

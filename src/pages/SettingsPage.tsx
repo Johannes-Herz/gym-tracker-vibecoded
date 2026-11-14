@@ -4,15 +4,15 @@ import { buildDemoData, hasUserData } from '../demo/demoData'
 import PageHeader from '../components/PageHeader'
 import { LANGUAGE_NAMES, getLang, setLang, t } from '../i18n'
 import { LANGUAGES } from '../storage/preferences'
-import { backupFileName, deleteAllData, parseImport, replaceAllData, serializeBackup } from '../storage/backup'
+import { buildBackupFile, canShareBackupFile, deleteAllData, parseImport, replaceAllData, shareBackup } from '../storage/backup'
 import type { AppData } from '../types'
 import { useStore } from '../storage/store'
 
-function downloadJson(text: string, fileName: string) {
-  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
+function downloadFile(file: File) {
+  const url = URL.createObjectURL(file)
   const a = document.createElement('a')
   a.href = url
-  a.download = fileName
+  a.download = file.name
   document.body.appendChild(a)
   a.click()
   a.remove()
@@ -63,7 +63,16 @@ export default function SettingsPage() {
   }
 
   function handleExport() {
-    downloadJson(serializeBackup(data), backupFileName())
+    downloadFile(buildBackupFile(data))
+  }
+
+  async function handleShare() {
+    setMessage(null)
+    try {
+      await shareBackup(data) // dismissing the share sheet resolves quietly
+    } catch {
+      setMessage({ kind: 'error', text: t('settings.share.failed') })
+    }
   }
 
   const lang = getLang()
@@ -72,68 +81,89 @@ export default function SettingsPage() {
     <>
       <PageHeader title={t('settings.title')} />
 
-      <section className="card settings-section">
-        <h2>{t('settings.language')}</h2>
-        <div className="segmented" role="radiogroup" aria-label={t('settings.language')}>
-          {LANGUAGES.map((l) => (
-            <button
-              key={l}
-              type="button"
-              role="radio"
-              aria-checked={l === lang}
-              lang={l}
-              className={l === lang ? 'btn active' : 'btn'}
-              onClick={() => l !== lang && setLang(l)}
-            >
-              {LANGUAGE_NAMES[l]}
-            </button>
-          ))}
-        </div>
-      </section>
-
       {message && (
         <p className={message.kind === 'error' ? 'card form-error' : 'card'} role="status">
           {message.text}
         </p>
       )}
 
-      <section className="card settings-section">
-        <h2>{t('settings.backup.title')}</h2>
-        <p className="muted">{t('settings.backup.text')}</p>
-        <button type="button" className="btn btn-primary" onClick={handleExport}>
-          {t('settings.backup.button')}
-        </button>
+      <section className="settings-group" aria-labelledby="settings-general">
+        <h2 id="settings-general" className="settings-group-title">{t('settings.group.general')}</h2>
+        <p className="muted small">{t('settings.group.general.text')}</p>
+        <div className="card settings-section">
+          <h3>{t('settings.language')}</h3>
+          <div className="segmented" role="radiogroup" aria-label={t('settings.language')}>
+            {LANGUAGES.map((l) => (
+              <button
+                key={l}
+                type="button"
+                role="radio"
+                aria-checked={l === lang}
+                lang={l}
+                className={l === lang ? 'btn active' : 'btn'}
+                onClick={() => l !== lang && setLang(l)}
+              >
+                {LANGUAGE_NAMES[l]}
+              </button>
+            ))}
+          </div>
+        </div>
       </section>
 
-      <section className="card settings-section">
-        <h2>{t('settings.restore.title')}</h2>
-        <p className="muted">{t('settings.restore.text')}</p>
-        <input
-          ref={fileInput}
-          type="file"
-          accept="application/json,.json"
-          hidden
-          onChange={(e) => handleFile(e.target.files?.[0])}
-        />
-        <button type="button" className="btn" onClick={() => fileInput.current?.click()}>
-          {t('settings.restore.button')}
-        </button>
+      <section className="settings-group" aria-labelledby="settings-data">
+        <h2 id="settings-data" className="settings-group-title">{t('settings.group.data')}</h2>
+        <p className="muted small">{t('settings.group.data.text')}</p>
+        <div className="card settings-section">
+          <h3>{t('settings.backup.title')}</h3>
+          <p className="muted">{t('settings.backup.text')}</p>
+          <div className="button-row">
+            <button type="button" className="btn btn-primary" onClick={handleExport}>
+              {t('settings.backup.button')}
+            </button>
+            {canShareBackupFile() && (
+              <button type="button" className="btn" onClick={handleShare}>
+                {t('settings.share.button')}
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="card settings-section">
+          <h3>{t('settings.restore.title')}</h3>
+          <p className="muted">{t('settings.restore.text')}</p>
+          <input
+            ref={fileInput}
+            type="file"
+            accept="application/json,.json"
+            hidden
+            onChange={(e) => handleFile(e.target.files?.[0])}
+          />
+          <button type="button" className="btn" onClick={() => fileInput.current?.click()}>
+            {t('settings.restore.button')}
+          </button>
+        </div>
       </section>
 
-      <section className="card settings-section">
-        <h2>{t('settings.demo.title')}</h2>
-        <p className="muted">{t('settings.demo.text')}</p>
-        <button type="button" className="btn" onClick={handleDemo}>
-          {t('settings.demo.button')}
-        </button>
-      </section>
-
-      <section className="card settings-section">
-        <h2>{t('settings.danger.title')}</h2>
-        <p className="muted">{t('settings.danger.text')}</p>
-        <button type="button" className="btn btn-danger" onClick={() => setConfirmDelete(true)}>
-          {t('settings.danger.button')}
-        </button>
+      <section className="settings-group" aria-labelledby="settings-advanced">
+        <details className="advanced">
+          <summary>
+            <span id="settings-advanced" className="settings-group-title">{t('settings.group.advanced')}</span>
+            <span className="muted small">{t('settings.group.advanced.text')}</span>
+          </summary>
+          <div className="card settings-section">
+            <h3>{t('settings.demo.title')}</h3>
+            <p className="muted">{t('settings.demo.text')}</p>
+            <button type="button" className="btn" onClick={handleDemo}>
+              {t('settings.demo.button')}
+            </button>
+          </div>
+          <div className="card settings-section danger-zone">
+            <h3>{t('settings.danger.title')}</h3>
+            <p className="muted">{t('settings.danger.text')}</p>
+            <button type="button" className="btn btn-danger" onClick={() => setConfirmDelete(true)}>
+              {t('settings.danger.button')}
+            </button>
+          </div>
+        </details>
       </section>
 
       {confirmDelete && (

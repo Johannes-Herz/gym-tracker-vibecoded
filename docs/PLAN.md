@@ -155,3 +155,18 @@ Settings → Sprache / Language switches the whole UI between German and English
 - [x] 7. Statistics, charts, heatmap, comparison, metric labels
 - [x] 8. Import messages, demo data names, guard test
 - [x] 9. 360 px check in both languages (runtime switch verified), PLAN.md
+
+## Phase 16: Settings page cleanup + share export — DONE (pending real share sheet check on a device)
+The bottom-nav tab and the page are both called "Einstellungen" / "Settings", the page is grouped, and the backup can be handed to the OS share sheet.
+
+### Decisions
+- The route was already `/einstellungen` and the page title already "Einstellungen"; only the nav label ("Mehr") changed (key `nav.more` → `nav.settings`). No redirect needed, tab memory untouched. The ⚙️ icon stays (same emoji style as the other tabs).
+- Page groups: **Allgemein** (language), **Daten** (export, import), **Erweitert** (a native `<details>`, collapsed by default: demo data and the red danger zone with the existing confirmation). The status message stays at the top.
+- Not built because the features do not exist: a timer-sound setting (the beep is always on), "Letztes Backup" info and user-visible snapshots (only a silent `gymtracker:backup` copy is written when data is replaced). Sharing therefore has no "last backup" bookkeeping to update.
+- Share and export use one code path (`buildBackupFile` → same `File`: same content and same name). The file name is now `gym-tracker-backup-YYYY-MM-DD.json` for both (was `gymtracker-…`); import accepts any name.
+- Share button: shown only if `navigator.canShare({ files })` is supported; the user dismissing the share sheet (`AbortError`) is silent, other errors show a message.
+
+### Steps
+- [x] 1. Rename "Mehr" to "Einstellungen" / "Settings"
+- [x] 2. Grouped page (Allgemein / Daten / Erweitert) + render test; 360 px check in light/dark, de/en
+- [x] 3. Share button + tests (Web Share API mocked; the real iOS/Android share sheet still to be checked by hand)
