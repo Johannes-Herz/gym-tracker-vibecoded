@@ -2,6 +2,7 @@ import { Fragment, lazy, Suspense, useEffect } from 'react'
 import { t, useLang } from './i18n'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import BottomNav from './components/BottomNav'
+import { expireSession } from './storage/session'
 import { useTabMemory } from './lib/useTabMemory'
 import { usePendingSteps } from './lib/useNavSteps'
 import ExercisesPage from './pages/ExercisesPage'
@@ -22,6 +23,15 @@ export default function App() {
   // Strings are looked up at render time; remounting on a language change makes
   // every screen pick up the new language immediately (no reload).
   const lang = useLang()
+  // A training without changes for too long is over (checked at start and whenever the app comes back).
+  useEffect(() => {
+    const check = () => {
+      if (document.visibilityState === 'visible') expireSession()
+    }
+    check()
+    document.addEventListener('visibilitychange', check)
+    return () => document.removeEventListener('visibilitychange', check)
+  }, [])
   useEffect(() => {
     document.documentElement.lang = lang
   }, [lang])

@@ -1,4 +1,3 @@
-import { realSets } from '../../lib/realSets'
 import { isCardio, type AppData, type Template } from '../../types'
 import { CARDIO_DEFAULT_MIN, valuesOf, type SetValues } from './prefill'
 
@@ -10,7 +9,7 @@ export interface TemplateEntry {
 /** Sets of the most recent workout (by start time) that has real sets of this exercise, in order. */
 export function lastSessionSets(data: AppData, exerciseId: string): SetValues[] {
   const startedAt = new Map(data.workouts.map((w) => [w.id, w.startedAt]))
-  const forExercise = realSets(data.sets).filter(
+  const forExercise = data.sets.filter(
     (s) => s.exerciseId === exerciseId && startedAt.has(s.workoutId),
   )
   let best: string | null = null

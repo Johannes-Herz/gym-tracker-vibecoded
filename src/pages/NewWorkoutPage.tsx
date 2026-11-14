@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import BackToHistory from '../components/BackToHistory'
 import { t } from '../i18n'
 import PageHeader from '../components/PageHeader'
@@ -7,14 +7,16 @@ import ExerciseSearchSheet from '../features/exercises/ExerciseSearchSheet'
 import { defaultStartFor } from '../features/workout/newWorkout'
 import { initialValues } from '../features/workout/prefill'
 import { recentExerciseIds } from '../features/workout/recent'
+import { ACTIVE_ID, startTraining } from '../features/workout/training'
 import { fromLocalInput, toLocalInput } from '../lib/format'
-import { workouts } from '../storage/repo'
+import { useSession } from '../storage/session'
 import { getState, useStore } from '../storage/store'
 import type { Exercise } from '../types'
 
-/** Draft for a new workout: nothing is saved until the first exercise is picked. */
+/** Draft for a new workout: picking the first exercise starts the training session (nothing is saved to history yet). */
 export default function NewWorkoutPage() {
   const data = useStore()
+  const session = useSession()
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const [startedAt, setStartedAt] = useState(() => defaultStartFor(params.get('datum')))
@@ -22,9 +24,12 @@ export default function NewWorkoutPage() {
 
   function addFirstExercise(exercise: Exercise) {
     const values = initialValues(getState(), '', exercise)
-    const workout = workouts.createWithFirstExercise(startedAt, exercise.id, values, true)
-    navigate(`/verlauf/${workout.id}`, { replace: true })
+    startTraining({ startedAt, entries: [{ exerciseId: exercise.id, sets: [values] }] })
+    navigate(`/verlauf/${ACTIVE_ID}`, { replace: true })
   }
+
+  // Never replace a running training from here: continue it instead.
+  if (session) return <Navigate to={`/verlauf/${ACTIVE_ID}`} replace />
 
   return (
     <>

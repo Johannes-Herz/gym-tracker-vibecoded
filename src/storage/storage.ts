@@ -3,7 +3,7 @@ import type { AppData, Exercise } from '../types'
 
 export const STORAGE_KEY = 'gymtracker:v1'
 export const BACKUP_KEY = 'gymtracker:backup'
-export const CURRENT_SCHEMA_VERSION = 5
+export const CURRENT_SCHEMA_VERSION = 6
 
 /** Fixed creation time for built-ins, so seeding is deterministic. */
 export const BUILTIN_CREATED_AT = '2026-01-01T00:00:00.000Z'
@@ -102,11 +102,14 @@ export function migrate(raw: unknown): AppData | null {
   if (typeof version !== 'number' || version > CURRENT_SCHEMA_VERSION) return null
 
   const arr = (v: unknown) => (Array.isArray(v) ? v : [])
+  // v6: unconfirmed suggestions no longer live in the data (they belong to the training session).
+  // Legacy flagged sets are dropped on every load, so they can never reach history, stats or export.
+  const confirmedSets = arr(obj.sets).filter((s) => !(s as { suggested?: unknown } | null)?.suggested)
   let data: AppData = {
     schemaVersion: CURRENT_SCHEMA_VERSION,
     exercises: arr(obj.exercises),
     workouts: arr(obj.workouts),
-    sets: arr(obj.sets),
+    sets: confirmedSets,
     bodyWeights: arr(obj.bodyWeights),
     // v4: workout templates (absent in older data).
     templates: arr(obj.templates),
@@ -115,7 +118,8 @@ export function migrate(raw: unknown): AppData | null {
   // v5: SZ-Stange equipment, built-in `aliases`, renamed built-ins. All arrive via
   // ensureBuiltins below (by stable id); custom exercises, hidden state and workout
   // data are not touched. A custom exercise named like a new built-in is kept as is.
-  // v3: empty workouts are no longer allowed; pruned on every load as a safety net.
+  // v3: empty workouts are no longer allowed; pruned on every load as a safety net
+  // (this also removes workouts that only consisted of legacy suggestions).
   return ensureBuiltins(pruneEmptyWorkouts(data))
 }
 

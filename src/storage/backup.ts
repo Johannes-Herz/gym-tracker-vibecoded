@@ -2,6 +2,7 @@ import { MIN_ASSISTED_KG, isBodyweight } from '../features/exercises/bodyweight'
 import { translate } from '../i18n'
 import { EQUIPMENT, MUSCLE_GROUPS, isCardio, type AppData } from '../types'
 import { BACKUP_KEY, CURRENT_SCHEMA_VERSION, emptyData, migrate } from './storage'
+import { clearSession } from './session'
 import { getState, update } from './store'
 
 export const BACKUP_APP_ID = 'gymtracker'
@@ -121,8 +122,7 @@ export function parseImport(text: string): ImportResult {
       !Number.isFinite(s.weight) ||
       !isNonNeg(s.reps) ||
       (s.durationMin !== undefined && !(isNonNeg(s.durationMin) && s.durationMin > 0)) ||
-      (s.distanceKm !== undefined && !isNonNeg(s.distanceKm)) ||
-      (s.suggested !== undefined && s.suggested !== true)
+      (s.distanceKm !== undefined && !isNonNeg(s.distanceKm))
     ) {
       return invalidEntry('sets')
     }
@@ -194,9 +194,11 @@ export function replaceAllData(data: AppData, storage: Storage = localStorage): 
     // ignore: backup is best effort
   }
   update(() => data)
+  clearSession() // a running training refers to the replaced data
 }
 
 /** Deletes all app data (exercises, workouts, sets, body weights). */
 export function deleteAllData(): void {
   update(() => emptyData())
+  clearSession()
 }

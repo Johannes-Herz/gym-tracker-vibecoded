@@ -61,18 +61,31 @@ describe('workout rules', () => {
     _resetCache()
   })
 
-  it('creates a workout only together with its first set', () => {
-    const w = workouts.createWithFirstExercise('2026-11-13T18:00:00.000Z', 'builtin-squat', { weight: 100, reps: 5 })
-    const state = getState()
-    expect(state.workouts).toEqual([w])
-    expect(state.sets).toEqual([
-      { id: expect.any(String), workoutId: w.id, exerciseId: 'builtin-squat', order: 0, weight: 100, reps: 5 },
-    ])
+  it('addConfirmed creates a new workout together with its first set in one update', () => {
+    const w = { id: 'w1', startedAt: '2026-11-13T18:00:00.000Z' }
+    const set = { id: 's1', workoutId: 'w1', exerciseId: 'builtin-squat', order: 0, weight: 100, reps: 5 }
+    sets.addConfirmed(set, w)
+    expect(getState().workouts).toEqual([w])
+    expect(getState().sets).toEqual([set])
+    sets.addConfirmed({ ...set, id: 's2', order: 1 })
+    expect(getState().workouts).toEqual([w])
+    expect(getState().sets).toHaveLength(2)
+  })
+
+  it('setOrders rewrites the order of the given sets only', () => {
+    const w = { id: 'w1', startedAt: '2026-11-13T18:00:00.000Z' }
+    const base = { workoutId: 'w1', exerciseId: 'builtin-squat', weight: 100, reps: 5 }
+    sets.addConfirmed({ ...base, id: 'a', order: 0 }, w)
+    sets.addConfirmed({ ...base, id: 'b', order: 1 })
+    sets.setOrders(new Map([['a', 5]]))
+    expect(getState().sets.map((s) => [s.id, s.order])).toEqual([['a', 5], ['b', 1]])
   })
 
   it('removeIfEmpty deletes a workout whose last set was removed, but keeps filled ones', () => {
-    const empty = workouts.createWithFirstExercise('2026-11-12T18:00:00.000Z', 'builtin-squat', { weight: 100, reps: 5 })
-    const filled = workouts.createWithFirstExercise('2026-11-13T18:00:00.000Z', 'builtin-squat', { weight: 100, reps: 5 })
+    const empty = workouts.add('2026-11-12T18:00:00.000Z')
+    const filled = workouts.add('2026-11-13T18:00:00.000Z')
+    sets.add({ workoutId: empty.id, exerciseId: 'builtin-squat', weight: 100, reps: 5 })
+    sets.add({ workoutId: filled.id, exerciseId: 'builtin-squat', weight: 100, reps: 5 })
     sets.remove(getState().sets.find((s) => s.workoutId === empty.id)!.id)
     workouts.removeIfEmpty(empty.id)
     workouts.removeIfEmpty(filled.id)
@@ -80,9 +93,11 @@ describe('workout rules', () => {
   })
 
   it('deleting a workout removes it and its sets, leaving others untouched', () => {
-    const a = workouts.createWithFirstExercise('2026-11-12T18:00:00.000Z', 'builtin-squat', { weight: 100, reps: 5 })
+    const a = workouts.add('2026-11-12T18:00:00.000Z')
     sets.add({ workoutId: a.id, exerciseId: 'builtin-squat', weight: 100, reps: 5 })
-    const b = workouts.createWithFirstExercise('2026-11-13T18:00:00.000Z', 'builtin-bench-press', { weight: 80, reps: 8 })
+    sets.add({ workoutId: a.id, exerciseId: 'builtin-squat', weight: 100, reps: 5 })
+    const b = workouts.add('2026-11-13T18:00:00.000Z')
+    sets.add({ workoutId: b.id, exerciseId: 'builtin-bench-press', weight: 80, reps: 8 })
     workouts.remove(a.id)
     const state = getState()
     expect(state.workouts.map((w) => w.id)).toEqual([b.id])

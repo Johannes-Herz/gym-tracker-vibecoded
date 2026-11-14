@@ -3,35 +3,32 @@ import ConfirmDialog from '../../components/ConfirmDialog'
 import { t } from '../../i18n'
 import { muscleLabel } from '../../i18n/labels'
 import { exerciseName } from '../exercises/exerciseName'
-import { initialValues } from './prefill'
 import SetRow from './SetRow'
 import { isBodyweight } from '../exercises/bodyweight'
-import { sets as setsRepo } from '../../storage/repo'
-import { getState } from '../../storage/store'
-import { isCardio, type Exercise, type WorkoutSet } from '../../types'
+import { addSet as addSetTo, moveBlock, removeExercise, type EditorSet, type Scope } from './training'
+import { isCardio, type Exercise } from '../../types'
 
 interface Props {
-  workoutId: string
+  scope: Scope
   exercise: Exercise
-  sets: WorkoutSet[]
+  sets: EditorSet[]
   canMoveUp: boolean
   canMoveDown: boolean
 }
 
-export default function ExerciseBlock({ workoutId, exercise, sets, canMoveUp, canMoveDown }: Props) {
+export default function ExerciseBlock({ scope, exercise, sets, canMoveUp, canMoveDown }: Props) {
   const [removing, setRemoving] = useState(false)
   const cardio = isCardio(exercise)
   const bodyweight = isBodyweight(exercise)
   const name = exerciseName(exercise)
 
   function addSet() {
-    const values = initialValues(getState(), workoutId, exercise)
-    setsRepo.add({ workoutId, exerciseId: exercise.id, ...values, suggested: true })
+    addSetTo(scope, exercise)
   }
 
   function remove() {
     setRemoving(false)
-    setsRepo.removeExercise(workoutId, exercise.id)
+    removeExercise(scope, exercise.id)
   }
 
   return (
@@ -46,7 +43,7 @@ export default function ExerciseBlock({ workoutId, exercise, sets, canMoveUp, ca
             className="btn"
             aria-label={t('block.moveUp', { name })}
             disabled={!canMoveUp}
-            onClick={() => setsRepo.moveExercise(workoutId, exercise.id, -1)}
+            onClick={() => moveBlock(scope, exercise.id, -1)}
           >
             ↑
           </button>
@@ -55,7 +52,7 @@ export default function ExerciseBlock({ workoutId, exercise, sets, canMoveUp, ca
             className="btn"
             aria-label={t('block.moveDown', { name })}
             disabled={!canMoveDown}
-            onClick={() => setsRepo.moveExercise(workoutId, exercise.id, 1)}
+            onClick={() => moveBlock(scope, exercise.id, 1)}
           >
             ↓
           </button>
@@ -76,7 +73,7 @@ export default function ExerciseBlock({ workoutId, exercise, sets, canMoveUp, ca
         <span />
       </div>
       {sets.map((s, i) => (
-        <SetRow key={s.id} set={s} index={i} cardio={cardio} bodyweight={bodyweight} />
+        <SetRow key={s.id} scope={scope} set={s} index={i} cardio={cardio} bodyweight={bodyweight} />
       ))}
       <button type="button" className="btn add-set" onClick={addSet}>
         {cardio ? t('block.addEntry') : t('block.addSet')}
