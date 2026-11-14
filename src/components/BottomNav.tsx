@@ -8,7 +8,7 @@ const ITEMS: { to: TabRoot; label: MessageKey; icon: string }[] = [
   { to: '/verlauf', label: 'nav.history', icon: '📅' },
   { to: '/uebungen', label: 'nav.exercises', icon: '📋' },
   { to: '/statistik', label: 'nav.stats', icon: '📈' },
-  { to: '/einstellungen', label: 'nav.more', icon: '⚙️' },
+  { to: '/einstellungen', label: 'nav.settings', icon: '⚙️' },
 ]
 
 export default function BottomNav() {

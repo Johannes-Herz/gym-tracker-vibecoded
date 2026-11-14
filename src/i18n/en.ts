@@ -26,7 +26,7 @@ export const en: Record<MessageKey, string> = {
   'nav.history': 'History',
   'nav.exercises': 'Exercises',
   'nav.stats': 'Statistics',
-  'nav.more': 'More',
+  'nav.settings': 'Settings',
   'back.history': '‹ History',
   'number.decrease': 'Decrease {label}',
   'number.increase': 'Increase {label}',

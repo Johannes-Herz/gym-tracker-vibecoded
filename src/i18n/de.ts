@@ -30,7 +30,7 @@ export const de = {
   'nav.history': 'Verlauf',
   'nav.exercises': 'Übungen',
   'nav.stats': 'Statistik',
-  'nav.more': 'Mehr',
+  'nav.settings': 'Einstellungen',
   'back.history': '‹ Verlauf',
   'number.decrease': '{label} verringern',
   'number.increase': '{label} erhöhen',
