@@ -4,7 +4,7 @@ Mobile-first gym tracker as a web app.
 
 ## Language
 - Write everything in English: code, comments, identifiers, commit messages, branch names, documentation (.md files, plans, README) and conversation with the user's tooling artifacts.
-- The only exception is the app's UI text (labels, buttons, messages shown to the user), which stays in German.
+- The only exception is the app's UI text (labels, buttons, messages shown to the user): it is translated, German (default) and English, via `src/i18n` (`de.ts` is the source of truth for keys, `en.ts` must have the same keys). Never hardcode UI text in components; add a key to both files.
 
 ## Git
 - Only ever commit on `dev`. Never commit, merge or push to `main` – the user merges to `main` themselves.
@@ -21,7 +21,7 @@ Vite `base` is `/gym-tracker-vibecoded/`. Deployment: GitHub Actions (`.github/w
 - `npm test` – Vitest
 
 ## Conventions
-- Persistence goes exclusively through `src/storage/` (localStorage, key `gymtracker:v1`, with `schemaVersion`). UI code never accesses localStorage directly.
+- Persistence goes exclusively through `src/storage/` (key `gymtracker:v1`, with `schemaVersion`). UI code never accesses storage directly. Storage goes through an adapter (localStorage on the web; files via Capacitor Filesystem in the experimental Android app on branch `capacitor-experiment`).
 - Schema change = bump `schemaVersion` + migration in `storage.ts` + test.
 - IDs via `crypto.randomUUID()`, times as ISO strings, weight in kg.
 - Mobile-first: touch targets ≥ 44px, respect safe areas.

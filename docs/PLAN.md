@@ -171,3 +171,29 @@ The bottom-nav tab and the page are both called "Einstellungen" / "Settings", th
 - [x] 1. Rename "Mehr" to "Einstellungen" / "Settings"
 - [x] 2. Grouped page (Allgemein / Daten / Erweitert) + render test; 360 px check in light/dark, de/en
 - [x] 3. Share button + tests (Web Share API mocked; the real iOS/Android share sheet still to be checked by hand)
+
+## Phase 17: Experiment — Android app with Capacitor (branch `capacitor-experiment`)
+The same source also builds as an Android app with file-based storage. The PWA must keep working exactly as before. Nothing of this is merged into `dev` or `main`.
+
+### Decisions
+- Separate build mode: `npm run build:android` (`vite build --mode android`, base `./`, no service worker), then `npx cap sync android`. `npm run build` and the GitHub Actions workflow are unchanged.
+- App id `de.johannes.gymtracker`, name "Gym Tracker". Debug APK only, no release signing, no Play Store.
+- Storage adapter with the `Storage` shape (`getItem`/`setItem`/`removeItem`). Web: localStorage. Native: in-memory cache hydrated once before render (`initStorage()`), writes go through a serialized async queue. Data, session and prefs all use the adapter. One file per key in the app-private `Directory.Data`.
+- Atomic write: write `X.tmp`, rename over `X`. Boot recovery reads `X`, then `X.tmp`, then the last backup.
+- Backups (native only): debounced (~2 s) after each change, same format as the export, last 3 files, in a user-visible folder (`Documents/GymTracker`) that survives uninstall. Feasibility without risky permissions is checked on a device (Android 17, ideally also 13/14); fallbacks: small MediaStore plugin or SAF folder picker.
+- Export/share natively via Filesystem (cache dir) + Share; import via the existing file input.
+- `Capacitor.isNativePlatform()` only in `storage/adapter.ts`, `storage/backup.ts` and `main.tsx`.
+- Env: `JAVA_HOME` / Android SDK are set per project (`android/local.properties`, gitignored), not system-wide.
+- Moving data from the PWA to the app: export in the PWA, import in the app.
+
+### Steps
+- [x] 1. CLAUDE.md (i18n, adapter) + this section
+- [ ] 2. Capacitor + Android project, `.gitignore`, build modes, build test
+- [ ] 3. Storage adapter refactor (web only) + shared test suite
+- [ ] 4. Native file adapter, atomic writes, boot recovery + tests (Filesystem mocked)
+- [ ] 5. Backups with rotation + device spike for the folder
+- [ ] 6. Native export, share, import
+- [ ] 7. Debug APK + install instructions
+
+### How to remove the experiment
+Switch to `dev` and delete the branch: `git switch dev && git branch -D capacitor-experiment`. If it was merged anyway, remove: the `android/` folder, `capacitor.config.ts`, `src/storage/adapter*.ts` / native adapter files, the `build:android` and `apk:debug` scripts, the `@capacitor/*` dependencies (`npm uninstall @capacitor/core @capacitor/cli @capacitor/android @capacitor/filesystem @capacitor/share`), the `android` mode branches in `vite.config.ts` and `main.tsx`, and this section.
