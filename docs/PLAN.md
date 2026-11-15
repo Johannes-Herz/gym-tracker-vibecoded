@@ -179,7 +179,7 @@ The same source also builds as an Android app with file-based storage. The PWA m
 - Separate build mode: `npm run build:android` (`vite build --mode android`, base `./`, no service worker), then `npx cap sync android`. `npm run build` and the GitHub Actions workflow are unchanged.
 - App id `de.johannes.gymtracker`, name "Gym Tracker". Debug APK only, no release signing, no Play Store.
 - Storage adapter with the `Storage` shape (`getItem`/`setItem`/`removeItem`). Web: localStorage. Native: in-memory cache hydrated once before render (`initStorage()`), writes go through a serialized async queue. Data, session and prefs all use the adapter. One file per key in the app-private `Directory.Data`.
-- Atomic write: write `X.tmp`, rename over `X`. Boot recovery reads `X`, then `X.tmp`, then the last backup.
+- Atomic write: write `X.tmp`, rename over `X`. Boot recovery reads `X`, then `X.tmp` (complete temp file after a crash between delete and rename); an unreadable file is renamed to `X.unreadable` and never overwritten. Whether Capacitor's `rename` is atomic could not be verified (native library source not available), hence this recovery.
 - Backups (native only): debounced (~2 s) after each change, same format as the export, last 3 files, in a user-visible folder (`Documents/GymTracker`) that survives uninstall. Feasibility without risky permissions is checked on a device (Android 17, ideally also 13/14); fallbacks: small MediaStore plugin or SAF folder picker.
 - Export/share natively via Filesystem (cache dir) + Share; import via the existing file input.
 - `Capacitor.isNativePlatform()` only in `storage/adapter.ts`, `storage/backup.ts` and `main.tsx`.
@@ -188,9 +188,9 @@ The same source also builds as an Android app with file-based storage. The PWA m
 
 ### Steps
 - [x] 1. CLAUDE.md (i18n, adapter) + this section
-- [ ] 2. Capacitor + Android project, `.gitignore`, build modes, build test
-- [ ] 3. Storage adapter refactor (web only) + shared test suite
-- [ ] 4. Native file adapter, atomic writes, boot recovery + tests (Filesystem mocked)
+- [x] 2. Capacitor + Android project, `.gitignore`, build modes, build test
+- [x] 3. Storage adapter refactor (web only) + shared test suite
+- [x] 4. Native file adapter, atomic writes, boot recovery + tests (Filesystem mocked)
 - [ ] 5. Backups with rotation + device spike for the folder
 - [ ] 6. Native export, share, import
 - [ ] 7. Debug APK + install instructions

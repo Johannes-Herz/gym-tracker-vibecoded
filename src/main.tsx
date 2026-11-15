@@ -2,16 +2,20 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
 import App from './App'
+import { initStorage } from './storage/adapter'
 import './styles/base.css'
 import './styles/components.css'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <HashRouter>
-      <App />
-    </HashRouter>
-  </StrictMode>,
-)
+// The native app loads its data files first; on the web this resolves immediately.
+void initStorage().then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <HashRouter>
+        <App />
+      </HashRouter>
+    </StrictMode>,
+  )
+})
 
 if ('serviceWorker' in navigator && import.meta.env.PROD && import.meta.env.MODE !== 'android') {
   window.addEventListener('load', () => {

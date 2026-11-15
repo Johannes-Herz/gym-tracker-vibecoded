@@ -1,7 +1,9 @@
+import { Capacitor } from '@capacitor/core'
+
 /**
  * The storage seam. All persistence code takes a `Storage`-shaped object and defaults to
  * `getStorage()`. On the web that is `localStorage`; the native app installs a file-backed
- * adapter at startup (`setStorage`, see `initStorage` in `nativeStorage.ts`).
+ * adapter at startup (`initStorage`).
  *
  * Reads and writes stay synchronous: native adapters serve reads from memory and persist
  * writes asynchronously, so callers never need to know which adapter is active.
@@ -21,4 +23,24 @@ export function getStorage(): Storage {
 
 export function setStorage(adapter: StorageAdapter | null): void {
   override = adapter
+}
+
+/**
+ * Call once before rendering. Web: nothing to do. Native app: loads the data files into memory
+ * and installs the file-backed adapter. The native code is imported lazily, so it never ends
+ * up in the PWA's startup path.
+ */
+export async function initStorage(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return
+  const [{ Directory }, { capacitorFiles }, { openNativeStorage }] = await Promise.all([
+    import('@capacitor/filesystem'),
+    import('./capacitorFiles'),
+    import('./nativeStorage'),
+  ])
+  const opened = await openNativeStorage(capacitorFiles(Directory.Data))
+  setStorage(opened.storage)
+  // Persist pending writes when the app goes to the background.
+  const flush = () => void opened.flush()
+  document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flush())
+  window.addEventListener('pagehide', flush)
 }
