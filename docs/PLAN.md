@@ -192,9 +192,12 @@ The same source also builds as an Android app with file-based storage. The PWA m
 - [x] 3. Storage adapter refactor (web only) + shared test suite
 - [x] 4. Native file adapter, atomic writes, boot recovery + tests (Filesystem mocked)
 - [x] 5a. Backups with rotation (mocked tests), wired into the native startup
-- [ ] 5b. Device spike: does Documents/GymTracker work on Android 13/14/17?
+- [ ] 5b. Device spike (to do by hand on the phone): does Documents/GymTracker work on Android 13/14/17?
 - [x] 6. Native export, share, import
-- [ ] 7. Debug APK + install instructions
+- [x] 7. Debug APK (`npm run build:android`, then `npm run apk:debug` -> `android/app/build/outputs/apk/debug/app-debug.apk`; `scripts/apk-debug.mjs` finds JDK 21 and the SDK itself)
 
 ### How to remove the experiment
 Switch to `dev` and delete the branch: `git switch dev && git branch -D capacitor-experiment`. If it was merged anyway, remove: the `android/` folder, `capacitor.config.ts`, `src/storage/adapter*.ts` / native adapter files, the `build:android` and `apk:debug` scripts, the `@capacitor/*` dependencies (`npm uninstall @capacitor/core @capacitor/cli @capacitor/android @capacitor/filesystem @capacitor/share`), the `android` mode branches in `vite.config.ts` and `main.tsx`, and this section.
+
+### Installing the debug APK
+Copy `app-debug.apk` to the phone (USB cable, or cloud/messenger), open it in the Files app and allow "install unknown apps" for that app when asked. Data from the PWA: Export in the PWA, then Import in the app. The app requests no storage permission (only `INTERNET`, added by Capacitor).
