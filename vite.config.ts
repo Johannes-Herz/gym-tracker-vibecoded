@@ -25,8 +25,14 @@ function serviceWorker(): Plugin {
   }
 }
 
-export default defineConfig({
-  base: '/gym-tracker-vibecoded/',
-  plugins: [react(), serviceWorker()],
-  test: { environment: 'node' },
+export default defineConfig(({ mode }) => {
+  // `--mode android`: Capacitor app. Relative base (files are served from the app bundle),
+  // no service worker, separate output folder so the PWA `dist` is never touched.
+  const android = mode === 'android'
+  return {
+    base: android ? './' : '/gym-tracker-vibecoded/',
+    plugins: android ? [react()] : [react(), serviceWorker()],
+    build: android ? { outDir: 'dist-android' } : undefined,
+    test: { environment: 'node' },
+  }
 })
