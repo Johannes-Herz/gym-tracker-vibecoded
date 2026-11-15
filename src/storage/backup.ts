@@ -2,6 +2,7 @@ import { MIN_ASSISTED_KG, isBodyweight } from '../features/exercises/bodyweight'
 import { translate } from '../i18n'
 import { EQUIPMENT, MUSCLE_GROUPS, isCardio, type AppData } from '../types'
 import { BACKUP_KEY, CURRENT_SCHEMA_VERSION, emptyData, migrate } from './storage'
+import { getStorage } from './adapter'
 import { clearSession } from './session'
 import { getState, update } from './store'
 
@@ -241,7 +242,7 @@ export function parseImport(text: string): ImportResult {
  * Replaces all data. The previous data is kept under BACKUP_KEY so a bad
  * import can be recovered manually.
  */
-export function replaceAllData(data: AppData, storage: Storage = localStorage): void {
+export function replaceAllData(data: AppData, storage: Storage = getStorage()): void {
   try {
     storage.setItem(BACKUP_KEY, JSON.stringify(getState()))
   } catch {

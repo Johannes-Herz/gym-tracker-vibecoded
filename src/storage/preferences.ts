@@ -1,6 +1,8 @@
 // Device-local UI preferences. Kept separate from app data: no schema
 // version, not part of export/import, untouched by "delete all data".
 
+import { getStorage } from './adapter'
+
 export const PREFS_KEY = 'gymtracker:prefs'
 
 export type HistoryView = 'list' | 'calendar'
@@ -37,11 +39,11 @@ function read(storage: Storage): Prefs {
   }
 }
 
-export function loadHistoryView(storage: Storage = localStorage): HistoryView {
+export function loadHistoryView(storage: Storage = getStorage()): HistoryView {
   return read(storage).historyView === 'calendar' ? 'calendar' : 'list'
 }
 
-export function saveHistoryView(view: HistoryView, storage: Storage = localStorage): void {
+export function saveHistoryView(view: HistoryView, storage: Storage = getStorage()): void {
   try {
     storage.setItem(PREFS_KEY, JSON.stringify({ ...read(storage), historyView: view }))
   } catch {
@@ -51,7 +53,7 @@ export function saveHistoryView(view: HistoryView, storage: Storage = localStora
 
 const isDay = (v: unknown): v is string => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)
 
-export function loadStatsRange(storage: Storage = localStorage): RangeSelection {
+export function loadStatsRange(storage: Storage = getStorage()): RangeSelection {
   const raw = read(storage).statsRange
   if (typeof raw !== 'object' || raw === null) return DEFAULT_RANGE
   const { key, from, to } = raw as Record<string, unknown>
@@ -60,7 +62,7 @@ export function loadStatsRange(storage: Storage = localStorage): RangeSelection 
   return { key: 'custom', from: isDay(from) ? from : undefined, to: isDay(to) ? to : undefined }
 }
 
-export function saveStatsRange(range: RangeSelection, storage: Storage = localStorage): void {
+export function saveStatsRange(range: RangeSelection, storage: Storage = getStorage()): void {
   try {
     storage.setItem(PREFS_KEY, JSON.stringify({ ...read(storage), statsRange: range }))
   } catch {
@@ -74,12 +76,12 @@ function trendMetrics(prefs: Prefs): Record<string, unknown> {
 }
 
 /** Last chosen trend metric for an exercise kind; falls back to the first allowed one. */
-export function loadTrendMetric<T extends string>(kind: string, allowed: readonly T[], storage: Storage = localStorage): T {
+export function loadTrendMetric<T extends string>(kind: string, allowed: readonly T[], storage: Storage = getStorage()): T {
   const stored = trendMetrics(read(storage))[kind]
   return (allowed as readonly unknown[]).includes(stored) ? (stored as T) : allowed[0]
 }
 
-export function saveTrendMetric(kind: string, metric: string, storage: Storage = localStorage): void {
+export function saveTrendMetric(kind: string, metric: string, storage: Storage = getStorage()): void {
   try {
     const prefs = read(storage)
     storage.setItem(PREFS_KEY, JSON.stringify({ ...prefs, trendMetric: { ...trendMetrics(prefs), [kind]: metric } }))
@@ -89,12 +91,12 @@ export function saveTrendMetric(kind: string, metric: string, storage: Storage =
 }
 
 /** UI language of this device. German unless English was chosen explicitly. */
-export function loadLanguage(storage: Storage = localStorage): Language {
+export function loadLanguage(storage: Storage = getStorage()): Language {
   const stored = read(storage).language
   return (LANGUAGES as readonly unknown[]).includes(stored) ? (stored as Language) : DEFAULT_LANGUAGE
 }
 
-export function saveLanguage(language: Language, storage: Storage = localStorage): void {
+export function saveLanguage(language: Language, storage: Storage = getStorage()): void {
   try {
     storage.setItem(PREFS_KEY, JSON.stringify({ ...read(storage), language }))
   } catch {
