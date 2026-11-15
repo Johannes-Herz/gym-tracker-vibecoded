@@ -17,6 +17,11 @@ export function createWebStorage(): StorageAdapter {
   return localStorage
 }
 
+/** True inside the Capacitor app. The one place that asks; everything else calls this. */
+export function isNative(): boolean {
+  return Capacitor.isNativePlatform()
+}
+
 export function getStorage(): Storage {
   return (override ?? createWebStorage()) as Storage
 }
@@ -31,7 +36,7 @@ export function setStorage(adapter: StorageAdapter | null): void {
  * up in the PWA's startup path.
  */
 export async function initStorage(): Promise<void> {
-  if (!Capacitor.isNativePlatform()) return
+  if (!isNative()) return
   const [{ Directory }, { capacitorFiles }, { openNativeStorage }, { createAutoBackup }, store] = await Promise.all([
     import('@capacitor/filesystem'),
     import('./capacitorFiles'),

@@ -193,7 +193,7 @@ The same source also builds as an Android app with file-based storage. The PWA m
 - [x] 4. Native file adapter, atomic writes, boot recovery + tests (Filesystem mocked)
 - [x] 5a. Backups with rotation (mocked tests), wired into the native startup
 - [ ] 5b. Device spike: does Documents/GymTracker work on Android 13/14/17?
-- [ ] 6. Native export, share, import
+- [x] 6. Native export, share, import
 - [ ] 7. Debug APK + install instructions
 
 ### How to remove the experiment

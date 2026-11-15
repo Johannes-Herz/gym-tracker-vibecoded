@@ -2,7 +2,7 @@ import { MIN_ASSISTED_KG, isBodyweight } from '../features/exercises/bodyweight'
 import { translate } from '../i18n'
 import { EQUIPMENT, MUSCLE_GROUPS, isCardio, type AppData } from '../types'
 import { BACKUP_KEY, CURRENT_SCHEMA_VERSION, emptyData, migrate } from './storage'
-import { getStorage } from './adapter'
+import { getStorage, isNative } from './adapter'
 import { clearSession } from './session'
 import { getState, update } from './store'
 
@@ -36,6 +36,7 @@ export function buildBackupFile(data: AppData, now: Date = new Date()): File {
 
 /** True if the browser can hand a JSON file to the OS share sheet (Web Share API level 2). */
 export function canShareBackupFile(): boolean {
+  if (isNative()) return true // Android share sheet via the Share plugin
   try {
     if (typeof navigator === 'undefined') return false
     if (typeof navigator.share !== 'function' || typeof navigator.canShare !== 'function') return false
@@ -53,6 +54,27 @@ function buildBackupTextFile(data: AppData, now: Date): File {
   return new File([serializeBackup(data, now)], `${backupFileName(now)}.txt`, { type: 'text/plain' })
 }
 
+function downloadFile(file: File): void {
+  const url = URL.createObjectURL(file)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = file.name
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
+/** Export button: a browser download on the web, a file in Documents/GymTracker in the app. */
+export async function exportBackup(
+  data: AppData,
+  now: Date = new Date(),
+): Promise<{ kind: 'downloaded' } | { kind: 'saved'; name: string }> {
+  if (isNative()) return { kind: 'saved', name: await (await import('./nativeExport')).saveBackupToDocuments(data, now) }
+  downloadFile(buildBackupFile(data, now))
+  return { kind: 'downloaded' }
+}
+
 const isAbort = (e: unknown) => (e as { name?: string } | null)?.name === 'AbortError'
 
 /**
@@ -60,6 +82,7 @@ const isAbort = (e: unknown) => (e as { name?: string } | null)?.name === 'Abort
  * `.json.txt` text file. Dismissing the share sheet is not an error ('cancelled'); other failures throw.
  */
 export async function shareBackup(data: AppData, now: Date = new Date()): Promise<'shared' | 'cancelled'> {
+  if (isNative()) return (await import('./nativeExport')).shareBackupNative(data, now)
   try {
     await navigator.share({ files: [buildBackupFile(data, now)] })
     return 'shared'

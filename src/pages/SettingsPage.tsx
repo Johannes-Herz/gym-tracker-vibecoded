@@ -4,20 +4,10 @@ import { buildDemoData, hasUserData } from '../demo/demoData'
 import PageHeader from '../components/PageHeader'
 import { LANGUAGE_NAMES, getLang, setLang, t } from '../i18n'
 import { LANGUAGES } from '../storage/preferences'
-import { buildBackupFile, canShareBackupFile, deleteAllData, parseImport, replaceAllData, shareBackup, shareErrorReason } from '../storage/backup'
+import { canShareBackupFile, deleteAllData, exportBackup, parseImport, replaceAllData, shareBackup, shareErrorReason } from '../storage/backup'
 import type { AppData } from '../types'
+import { isNative } from '../storage/adapter'
 import { useStore } from '../storage/store'
-
-function downloadFile(file: File) {
-  const url = URL.createObjectURL(file)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = file.name
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-  URL.revokeObjectURL(url)
-}
 
 export default function SettingsPage() {
   const data = useStore()
@@ -62,8 +52,15 @@ export default function SettingsPage() {
     setMessage({ kind: 'ok', text: t('settings.imported') })
   }
 
-  function handleExport() {
-    downloadFile(buildBackupFile(data))
+  async function handleExport() {
+    setMessage(null)
+    try {
+      const result = await exportBackup(data)
+      if (result.kind === 'saved') setMessage({ kind: 'ok', text: t('settings.export.saved', { name: result.name }) })
+    } catch (e) {
+      console.error('Export failed', e)
+      setMessage({ kind: 'error', text: t('settings.export.failed', { reason: shareErrorReason(e) }) })
+    }
   }
 
   async function handleShare() {
@@ -117,6 +114,7 @@ export default function SettingsPage() {
         <div className="card settings-section">
           <h3>{t('settings.backup.title')}</h3>
           <p className="muted">{t('settings.backup.text')}</p>
+          {isNative() && <p className="muted small">{t('settings.autobackup.text')}</p>}
           <div className="button-row">
             <button type="button" className="btn btn-primary" onClick={handleExport}>
               {t('settings.backup.button')}
