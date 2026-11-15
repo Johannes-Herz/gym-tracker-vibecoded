@@ -32,15 +32,25 @@ export function setStorage(adapter: StorageAdapter | null): void {
  */
 export async function initStorage(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return
-  const [{ Directory }, { capacitorFiles }, { openNativeStorage }] = await Promise.all([
+  const [{ Directory }, { capacitorFiles }, { openNativeStorage }, { createAutoBackup }, store] = await Promise.all([
     import('@capacitor/filesystem'),
     import('./capacitorFiles'),
     import('./nativeStorage'),
+    import('./autoBackup'),
+    import('./store'),
   ])
   const opened = await openNativeStorage(capacitorFiles(Directory.Data))
   setStorage(opened.storage)
-  // Persist pending writes when the app goes to the background.
-  const flush = () => void opened.flush()
+
+  // Automatic backups into the user-visible Documents/GymTracker folder (native only).
+  const backup = createAutoBackup({ files: capacitorFiles(Directory.Documents), getData: store.getState })
+  store.subscribe(backup.notify)
+
+  // Persist pending writes and backups when the app goes to the background.
+  const flush = () => {
+    void opened.flush()
+    void backup.flush()
+  }
   document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flush())
   window.addEventListener('pagehide', flush)
 }
