@@ -70,7 +70,7 @@ export async function exportBackup(
   data: AppData,
   now: Date = new Date(),
 ): Promise<{ kind: 'downloaded' } | { kind: 'saved'; name: string }> {
-  if (isNative()) return { kind: 'saved', name: await (await import('./nativeExport')).saveBackupToDocuments(data, now) }
+  if (__NATIVE_BUILD__ && isNative()) return { kind: 'saved', name: await (await import('./nativeExport')).saveBackupToDocuments(data, now) }
   downloadFile(buildBackupFile(data, now))
   return { kind: 'downloaded' }
 }
@@ -82,7 +82,7 @@ const isAbort = (e: unknown) => (e as { name?: string } | null)?.name === 'Abort
  * `.json.txt` text file. Dismissing the share sheet is not an error ('cancelled'); other failures throw.
  */
 export async function shareBackup(data: AppData, now: Date = new Date()): Promise<'shared' | 'cancelled'> {
-  if (isNative()) return (await import('./nativeExport')).shareBackupNative(data, now)
+  if (__NATIVE_BUILD__ && isNative()) return (await import('./nativeExport')).shareBackupNative(data, now)
   try {
     await navigator.share({ files: [buildBackupFile(data, now)] })
     return 'shared'

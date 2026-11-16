@@ -1,5 +1,3 @@
-import { Capacitor } from '@capacitor/core'
-
 /**
  * The storage seam. All persistence code takes a `Storage`-shaped object and defaults to
  * `getStorage()`. On the web that is `localStorage`; the native app installs a file-backed
@@ -17,9 +15,16 @@ export function createWebStorage(): StorageAdapter {
   return localStorage
 }
 
-/** True inside the Capacitor app. The one place that asks; everything else calls this. */
+/**
+ * True inside the Capacitor app. The one place that asks; everything else calls this.
+ * `__NATIVE_BUILD__` is false in the PWA production build, so Rollup drops every native branch
+ * (and the lazily imported native modules) from it. Capacitor's native bridge injects
+ * `window.Capacitor` before the page scripts run, so no Capacitor import is needed here.
+ */
 export function isNative(): boolean {
-  return Capacitor.isNativePlatform()
+  if (!__NATIVE_BUILD__) return false
+  const cap = (globalThis as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor
+  return cap?.isNativePlatform?.() === true
 }
 
 export function getStorage(): Storage {
@@ -36,7 +41,10 @@ export function setStorage(adapter: StorageAdapter | null): void {
  * up in the PWA's startup path.
  */
 export async function initStorage(): Promise<void> {
-  if (!isNative()) return
+  if (__NATIVE_BUILD__ && isNative()) await initNativeStorage()
+}
+
+async function initNativeStorage(): Promise<void> {
   const [{ Directory }, { capacitorFiles }, { openNativeStorage }, { createAutoBackup }, store] = await Promise.all([
     import('@capacitor/filesystem'),
     import('./capacitorFiles'),

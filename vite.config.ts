@@ -25,11 +25,15 @@ function serviceWorker(): Plugin {
   }
 }
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
   // `--mode android`: Capacitor app. Relative base (files are served from the app bundle),
   // no service worker, separate output folder so the PWA `dist` is never touched.
   const android = mode === 'android'
+  // The PWA production build must not contain any native code: the flag lets Rollup drop the
+  // native branches. Dev server, tests and the android build keep them.
+  const pwaBuild = command === 'build' && !android
   return {
+    define: { __NATIVE_BUILD__: JSON.stringify(!pwaBuild) },
     base: android ? './' : '/gym-tracker-vibecoded/',
     plugins: android ? [react()] : [react(), serviceWorker()],
     build: android ? { outDir: 'dist-android' } : undefined,
