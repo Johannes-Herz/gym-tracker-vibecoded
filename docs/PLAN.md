@@ -49,14 +49,14 @@
 - [x] Cardio in editor, exercise list/picker, per-exercise stats and demo data
 
 ## Phase 9: Exercise stats page, bodyweight, exercise search — DONE
-- [x] Bodyweight exercises (equipment "Körpergewicht"): added/assisted weight, shown as KG / KG ± x kg
+- [x] Bodyweight exercises (equipment "Körpergewicht"): added/assisted weight, shown as KG / KG ± x kg (labels later changed to BW in Phase 11)
 - [x] Full-screen exercise search with chips, recently used and create-from-search
 - [x] Time range filter (2 W / 1 M / 3 M / 1 J / Alle / Zeitraum), remembered per device
 - [x] Per-exercise stats page: KPIs, rep heatmap, last vs. previous, compact trend; cardio variant
 - [x] Demo data with bodyweight exercises
 
 ## Phase 10: Logging and stats refinements — DONE
-- [x] Compact bodyweight labels ("KG", "+10", "−20") everywhere
+- [x] Compact bodyweight labels ("KG", "+10", "−20") everywhere (renamed "BW" in Phase 11)
 - [x] Editor: −/+ for reps, wider inputs
 - [x] Heatmap: 30px cells, continuous teal gradient with legend
 - [x] "Letztes Training" vs. "Davor": two columns per set number, each color-coded against the session before it (arrows + colors)
@@ -172,32 +172,41 @@ The bottom-nav tab and the page are both called "Einstellungen" / "Settings", th
 - [x] 2. Grouped page (Allgemein / Daten / Erweitert) + render test; 360 px check in light/dark, de/en
 - [x] 3. Share button + tests (Web Share API mocked; the real iOS/Android share sheet still to be checked by hand)
 
-## Phase 17: Experiment — Android app with Capacitor (branch `capacitor-experiment`)
-The same source also builds as an Android app with file-based storage. The PWA must keep working exactly as before. Nothing of this is merged into `dev` or `main`.
+## Phase 17: Android app with Capacitor — DONE (device checks below)
+The same source also builds as an Android app with file-based storage. The PWA keeps working exactly as before.
 
 ### Decisions
-- Separate build mode: `npm run build:android` (`vite build --mode android`, base `./`, no service worker), then `npx cap sync android`. `npm run build` and the GitHub Actions workflow are unchanged.
+- Separate build mode: `npm run build:android` (`vite build --mode android`, base `./`, no service worker, output `dist-android/`), then `cap sync android`. `npm run build` and the GitHub Actions workflow are unchanged and build only the PWA.
 - App id `de.johannes.gymtracker`, name "Gym Tracker". Debug APK only, no release signing, no Play Store.
-- Storage adapter with the `Storage` shape (`getItem`/`setItem`/`removeItem`). Web: localStorage. Native: in-memory cache hydrated once before render (`initStorage()`), writes go through a serialized async queue. Data, session and prefs all use the adapter. One file per key in the app-private `Directory.Data`.
-- Atomic write: write `X.tmp`, rename over `X`. Boot recovery reads `X`, then `X.tmp` (complete temp file after a crash between delete and rename); an unreadable file is renamed to `X.unreadable` and never overwritten. Whether Capacitor's `rename` is atomic could not be verified (native library source not available), hence this recovery.
-- Backups (native only): debounced (~2 s) after each change, same format as the export, last 3 files (`gym-tracker-backup-YYYY-MM-DD-HHmmss.json`; manual exports are never rotated; no backup of an empty dataset or of unchanged data), in a user-visible folder (`Documents/GymTracker`) that survives uninstall. Feasibility without risky permissions is checked on a device (Android 17, ideally also 13/14); fallbacks: small MediaStore plugin or SAF folder picker.
-- Export/share natively via Filesystem (cache dir) + Share; import via the existing file input.
-- `Capacitor.isNativePlatform()` only in `storage/adapter.ts`, `storage/backup.ts` and `main.tsx`.
-- Env: `JAVA_HOME` / Android SDK are set per project (`android/local.properties`, gitignored), not system-wide.
+- Storage adapter with the `Storage` shape (`getItem`/`setItem`/`removeItem`). Web: localStorage. Native: in-memory cache hydrated once before render (`initStorage()`), writes go through a serialized async queue. Data, session and prefs all use the adapter. One file per key in the app-private `Directory.Data/store`.
+- Atomic write: write `X.tmp`, rename over `X`. Boot recovery reads `X`, then `X.tmp` (complete temp file after a crash between delete and rename); an unreadable file is renamed to `X.unreadable` and never overwritten.
+- Backups (native only): debounced (3 s) after each change and flushed when the app goes to the background; same format as the export, last 3 files (`gym-tracker-backup-YYYY-MM-DD-HHmmss.json`; manual exports are never rotated; no backup of an empty dataset or of unchanged data), in the user-visible folder `Documents/GymTracker`, which survives uninstall.
+- Export/share natively via Filesystem (cache dir) + Share plugin; import via the existing file input.
 - Moving data from the PWA to the app: export in the PWA, import in the app.
+- Env: `JAVA_HOME` / Android SDK are found by `scripts/apk-debug.mjs` or set per project (`android/local.properties`, gitignored), not system-wide.
 
 ### Steps
 - [x] 1. CLAUDE.md (i18n, adapter) + this section
 - [x] 2. Capacitor + Android project, `.gitignore`, build modes, build test
 - [x] 3. Storage adapter refactor (web only) + shared test suite
 - [x] 4. Native file adapter, atomic writes, boot recovery + tests (Filesystem mocked)
-- [x] 5a. Backups with rotation (mocked tests), wired into the native startup
-- [ ] 5b. Device spike (to do by hand on the phone): does Documents/GymTracker work on Android 13/14/17?
+- [x] 5. Backups with rotation, wired into the native startup
 - [x] 6. Native export, share, import
-- [x] 7. Debug APK (`npm run build:android`, then `npm run apk:debug` -> `android/app/build/outputs/apk/debug/app-debug.apk`; `scripts/apk-debug.mjs` finds JDK 21 and the SDK itself)
+- [x] 7. Debug APK script
+- [ ] 8. Device check by hand: `Documents/GymTracker` works on the phone (Android 13/14/17)
 
-### How to remove the experiment
-Switch to `dev` and delete the branch: `git switch dev && git branch -D capacitor-experiment`. If it was merged anyway, remove: the `android/` folder, `capacitor.config.ts`, `src/storage/adapter*.ts` / native adapter files, the `build:android` and `apk:debug` scripts, the `@capacitor/*` dependencies (`npm uninstall @capacitor/core @capacitor/cli @capacitor/android @capacitor/filesystem @capacitor/share`), the `android` mode branches in `vite.config.ts` and `main.tsx`, and this section.
+## Phase 18: Consolidation after the Capacitor experiment — DONE (device checks below)
+Verified and cleaned up so the PWA and the app are built from one branch.
 
-### Installing the debug APK
-Copy `app-debug.apk` to the phone (USB cable, or cloud/messenger), open it in the Files app and allow "install unknown apps" for that app when asked. Data from the PWA: Export in the PWA, then Import in the app. The app requests no storage permission (only `INTERNET`, added by Capacitor).
+### Decisions
+- **PWA stays native-free.** The PWA build contained `@capacitor/core` and emitted/precached the native chunks. `isNative()` now reads `window.Capacitor` (injected by the native bridge) and every native branch sits behind the build-time flag `__NATIVE_BUILD__` (false only in the PWA production build). A build test checks `dist` and `sw.js` for Capacitor code.
+- **Persistence audit.** Persisted: `gymtracker:v1` (workouts, sets, exercises incl. hidden flag, templates, body weight), `gymtracker:session` (active training), `gymtracker:prefs` (language, history view, stats range, trend metric), `gymtracker:backup` (safety copy before an import/after unreadable data), all through the adapter; auto-backups in `Documents/GymTracker`. Not persisted on purpose: tab memory, scroll positions, rest timer. No direct `localStorage` use outside the adapter (test).
+- **Flush on background.** Besides `visibilitychange`/`pagehide`, the native `pause` and `appStateChange` events of `@capacitor/app` flush pending writes and the auto-backup (`storage/lifecycle.ts`, native-only, lazily imported).
+- **Safe areas.** The WebView is edge-to-edge on Android 15+. `viewport-fit=cover` was already set; the page had no top inset. `base.css` defines `--safe-top|right|bottom|left` = max of `env(safe-area-inset-*)` and the `--safe-area-inset-*` variables injected by Capacitor's SystemBars plugin (`insetsHandling: 'css'`, configured in `capacitor.config.ts`). Page, dialogs, bottom nav, FAB, timer bar and sheets use them. Status-bar icon style `DEFAULT` follows the device appearance, like the app's dark mode.
+
+### Steps
+- [x] 1. Verify PWA and Android builds, strip native code from the PWA, build test
+- [x] 2. Persistence audit, native pause flush, persistence tests (write-through, flush, kill and reopen, backup rotation)
+- [x] 3. Safe areas: `--safe-*` variables, top padding, SystemBars config
+- [x] 4. Docs (CLAUDE.md, README.md, this file)
+- [ ] 5. By hand on the phone: status bar/nav insets in light and dark mode, force-close persistence, installed PWA (iOS/Android) still looks right
