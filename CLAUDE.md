@@ -7,8 +7,8 @@ Mobile-first gym tracker as a web app.
 - The only exception is the app's UI text (labels, buttons, messages shown to the user): it is translated, German (default) and English, via `src/i18n` (`de.ts` is the source of truth for keys, `en.ts` must have the same keys). Never hardcode UI text in components; add a key to both files.
 
 ## Git
-- Never commit, merge or push to `main` – the user merges to `main` themselves.
-- Commit on `dev`, or on the feature branch the user is working on (currently `capacitor-experiment`, the Android app; it is merged into `dev` by the user). Run `git branch --show-current` before every commit; if it is `main`, stop.
+- Only ever commit on `dev`. Never commit, merge or push to `main` – the user merges to `main` themselves.
+- Run `git branch --show-current` before every commit. If it is not `dev`, switch to `dev` first.
 - Small, thematically separate commits, one per completed step.
 
 ## Stack

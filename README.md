@@ -5,7 +5,7 @@ Stack: Vite, React 18, TypeScript, plain CSS, Vitest. See `CLAUDE.md` for conven
 
 ## Branches
 - `main`: deployed to GitHub Pages by `.github/workflows/deploy.yml`. Only the user merges into it.
-- `dev`: day-to-day work. The Android app lives on `capacitor-experiment` until it is merged into `dev`.
+- `dev`: day-to-day work, including the Android app.
 
 ## PWA
 ```
