@@ -45,13 +45,16 @@ export async function initStorage(): Promise<void> {
 }
 
 async function initNativeStorage(): Promise<void> {
-  const [{ Directory }, { capacitorFiles }, { openNativeStorage }, { createAutoBackup }, store] = await Promise.all([
-    import('@capacitor/filesystem'),
-    import('./capacitorFiles'),
-    import('./nativeStorage'),
-    import('./autoBackup'),
-    import('./store'),
-  ])
+  const [{ Directory }, { App }, { capacitorFiles }, { openNativeStorage }, { createAutoBackup }, { flushOnBackground }, store] =
+    await Promise.all([
+      import('@capacitor/filesystem'),
+      import('@capacitor/app'),
+      import('./capacitorFiles'),
+      import('./nativeStorage'),
+      import('./autoBackup'),
+      import('./lifecycle'),
+      import('./store'),
+      ])
   const opened = await openNativeStorage(capacitorFiles(Directory.Data))
   setStorage(opened.storage)
 
@@ -60,10 +63,11 @@ async function initNativeStorage(): Promise<void> {
   store.subscribe(backup.notify)
 
   // Persist pending writes and backups when the app goes to the background.
-  const flush = () => {
-    void opened.flush()
-    void backup.flush()
-  }
-  document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flush())
-  window.addEventListener('pagehide', flush)
+  flushOnBackground(
+    () => {
+      void opened.flush()
+      void backup.flush()
+    },
+    { doc: document, win: window, app: App },
+  )
 }
