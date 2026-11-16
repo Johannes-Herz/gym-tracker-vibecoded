@@ -1,5 +1,6 @@
 import { BUILTIN_EXERCISES, type BuiltinExercise } from '../data/builtinExercises'
 import type { AppData, Exercise } from '../types'
+import { getStorage } from './adapter'
 
 export const STORAGE_KEY = 'gymtracker:v1'
 export const BACKUP_KEY = 'gymtracker:backup'
@@ -123,7 +124,7 @@ export function migrate(raw: unknown): AppData | null {
   return ensureBuiltins(pruneEmptyWorkouts(data))
 }
 
-export function load(storage: Storage = localStorage): AppData {
+export function load(storage: Storage = getStorage()): AppData {
   let text: string | null = null
   try {
     text = storage.getItem(STORAGE_KEY)
@@ -146,10 +147,10 @@ export function load(storage: Storage = localStorage): AppData {
   return emptyData()
 }
 
-export function save(data: AppData, storage: Storage = localStorage): void {
+export function save(data: AppData, storage: Storage = getStorage()): void {
   storage.setItem(STORAGE_KEY, JSON.stringify(data))
 }
 
-export function reset(storage: Storage = localStorage): void {
+export function reset(storage: Storage = getStorage()): void {
   storage.removeItem(STORAGE_KEY)
 }

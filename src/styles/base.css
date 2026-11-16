@@ -9,6 +9,13 @@
   --radius: 10px;
   --nav-h: 56px;
   --improve: #059669;
+  /* System-bar insets. `env()` is right in browsers and in the installed PWA; in the Android app
+     Capacitor injects `--safe-area-inset-*` (WebView-version independent). Both are 0 or equal
+     elsewhere, so the larger one is always correct. Use these, never raw env(), in new UI. */
+  --safe-top: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  --safe-right: max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px));
+  --safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
+  --safe-left: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
   background: var(--bg);
@@ -33,5 +40,5 @@ button { min-height: 44px; cursor: pointer; }
 .page {
   max-width: 640px;
   margin: 0 auto;
-  padding: 16px 16px calc(var(--nav-h) + 24px + env(safe-area-inset-bottom));
+  padding: calc(16px + var(--safe-top)) calc(16px + var(--safe-right)) calc(var(--nav-h) + 24px + var(--safe-bottom)) calc(16px + var(--safe-left));
 }

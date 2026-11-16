@@ -3,3 +3,19 @@ dist
 *.local
 .DS_Store
 *.tsbuildinfo
+dist-android
+
+# Android (Capacitor)
+android/local.properties
+android/.gradle/
+android/build/
+android/app/build/
+android/app/release/
+android/captures/
+android/.idea/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/capacitor-cordova-android-plugins/
+*.apk
+*.aab

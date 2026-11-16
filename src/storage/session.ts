@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import type { SetValues } from './repo'
+import { getStorage } from './adapter'
 
 /**
  * The active training session: everything about the running training that must
@@ -70,7 +71,7 @@ export function isExpired(session: Pick<Session, 'updatedAt'>, now: number = Dat
 }
 
 /** Reads the stored session; unreadable, invalid or expired sessions count as none. */
-export function loadSession(storage: Storage = localStorage, now: number = Date.now()): Session | null {
+export function loadSession(storage: Storage = getStorage(), now: number = Date.now()): Session | null {
   try {
     const text = storage.getItem(SESSION_KEY)
     if (text === null) return null
@@ -83,7 +84,7 @@ export function loadSession(storage: Storage = localStorage, now: number = Date.
   return null
 }
 
-export function saveSession(session: Session | null, storage: Storage = localStorage): void {
+export function saveSession(session: Session | null, storage: Storage = getStorage()): void {
   if (session === null) storage.removeItem(SESSION_KEY)
   else storage.setItem(SESSION_KEY, JSON.stringify(session))
 }

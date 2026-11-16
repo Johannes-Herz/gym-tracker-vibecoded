@@ -23,7 +23,7 @@ export function _resetCache(): void {
   listeners.forEach((l) => l())
 }
 
-function subscribe(listener: () => void): () => void {
+export function subscribe(listener: () => void): () => void {
   listeners.add(listener)
   return () => listeners.delete(listener)
 }
